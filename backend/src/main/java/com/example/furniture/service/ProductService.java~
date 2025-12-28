@@ -1,0 +1,207 @@
+package com.example.furniture.service;
+
+import com.example.furniture.inputDTO.ProductDTO;
+import com.example.furniture.model.Image;
+import com.example.furniture.model.Product;
+import com.example.furniture.model.Rating;
+import com.example.furniture.repository.*;
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
+@Service
+public class ProductService {
+
+    @Autowired
+    ProductRepository productRepository;
+    @Autowired
+    CategoryRepository categoryRepository;
+
+    @Autowired
+    SupplierRepository supplierRepository;
+
+    @Autowired
+    ImageRepository imageRepository;
+    @Autowired
+    RatingRepository ratingRepository;
+
+    @Transactional
+    public String deleteById(Long id) {
+        try {
+            productRepository.deleteById(id);
+            return "success";
+        } catch (Exception e) {
+            return "failed";
+        }
+    }
+
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
+    @Transactional
+    public List<ProductDTO> getAllProducts() {
+        List<Product> products = productRepository.findAllWithImagesAndRatings();
+        List<ProductDTO> result = products.stream().map(ProductDTO::new).toList();
+        return result;
+    }
+
+    public void save(Product product) {
+        productRepository.save(product);
+    }
+
+    public String addProduct(Product product, MultipartFile[] files) throws IOException {
+        try {
+            List<Image> imageList = new ArrayList<>();
+
+            if (files != null && files.length > 0) {
+                for (MultipartFile file : files) {
+                    if (file != null && !file.isEmpty()) {
+                        String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                        Path filePath = Paths.get(uploadDir, filename);
+                        Files.createDirectories(filePath.getParent());
+                        Files.write(filePath, file.getBytes());
+
+                        Image img = new Image();
+                        img.setUrl("/uploads/" + filename);
+                        img.setProduct(product);
+                        imageList.add(img);
+                    }
+                }
+            }
+
+            product.setImages(imageList);
+            productRepository.save(product);
+            return "success";
+        } catch (Exception e) {
+            e.printStackTrace(); // log error
+            return "Error while saving product: " + e.getMessage();
+        }
+    }
+
+
+    @Transactional
+    public ResponseEntity<?> getByCategoryId(Long id) {
+        if (categoryRepository.existsById(id)) {
+            List<Product> products = productRepository.findByCategoryIdWithImages(id);
+            for (Product p : products) {
+                Set<Rating> ratings = ratingRepository.findByProductId(p.getId());
+                p.getRatings().addAll(ratings);
+            }
+            List<ProductDTO> result = products.stream().map(ProductDTO::new).toList();
+            return ResponseEntity.ok(result);
+        } else
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+
+    }
+
+    @Transactional
+    public ProductDTO getProduct(Long id) {
+        Product product = productRepository.findByIdWithImages(id);
+        ProductDTO productDto = ProductDTO.withRatings(product);
+        return productDto;
+    }
+
+
+    public Product updateProductById(Long id, String name, String code, String description, double price, double canceledPrice,
+                                     Long categoryId, String supplierCode,
+                                     MultipartFile[] newImages,
+                                     List<Long> deletedImages) throws IOException {
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+        // Update fields
+        product.setName(name);
+        product.setCode(code);
+        product.setDescription(description);
+        product.setPrice(price);
+        product.setCanceledPrice(canceledPrice);
+        product.setCategory(categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found")));
+        product.setSupplier(supplierRepository.findByCode(supplierCode));
+
+        // Handle deleted images
+        if (deletedImages != null && !deletedImages.isEmpty()) {
+            List<Image> existingImages = imageRepository.findByProduct(product);
+
+            for (Image image : existingImages) {
+                if (deletedImages.contains(image.getId())) {
+                    Path path = Paths.get(uploadDir, Paths.get(image.getUrl()).getFileName().toString());
+                    Files.deleteIfExists(path);
+                    imageRepository.delete(image);
+                }
+            }
+        }
+
+        // Handle new images
+        for (MultipartFile file : newImages) {
+            if (!file.isEmpty()) {
+                String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                Path path = Paths.get(uploadDir, filename);
+                Files.createDirectories(path.getParent());
+                Files.write(path, file.getBytes());
+
+                Image image = new Image();
+                image.setUrl("/uploads/" + filename);
+                image.setProduct(product);
+                imageRepository.save(image);
+            }
+        }
+
+        return productRepository.save(product);
+    }
+
+
+    @Transactional
+    public List<Product> getProductsContaining(String search) {
+        List<Product> searchResult = productRepository.searchProductsByNameOrDescription(search);
+        return searchResult;
+    }
+
+    @Transactional
+    public List<Product> getBestSellers() {
+        List<Product> products = productRepository.findTop8ByQuantitySailed();
+        for (Product p : products) {
+            Set<Rating> ratings = ratingRepository.findByProductId(p.getId());
+            p.getRatings().addAll(ratings);
+        }
+        return products;
+    }
+
+    @Transactional
+    public List<Product> getMostRated() {
+        Map<Long, Product> products = new HashMap<>();
+        List<Rating> ratings = ratingRepository.findAll();
+        Product product;
+        for (Rating r : ratings) {
+            if (products.containsKey(r.getProduct().getId())) {
+                product = products.get(r.getProduct().getId());
+            } else {
+                product = productRepository.findByIdWithImages(r.getProduct().getId());
+            }
+            product.getRatings().add(r);
+            products.put(product.getId(), product);
+        }
+        return products.values().stream().toList();
+    }
+    public List<ProductDTO> findAllById(List<Long> ids) {
+        System.out.println(ids);
+        List<ProductDTO> products = new ArrayList<>();
+        for (long id:ids){
+            ProductDTO product = getProduct(id);
+            products.add(product);
+        }
+        return products;
+    }
+
+}

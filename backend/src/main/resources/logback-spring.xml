@@ -1,0 +1,20 @@
+<configuration>
+    <!-- Appender for your custom log file (no rolling) -->
+    <appender name="MY_APP_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>./logs/business.log</file>
+        <append>true</append> <!-- keep adding logs instead of overwriting -->
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Log only your package into business.log -->
+    <logger name="com.example.furniture" level="INFO" additivity="false">
+        <appender-ref ref="MY_APP_FILE"/>
+    </logger>
+
+    <!-- Keep the console logs as they are -->
+    <root level="ERROR">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

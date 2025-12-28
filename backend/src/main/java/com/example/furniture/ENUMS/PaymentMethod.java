@@ -1,0 +1,8 @@
+package com.example.furniture.ENUMS;
+
+public enum PaymentMethod {
+    CASH_ON_DELEVER,
+    INSTAPAY,
+    VODAFONE_CASH,
+    CARD
+}

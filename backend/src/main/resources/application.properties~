@@ -1,0 +1,26 @@
+spring.application.name=furniture
+
+spring.datasource.url=jdbc:mysql://127.0.0.1:3306/my_app_db
+spring.datasource.username=appuser
+spring.datasource.password=StrongPassword123!
+
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.open-in-view=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+
+jwt.secret=MySuperSecretKey123456
+
+file.upload-dir=uploads
+spring.servlet.multipart.max-file-size=2MB
+spring.servlet.multipart.max-request-size=10MB
+
+
+spring.jpa.show-sql=false
+logging.level.org.hibernate.SQL=off
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=off
+
+server.port=8080
+# server.address=127.0.0.1  ? optional, it's the default
+
