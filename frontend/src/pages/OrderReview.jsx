@@ -24,9 +24,9 @@ export default function OrderReview() {
 
   useEffect(() => {
     if (city === "القاهرة" || city === "الجيزة") {
-      setDeliveryCost(300);
+      setDeliveryCost(350);
     } else if (city) {
-      setDeliveryCost(500);
+      setDeliveryCost(550);
     } else {
       setDeliveryCost(0);
     }
