@@ -14,16 +14,16 @@ import AD9 from "@/assets/images/categories/carpets.jpg";
 import AD10 from "@/assets/images/categories/bigBag.jpg";
 
 const categoryImages = [
-  { id: 15, title: "ترابيزة الانتريه", category: "1", image: AD1 },
+  { id: 4, title: "ترابيزة الانتريه", category: "1", image: AD1 },
   { id: 1, title: "جزامات", category: "2", image: AD2 },
   { id: 3, title: "كوفي كورنر", category: "3", image: AD3 },
   { id: 2, title: "وحدات شاشه", category: "4", image: AD4 },
-  { id: 6, title: "ركنات", category: "5", image: AD5 },
-  { id: 5, title: "سراير", category: "6", image: AD6 },
-  { id: 14, title: "كمود", category: "7", image: AD7 },
-  { id: 17, title: "إضاءات", category: "8", image: AD8 },
-  { id: 16, title: "سجاد و ستائر", category: "9", image: AD9 },
-  { id: 18, title: "بين باج", category: "10", image: AD10 },
+  { id: 8, title: "ركنات", category: "5", image: AD5 },
+  { id: 7, title: "سراير", category: "6", image: AD6 },
+  { id: 10, title: "كمود", category: "7", image: AD7 },
+  { id: 19, title: "إضاءات", category: "8", image: AD8 },
+  { id: 5, title: "سجاد و ستائر", category: "9", image: AD9 },
+  { id: 20, title: "بين باج", category: "10", image: AD10 },
 ];
 
 const HomeCategory = () => {
