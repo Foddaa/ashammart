@@ -2,6 +2,7 @@ package com.example.furniture.repository;
 
 import com.example.furniture.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
@@ -35,5 +36,13 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     Product findByIdWithImages(@Param("productId") Long productId);
 
     Product findByCode(String code);
+
+    @Modifying
+    @Query("UPDATE Product p SET p.price = p.price + (p.price * :percentage / 100)")
+    int updatePricesByPercentage(@Param("percentage") double percentage);
+
+    @Modifying
+    @Query("UPDATE Product p SET p.price = p.price + :amount")
+    int updatePricesByFixed(@Param("amount") double amount);
 
 }

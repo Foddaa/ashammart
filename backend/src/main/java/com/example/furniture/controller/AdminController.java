@@ -1,5 +1,6 @@
 package com.example.furniture.controller;
 
+import com.example.furniture.inputDTO.UpdatePricesRequest;
 import com.example.furniture.model.Category;
 import com.example.furniture.model.Product;
 import com.example.furniture.model.Supplier;
@@ -18,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -28,6 +28,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
+
     @Autowired
     CategoryService categoryService;
     @Autowired
@@ -45,8 +47,6 @@ public class AdminController {
 
     @Autowired
     ProductService productService;
-    Logger logger = LoggerFactory.getLogger(AdminController.class);
-
     @PatchMapping(value = "/product/{id}/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(@PathVariable Long id,
                                            @RequestParam("name") String name,
@@ -58,18 +58,24 @@ public class AdminController {
                                            @RequestParam("supplierCode") String supplierCode,
                                            @RequestParam(value = "images", required = false) MultipartFile[] newImages,
                                            @RequestParam(value = "deletedImages", required = false) String deletedImagesJson) {
+        logger.info("Updating product with ID: {}", id);
         try {
             List<Long> deletedImages = new ArrayList<>();
             if (deletedImagesJson != null && !deletedImagesJson.isBlank()) {
                 ObjectMapper mapper = new ObjectMapper();
                 deletedImages = mapper.readValue(deletedImagesJson, new TypeReference<List<Long>>() {});
+                logger.debug("Deleted images IDs: {}", deletedImages);
             }
-            return productService.updateProductById(
+            ResponseEntity<?> response = productService.updateProductById(
                     id, name, code, description, price,canceledPrice, categoryId,
                     supplierCode, newImages != null ? newImages : new MultipartFile[0],
                     deletedImages
             );
+            logger.info("Product updated successfully with ID: {}", id);
+            return response;
+
         } catch (Exception e) {
+            logger.error("Error updating product ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.badRequest().body("Update failed: " + e.getMessage());
         }
     }
@@ -130,87 +136,118 @@ public class AdminController {
 
     @PostMapping("/category/add")
     public ResponseEntity<?> addCategory(@RequestBody Category category) {
+        logger.info("Adding category: {}", category.getName());
         return categoryService.addCategory(category);
     }
 
     @PatchMapping("/category/{id}/update")
     public ResponseEntity<?> updateCategory(@PathVariable Long id, @RequestBody Category updatedCategory) {
+        logger.info("Updating category ID: {}", id);
         return categoryService.updateCategory(id, updatedCategory);
     }
 
     @GetMapping("/category/byId")
     public ResponseEntity<Category> getCategoryById(@RequestParam Long id) {
+        logger.info("Fetching category ID: {}", id);
         Category category = categoryService.getCategoryById(id);
-
         if (category != null) {
             return ResponseEntity.ok(category);
         } else {
+            logger.warn("Category not found ID: {}", id);
             return ResponseEntity.notFound().build();
         }
     }
 
     @GetMapping("/category/all")
     public List<Category> getAllCategory() {
+        logger.info("Fetching all categories");
         return categoryService.getAllCategories();
     }
 
     @DeleteMapping("/category/delete")
     public ResponseEntity<?> deleteCategory(@RequestParam Long id) {
+        logger.warn("Deleting category ID: {}", id);
         try {
             categoryRepository.deleteById(id);
             return ResponseEntity.ok("success");
         } catch (Exception e) {
+            logger.error("Error deleting category ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.badRequest().body("Delete failed: " + e.getMessage());
         }
 
     }
     @GetMapping("/supplier/all")
     public List<Supplier> getAllSupplier() {
+        logger.info("Fetching all suppliers");
         return supplierService.getAllSuppliers();
     }
 
     @PostMapping("/supplier/add")
     public ResponseEntity<?> addCSupplier(@RequestBody Supplier supplier) {
+        logger.info("Adding supplier: {}", supplier.getName());
         return supplierService.addSupplier(supplier);
     }
 
     @DeleteMapping("/supplier/delete")
     public ResponseEntity<?> deleteSupplier(@RequestParam Long id) {
+        logger.warn("Deleting supplier ID: {}", id);
         try {
             supplierRepository.deleteById(id);
             return ResponseEntity.ok("success");
         } catch (Exception e) {
+            logger.error("Error deleting supplier ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.badRequest().body("Delete failed: " + e.getMessage());
         }
 
     }
     @PatchMapping("/supplier/{id}/update")
     public ResponseEntity<?> updateSupplier(@PathVariable Long id, @RequestBody Supplier updatedSupplier) {
+        logger.info("Updating supplier ID: {}", id);
         return supplierService.updateSupplier(id, updatedSupplier);
     }
     @GetMapping("/supplier/byId")
     public ResponseEntity<Supplier> getSupplierById(@RequestParam Long id) {
+        logger.info("Fetching supplier ID: {}", id);
         Supplier supplier = supplierService.getSupplierById(id);
         if (supplier != null) {
+            logger.info("supplier :{} found with id: {}",supplier.getName(),id);
             return ResponseEntity.ok(supplier);
         } else {
+            logger.warn("Supplier not found ID: {}", id);
             return ResponseEntity.notFound().build();
         }
     }
     @GetMapping("/supplierRequest/all")
     public ResponseEntity<?> getAllRequests(){
+        logger.info("Fetching all supplier requests");
         return supplierService.getAllSuppliersRequests();
     }
     @DeleteMapping("/supplierRequest/delete")
     public ResponseEntity<?> deleteSupplierRequest(@RequestParam Long id) {
+        logger.warn("Deleting supplier request ID: {}", id);
         try {
             supplierRequestRepository.deleteById(id);
+            logger.info("supplier deleted successfully with id: {}", id);
             return ResponseEntity.ok("success");
         } catch (Exception e) {
+            logger.error("Error deleting supplier request ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.badRequest().body("Delete failed: " + e.getMessage());
         }
 
     }
 
+    @PutMapping("/products/updatePrices")
+    public ResponseEntity<?> updatePrices(@RequestBody UpdatePricesRequest request){
+        logger.info("Bulk price update started: type={}, value={}",
+                request.getUpdatePricesType(), request.getValue());
+        try {
+            int updatedCount = productService.updateAllPrices(request);
+            logger.info("Bulk price update completed. Updated {} products", updatedCount);
+            return ResponseEntity.ok("updated " + updatedCount + " products successfully");
+        }catch (Exception e){
+            logger.error("Bulk price update failed: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Update failed: " + e.getMessage());
+        }
+    }
 
 }

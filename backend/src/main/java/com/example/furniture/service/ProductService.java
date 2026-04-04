@@ -1,4 +1,5 @@
 package com.example.furniture.service;
+import com.example.furniture.inputDTO.UpdatePricesRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.furniture.inputDTO.ProductDTO;
@@ -57,13 +58,18 @@ public class ProductService {
 
     @Transactional
     public List<ProductDTO> getAllProducts() {
+        logger.info("Fetching all products with images and ratings");
         List<Product> products = productRepository.findAllWithImagesAndRatings();
+        logger.debug("Fetched {} products", products.size());
         List<ProductDTO> result = products.stream().map(ProductDTO::new).toList();
+        logger.info("Returning {} product DTOs", result.size());
         return result;
     }
 
     public void save(Product product) {
+        logger.info("Saving product: {}", product.getName());
         productRepository.save(product);
+        logger.info("Product saved successfully: {}", product.getName());
     }
 
 
@@ -157,23 +163,30 @@ public class ProductService {
 
     @Transactional
     public ResponseEntity<?> getByCategoryId(Long id) {
+        logger.info("Fetching products by category ID: {}", id);
         if (categoryRepository.existsById(id)) {
             List<Product> products = productRepository.findByCategoryIdWithImages(id);
+            logger.debug("Found {} products in category {}", products.size(), id);
             for (Product p : products) {
                 Set<Rating> ratings = ratingRepository.findByProductId(p.getId());
                 p.getRatings().addAll(ratings);
             }
             List<ProductDTO> result = products.stream().map(ProductDTO::new).toList();
+            logger.info("Returning {} products for category {}", result.size(), id);
             return ResponseEntity.ok(result);
-        } else
+        } else {
+            logger.warn("Category not found with ID: {}", id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
-
+        }
     }
 
     @Transactional
     public ProductDTO getProduct(Long id) {
+        logger.info("Fetching product with ID: {}", id);
         Product product = productRepository.findByIdWithImages(id);
+        logger.debug("Product fetched: {}", product.getName());
         ProductDTO productDto = ProductDTO.withRatings(product);
+        logger.info("Returning product DTO for ID: {}", id);
         return productDto;
     }
 
@@ -301,4 +314,29 @@ public class ProductService {
         return products;
     }
 
+    @Transactional
+    public int updateAllPrices(UpdatePricesRequest request) {
+        logger.info("Starting bulk price update: type={}, value={}",
+                request.getUpdatePricesType(), request.getValue());
+        if (request.getValue() == 0) {
+            logger.warn("Bulk price update failed: value cannot be zero");
+            throw new IllegalArgumentException("value cannot be zero");
+        }
+        int updatedCount = switch (request.getUpdatePricesType()) {
+            case PERCENTAGE -> {
+                logger.debug("Applying percentage update: {}%", request.getValue());
+                yield productRepository.updatePricesByPercentage(request.getValue());
+            }
+            case FIXED -> {
+                logger.debug("Applying fixed update: {}", request.getValue());
+                yield productRepository.updatePricesByFixed(request.getValue());
+            }
+            default -> {
+                logger.error("Invalid update price type: {}", request.getUpdatePricesType());
+                throw new IllegalArgumentException("invalid change Prices Type");
+            }
+        };
+        logger.info("Bulk price update completed. Updated {} products", updatedCount);
+        return updatedCount;
+    }
 }

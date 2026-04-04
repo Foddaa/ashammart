@@ -37,7 +37,7 @@ const Footer = () => {
             </button>
           ))}
         </div>
-        <p className="text-center w-full md:w-auto">© {new Date().getFullYear()} AshamMart. جميع الحقوق محفوظة.</p>
+        <p className="text-center w-full md:w-auto">© {new Date().getFullYear()} Antika. جميع الحقوق محفوظة.</p>
       </div>
 
       {/* Feature Icons */}
@@ -78,13 +78,13 @@ const Footer = () => {
           </div>
         </div>
         <div className="flex gap-4">
-          <a href="https://www.facebook.com/share/1FRdki8tEW/" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.facebook.com/share/1Fds9UiuxC/" target="_blank" rel="noopener noreferrer">
             <img src={Facebook} alt="Facebook" className="w-9 h-9 hover:scale-110 transition-transform" />
           </a>
-          <a href="https://www.instagram.com/ashammart?utm_source=qr&igsh=MXdlbDJhOWM2dmd4dA==" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.instagram.com/antekafurniture?igsh=cXdmM2p0NHJycjhr" target="_blank" rel="noopener noreferrer">
             <img src={Instgram} alt="Instagram" className="w-9 h-9 hover:scale-110 transition-transform" />
           </a>
-          <a href="https://www.tiktok.com/@ashamart7?_t=ZS-8xyYL75mxve&_r=1" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.tiktok.com/@anteka047?_r=1&_t=ZS-95EJaVFkq8m" target="_blank" rel="noopener noreferrer">
             <img src={Tiktok} alt="TikTok" className="w-9 h-9 hover:scale-110 transition-transform" />
           </a>
         </div>
