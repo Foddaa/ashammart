@@ -45,7 +45,7 @@ function productPopUp(product) {
       <div className="py-5 ">
         <div className="flex justify-between mb-5">
           <Heading header={"الأكثر مبيعًا"} 
-          text={"لا تفوّت العروض الحالية حتى نهاية شهر أغسطس."}/>
+          text={"الأكثر طلبًا من عملائنا، جودة وتجربة مضمونة."}/>
           {/* <ViewAll /> */}
         </div>
 

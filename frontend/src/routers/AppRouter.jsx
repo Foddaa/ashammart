@@ -40,6 +40,7 @@ import WhoAreWe from "@/pages/WhoAreWe";
 import PaymentMethods from "@/pages/PaymentMethod";
 import SupplierRequestList from "@/admin/SupplierRequestList";
 import UserProfilePage from "@/pages/UserProfilePage";
+import UpdatePrices from "@/admin/UpdatePrices";
 
 const router = createBrowserRouter([
   {
@@ -87,7 +88,7 @@ const router = createBrowserRouter([
     { path: 'supplier/edit/:id', element: <EditSupplier /> },
     { path: 'suppliers', element: <SupplierList /> },
     { path: 'supplierRequests', element: <SupplierRequestList /> },
-
+    { path: 'update/prices', element: <UpdatePrices/> },
   ]
 },
 {path: '/executive',

@@ -34,20 +34,29 @@ const HomeCategory = () => {
   };
 
   return (
-    <section className="container min-h-full py-8">
+    <section className="container min-h-full py-6">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
         <Heading header="الأقسام الرئيسية" text="اكتشف تشكيلتنا الواسعة من الأثاث" />
         <ViewAll />
       </div>
-
-      <div className="grid grid-cols-5 gap-4 px-2 md:px-0">
+      <div className="grid grid-cols-5 gap-4 px-0 md:px-0">
         {categoryImages.map((cat) => (
-          <div key={cat.id} className="flex flex-col items-center justify-center">
+          <div key={cat.id} className="flex flex-col items-center justify-start">
             <button
               onClick={() => handleCategoryClick(cat.id)}
-              className="bg-white shadow rounded overflow-hidden w-20 h-20 flex items-center justify-center p-0"
+              className="flex items-center justify-center"
             >
-              <img src={cat.image} className="w-full h-full object-cover" alt={cat.title} />
+              <div className="p-[2px] rounded-full bg-blue-500">
+                <div className="p-[1px] rounded-full bg-white">                  
+                  <div className="w-15 h-15 rounded-full overflow-hidden">
+                    <img
+                      src={cat.image}
+                      className="w-full h-full object-cover rounded-full"
+                      alt={cat.title}
+                    />
+                  </div>
+                </div>
+              </div>
             </button>
             <span className="text-xs text-center mt-1 font-medium text-gray-700">
               {cat.title}
@@ -55,6 +64,7 @@ const HomeCategory = () => {
           </div>
         ))}
       </div>
+      
     </section>
   );
 };

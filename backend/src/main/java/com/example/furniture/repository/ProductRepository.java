@@ -29,20 +29,35 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     List<Product> findTop8ByQuantitySailed();
 
     @Query("""
-    SELECT  p FROM Product p
-    LEFT JOIN FETCH p.images
-    WHERE p.id = :productId
-""")
+        SELECT  p FROM Product p
+        LEFT JOIN FETCH p.images
+        WHERE p.id = :productId
+    """)
     Product findByIdWithImages(@Param("productId") Long productId);
 
     Product findByCode(String code);
 
     @Modifying
-    @Query("UPDATE Product p SET p.price = p.price + (p.price * :percentage / 100)")
+    @Query("UPDATE Product p SET p.price = ROUND(p.price + (p.price * :percentage / 100), 1) , p.canceledPrice = ROUND(p.canceledPrice + (p.canceledPrice * :percentage / 100), 1)")
     int updatePricesByPercentage(@Param("percentage") double percentage);
 
     @Modifying
-    @Query("UPDATE Product p SET p.price = p.price + :amount")
+    @Query("""
+        UPDATE Product p
+        SET
+            p.price = ROUND(
+                CASE
+                    WHEN (p.price + :amount) < 0 THEN 0
+                    ELSE (p.price + :amount)
+                END
+            , 1),
+            p.canceledPrice = ROUND(
+                CASE
+                    WHEN (p.canceledPrice + :amount) < 0 THEN 0
+                    ELSE (p.canceledPrice + :amount)
+                END
+            , 1)
+        """)
     int updatePricesByFixed(@Param("amount") double amount);
 
 }

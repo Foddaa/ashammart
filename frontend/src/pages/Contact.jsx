@@ -34,7 +34,7 @@ export default function Contact() {
           <span className="text-blue-400 text-3xl flex items-center justify-center h-12 w-12 mb-4">
             <MdOutlineMail />
           </span>
-          <h3 className="text-lg font-semibold">ashammart@gmail.com</h3>
+          <h3 className="text-lg font-semibold">antekafurniture@gmail.com</h3>
           <p className="mt-2 text-gray-600">راسلنا عبر البريد الإلكتروني لأي اقتراحات أو استفسارات.</p>
         </div>
       </div>

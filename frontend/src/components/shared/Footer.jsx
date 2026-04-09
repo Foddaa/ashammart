@@ -73,7 +73,7 @@ const Footer = () => {
         <div className="flex items-start gap-3">
           <Tele className="w-8 h-8 mt-1 text-blue-600" />
           <div>
-            <p className="font-bold text-lg text-gray-800">01118899959</p>
+            <p className="font-bold text-lg text-gray-800">01158880605</p>
             <p className="text-xs text-[#71778E]">ساعات العمل 8:00 - 22:00</p>
           </div>
         </div>

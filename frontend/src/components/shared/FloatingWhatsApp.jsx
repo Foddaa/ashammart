@@ -3,7 +3,7 @@ import Whatsapp from "@/assets/images/logos/Whatsapp.png";
 
 const FloatingWhatsApp = () => (
   <a
-    href="https://wa.me/201118899959"
+    href="https://wa.me/01158880605"
     target="_blank"
     rel="noopener noreferrer"
     className="fixed bottom-18 right-5 z-50"

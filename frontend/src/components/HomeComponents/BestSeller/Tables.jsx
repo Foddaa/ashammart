@@ -1,6 +1,6 @@
 import { useEffect} from "react";
 // import Rating from "@mui/material/Rating";
-import { AD5 } from "@/assets/images";
+import { AD6 } from "@/assets/images";
 import { useDispatch, useSelector } from "react-redux";
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
@@ -46,7 +46,7 @@ function productPopUp(product) {
         <div className="flex justify-between mb-5">
           <Heading 
             header={"الاعلي تقيِما "} 
-          text={"لا تفوّت العروض الحالية حتى نهاية شهر أغسطس."}/>
+          text={"منتجات نالت أعلى تقييمات وثقة المستخدمين."}/>
           {/* <ViewAll /> */}
         </div>
 
@@ -64,14 +64,14 @@ function productPopUp(product) {
             >
               <div className="aspect-square w-full flex justify-center items-center bg-gray-50">
                 <img
-                  src={e.images[0]?.url ? `${BASE_URL}/api${e.images[0].url}` : AD5}
+                  src={e.images[0]?.url ? `${BASE_URL}/api${e.images[0].url}` : AD6}
                   alt={e.name}
                   className="w-full h-full object-cover p-1 cursor-pointer"
                   loading="lazy"
                   onClick={() => productPopUp(e)}
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = AD5;
+                    e.target.src = AD6;
                   }}
                 />
               </div>
@@ -123,7 +123,7 @@ function productPopUp(product) {
         <div className="flex justify-center items-center mt-10 px-4">
   <div className="w-full max-w-7xl aspect-[48/9] rounded-xl shadow-md overflow-hidden">
     <img
-      src={AD5}
+      src={AD6}
       alt="Advertisement"
       className="w-full h-full object-cover"
       loading="lazy"

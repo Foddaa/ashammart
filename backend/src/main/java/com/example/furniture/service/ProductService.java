@@ -322,8 +322,17 @@ public class ProductService {
             logger.warn("Bulk price update failed: value cannot be zero");
             throw new IllegalArgumentException("value cannot be zero");
         }
+
         int updatedCount = switch (request.getUpdatePricesType()) {
             case PERCENTAGE -> {
+                if (request.getValue()>100){
+                    logger.warn("Bulk price update failed: value cannot be greater than 100% and the passed value is {}",request.getValue());
+                    throw new IllegalArgumentException("value cannot be greater than 100%");
+                }
+                if (request.getValue()<-100){
+                    logger.warn("Bulk price update failed: discount cannot be less than -100% and the passed value is {}",request.getValue());
+                    throw new IllegalArgumentException("value cannot be less than 100%");
+                }
                 logger.debug("Applying percentage update: {}%", request.getValue());
                 yield productRepository.updatePricesByPercentage(request.getValue());
             }

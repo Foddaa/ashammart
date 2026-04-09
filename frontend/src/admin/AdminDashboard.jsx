@@ -149,6 +149,18 @@ const AdminDashboard = () => {
           >
             📋 طلبات الانضمام
           </NavLink>
+          <NavLink
+            to="/admin/update/prices"
+            className={({ isActive }) =>
+              `px-4 py-2 rounded-md text-right transition-colors ${
+                isActive
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-100 text-gray-800 hover:bg-red-100"
+              }`
+            }
+          >
+            💰 تعديل الأسعار
+          </NavLink>
         </nav>
       </aside>
 

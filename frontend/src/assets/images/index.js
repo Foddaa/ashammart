@@ -4,16 +4,16 @@ import AD3 from './ad2.jpg';
 import AD4 from './ad2.jpg';
 import AppStore from './app-store.png';
 import GooglePlay from './google-play.png';
-import Logo from './logo1.png'; 
+import Logo from './logos/logo.ico';
 import Blog1 from './blog1.png';
 import Blog2 from './blog2.png';
 import CategoryImage from './category-image.png';
 import Man from './man.png';
 import Payments from './payments.jpg';
 import Coupon from './coupon.png';
-import AD5 from './ad5.png';
-import AD6 from './ad6.png';
-import logo from './logo1.png'
+import AD5 from './ad5.webp';
+import AD6 from './ad6.webp';
+import logo from './logos/logo.ico'
 
 export {
   AD1,

@@ -50,7 +50,7 @@ export default function HeaderSection1() {
           <img
             src={logo}
             alt="Logo"
-            className="w-[60px] h-[60px] object-cover"
+            className="w-[100px] h-[80px] object-cover"
           />
         </Link>
 

@@ -1,6 +1,5 @@
 import { Delivery, Discounts, Facebook, Instagram, Price,Twitter  } from "@/assets/icons/svgs";
 import { AD1, AD2, AD3, AD4 } from "@/assets/images";
-import { Beverages, BiscuitsandSnacks, Bread, BreadsandBakery, BreakfastandDairy, Coffee, Egg, FrozenFoods, FruitsandVegetables, GroceryandStaples, HouseholdNeeds, MeatsansSeafood } from "@/assets/images/task4";
 import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 // hero section
@@ -34,36 +33,6 @@ export  const pages = [
       path: '/checkout',
     }
   ];
-
-export const categories = [
-  { title: 'Beverages', count: 11, image: Beverages },
-  { title: 'Biscuits & Snacks', count: 6, image: BiscuitsandSnacks },
-  { title: 'Breads & Bakery', count: 6, image: BreadsandBakery },
-  { title: 'Breakfast & Dairy', count: 8, image: BreakfastandDairy },
-  { title: 'Frozen Foods', count: 7, image:  FrozenFoods },
-  { title: 'Fruits & Vegetables', count: 11, image: FruitsandVegetables },
-  { title: 'Grocery & Staples', count: 7, image: GroceryandStaples },
-  { title: 'Household Needs', count: 1, image: HouseholdNeeds },
-  { title: 'Meats & Seafood', count: 5, image: MeatsansSeafood },
-];
-
-export const promos = [
-  {
-    title: "Natural Eggs",
-    subtitle: "Eat one every day",
-    image: Egg, 
-  },
-  {
-    title: "Taste the Best",
-    subtitle: "Shine the morning",
-    image: Bread, 
-  },
-  {
-    title: "Ditch the Junk",
-    subtitle: "Breakfast made better",
-    image: Coffee, 
-  },
-];
 
 // sidebar in Shop
 export const fetchCategories = async () => {
@@ -144,9 +113,6 @@ export const VerticalBorder = [
       name: "Frozen Foods",
     },
     {
-      name: "Fruits & Vegetables",
-    },
-    {
       name: "Grocery & Staples",
     },
     {
@@ -217,10 +183,8 @@ export const FooterList = [
 
 
 export const footerIcons = [
-          // { icon: FreshProducts , text: "Everyday fresh products" },
-          // { icon: Delivery, text: "Free delivery for order over $70" },
-          { icon: Discounts, text: "Daily Mega Discounts" },
-          { icon: Price, text: "Best price on the market" }
+          { text: "خصومات يومية", icon: Discounts },
+          { icon: Price, text: "افضل الأسعار في السوق" }
         ];
 
 export const footerSocial = [
