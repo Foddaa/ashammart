@@ -39,8 +39,27 @@ const Footer = () => {
         </div>
         <p className="text-center w-full md:w-auto">© {new Date().getFullYear()} Antika. جميع الحقوق محفوظة.</p>
       </div>
+<div className="px-4 sm:px-6 md:px-10 lg:px-[100px] xl:px-[250px] py-6 bg-white">
+  <div className="flex flex-col items-end text-right gap-3 font-sans" dir="rtl">
+    
+    <h3 className="text-lg font-semibold text-gray-900 w-full tracking-wide">
+      📌 عناوين فروعنا
+    </h3>
 
-      {/* Feature Icons */}
+    <a
+      href="https://maps.app.goo.gl/MqHSFDNNgW3UKGZ47"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-right w-full font-family: 'Cairo sans-serif gap-2 text-[#1e3a8a] tracking-wide hover:opacity-80 transition duration-200 "
+    >
+      <span className="text-xl">📍</span>
+      <span className="hover:underline hover:scale-[1.02] bold text-sm sm:text-base underline leading-relaxed">
+        جسر السويس : اخر شارع القدس متفرع من شارع الخمسين - برتي - القاهرة
+      </span>
+    </a>
+
+  </div>
+</div>
       <div className="flex flex-wrap justify-center gap-6 py-6 px-4 bg-[#F7F8FD] sm:px-6 md:px-10 lg:px-[100px] xl:px-[250px] text-center">
         {footerIcons.map((item, i) => (
           <div key={i} className="flex items-center gap-2">
@@ -54,7 +73,6 @@ const Footer = () => {
         <hr className="border-gray-200" />
       </div>
 
-      {/* Footer List */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 py-10 px-4 bg-[#F7F8FD] sm:px-6 md:px-10 lg:px-[100px] xl:px-[250px]">
         {FooterList.map((col, idx) => (
           <div key={idx}>
@@ -68,7 +86,6 @@ const Footer = () => {
         ))}
       </div>
 
-      {/* Contact and Social */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 sm:px-6 md:px-10 lg:px-[100px] xl:px-[250px] py-8 bg-white gap-6">
         <div className="flex items-start gap-3">
           <Tele className="w-8 h-8 mt-1 text-blue-600" />
@@ -94,7 +111,6 @@ const Footer = () => {
         <hr className="border-gray-200" />
       </div>
 
-      {/* Footer Bottom Padding */}
       <div className="py-4 bg-white" />
     </footer>
   );
