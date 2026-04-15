@@ -16,7 +16,7 @@ public class SupplierController {
     @Autowired
     private SupplierService supplierService;
 
-    @PostMapping("addRequest")
+    @PostMapping("/addRequest")
     public ResponseEntity<?> addCSupplier(@RequestBody SupplierRequest request){
         try {
             supplierService.addSupplierRequest(request);
