@@ -27,6 +27,7 @@ export default function Contact() {
             <FiPhoneCall />
           </span>
           <h3 className="text-lg font-semibold">01118899959</h3>
+          <h3 className="text-lg font-semibold">01158880605</h3>
           <p className="mt-2 text-gray-600">اتصل بنا لأي استفسار أو دعم فني.</p>
         </div>
 
