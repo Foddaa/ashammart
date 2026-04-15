@@ -50,28 +50,27 @@ export default function HeaderSection1() {
           <img
             src={logo}
             alt="Logo"
-            className="w-[100px] h-[80px] object-cover"
+            className="w-[80px] h-[80px] object-cover"
           />
         </Link>
 
         {/* Search (Desktop) */}
-        <div className="flex-1 mx-3 relative">
+        <div className="flex-1 mx-1 relative">
           <img
             src={searchIcon}
             alt="Search"
             onClick={submitSearch}
-            className="absolute left-2 top-1/2 -translate-y-1/2 
-              w-6 h-6 bg-gray-100 rounded-full 
+            className="absolute left-1 top-1/2 -translate-y-1/2 
+              w-5 h-5 bg-gray-100 rounded-full 
               cursor-pointer opacity-70 hover:opacity-100"
           />
-
           <input
             type="text"
             placeholder="بتدور علي ايه ؟"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full p-2 pl-10 border rounded-lg text-right"
+            className="w-full p-2 pl-8 border rounded-lg text-right placeholder:text-xs"
           />
         </div>
 
@@ -82,7 +81,7 @@ export default function HeaderSection1() {
           {/* Categories button */}
           <button
             onClick={handleCategoriesClick}
-            className="flex items-center gap-1 px-3 py-1.5 
+            className="flex items-center gap-1 px-1 py-1.5 
                       bg-blue-600 text-white
                       rounded-md text-sm
                       hover:bg-blue-700 transition"
