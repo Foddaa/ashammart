@@ -81,7 +81,7 @@ export default function Shop({ cartItems = [] }) {
   }, [selectedCategories]);
 
   const safeProducts = Array.isArray(products) ? products : [];
-  const filteredProducts = products.filter(
+  const filteredProducts = safeProducts.filter(
     (product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.code.toLowerCase().includes(searchTerm.toLowerCase())
