@@ -48,7 +48,11 @@ function productPopUp(product) {
           text={"الأكثر طلبًا من عملائنا، جودة وتجربة مضمونة."}/>
           {/* <ViewAll /> */}
         </div>
-
+      {!Array.isArray(products) || products.length === 0 ? (
+        <div className="text-center text-gray-500 text-lg py-10">
+          لا يوجد منتجات
+        </div>
+      ) : (
         <Carousel
           autoPlay 
           responsive={responsive} 
@@ -125,6 +129,7 @@ function productPopUp(product) {
 ))}
 
         </Carousel>
+        )}
         <div className="flex justify-center items-center mt-10 px-4">
   <div className="w-full max-w-7xl aspect-[48/9] rounded-xl shadow-md overflow-hidden">
     <img
