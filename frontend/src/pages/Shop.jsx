@@ -80,7 +80,7 @@ export default function Shop({ cartItems = [] }) {
     fetchProducts();
   }, [selectedCategories]);
 
-  // Filter products based on search term
+  const safeProducts = Array.isArray(products) ? products : [];
   const filteredProducts = products.filter(
     (product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -162,7 +162,8 @@ export default function Shop({ cartItems = [] }) {
 
               {/* Products Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {paginatedProducts.map((product) => {
+                {Array.isArray(paginatedProducts) &&
+                paginatedProducts.map((product) => {
                   const cartProduct = cartItems.find((item) => item.id === product.id);
                   const displayCanceledPrice =
                     !product.canceledPrice || product.canceledPrice <= product.price
