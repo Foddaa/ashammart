@@ -73,7 +73,7 @@ export default function Shop({ cartItems = [] }) {
           data = JSON.parse(text);
         } catch {
           console.error("❌ Not JSON response:", text);
-          throw new Error("السيرفر لا يعيد بيانات صحيحة");
+          throw new Error("لا يوجد منتجات في السيرفر");
         }
         setProducts(Array.isArray(data) ? data : []);
         setCurrentPage(1);
