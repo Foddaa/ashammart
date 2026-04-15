@@ -67,8 +67,15 @@ export default function Shop({ cartItems = [] }) {
 
         const res = await fetch(url);
         if (!res.ok) throw new Error("فشل في جلب المنتجات");
-        const data = await res.json();
-        setProducts(data);
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          console.error("❌ Not JSON response:", text);
+          throw new Error("السيرفر لا يعيد بيانات صحيحة");
+        }
+        setProducts(Array.isArray(data) ? data : []);
         setCurrentPage(1);
       } catch (err) {
         setError(err.message || "حدث خطأ ما");
