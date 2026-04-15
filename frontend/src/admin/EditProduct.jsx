@@ -11,6 +11,10 @@ const EditProduct = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef();
 
+  // New state for categories and suppliers
+  const [categories, setCategories] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+
   const [formData, setFormData] = useState({
     name: "",
     code: "",
@@ -25,6 +29,35 @@ const EditProduct = () => {
   const [existingImages, setExistingImages] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]);
 
+  // Fetch categories (same as AddProduct)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/category/all`);
+        const categoriesData = Array.isArray(response.data) ? response.data : [];
+        setCategories(categoriesData);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch suppliers (same as AddProduct)
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/supplier/all`);
+        const suppliersData = Array.isArray(response.data) ? response.data : [];
+        setSuppliers(suppliersData);
+      } catch (err) {
+        console.error("Error fetching suppliers:", err);
+      }
+    };
+    fetchSuppliers();
+  }, []);
+
+  // Fetch product details
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -37,8 +70,8 @@ const EditProduct = () => {
           description: product.description || "",
           price: product.price || "",
           canceledPrice: product.canceledPrice || "",
-          category: product.categoryId || "",
-          supplierCode: product.supplierCode || "",
+          category: product.categoryId || "",      // categoryId is a number
+          supplierCode: product.supplierCode || "", // string code
         });
 
         const fixedImages = (product.images || []).map((img) => ({
@@ -118,201 +151,234 @@ const EditProduct = () => {
     }
   };
 
+  // ------------------------------------------------------------
+  // UI – same as AddProduct but with dropdowns for category/supplier
+  // ------------------------------------------------------------
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 flex items-center justify-center" dir="rtl">
       <form
         onSubmit={handleSubmit}
         encType="multipart/form-data"
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6 md:p-8 transition-all duration-300"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">تعديل المنتج</h2>
-
-        <div className="mb-4">
-          <label htmlFor="name" className="block mb-1 font-medium text-gray-700">
-            اسم المنتج
-          </label>
-          <input
-            type="text"
-            name="name"
-            id="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            required
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-blue-700">✏️ تعديل المنتج</h2>
+          <p className="text-gray-500 mt-1">قم بتحديث بيانات المنتج والصور</p>
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="code" className="block mb-1 font-medium text-gray-700">
-            كود المنتج
-          </label>
-          <input
-            type="text"
-            name="code"
-            id="code"
-            value={formData.code}
-            readOnly
-            className="w-full px-4 py-2 border rounded-md bg-gray-100 text-gray-600 cursor-not-allowed shadow-sm"
-          />
+        {/* Two‑column grid for basic fields */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {[
+            { name: "name", label: "اسم المنتج", type: "text", placeholder: "مثل: كرسي مكتبي" },
+            { name: "code", label: "كود المنتج", type: "text", placeholder: "مثل: PROD-001" },
+          ].map(({ name, label, type, placeholder }) => (
+            <div key={name} className="mb-2">
+              <label className="block text-gray-700 font-semibold mb-2">
+                {label} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type={type}
+                name={name}
+                value={formData[name]}
+                onChange={handleInputChange}
+                required
+                placeholder={placeholder}
+                readOnly={name === "code"} // code remains readOnly
+                className={`w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition ${
+                  name === "code" ? "bg-gray-100 cursor-not-allowed" : ""
+                }`}
+              />
+            </div>
+          ))}
+
+          {[
+            { name: "price", label: "السعر (ج.م)", type: "number", placeholder: "0.00" },
+            { name: "canceledPrice", label: "السعر قبل الخصم (ج.م)", type: "number", placeholder: "0.00" },
+          ].map(({ name, label, type, placeholder }) => (
+            <div key={name} className="mb-2">
+              <label className="block text-gray-700 font-semibold mb-2">
+                {label} {name === "price" && <span className="text-red-500">*</span>}
+              </label>
+              <input
+                type={type}
+                name={name}
+                value={formData[name]}
+                onChange={handleInputChange}
+                required={name === "price"}
+                placeholder={placeholder}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+              />
+            </div>
+          ))}
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="price" className="block mb-1 font-medium text-gray-700">
-            السعر
-          </label>
-          <input
-            type="number"
-            name="price"
-            id="price"
-            value={formData.price}
-            onChange={handleInputChange}
-            required
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+        {/* Category & Supplier – now dropdowns (same as AddProduct) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-3">
+          <div className="mb-2">
+            <label className="block text-gray-700 font-semibold mb-2">
+              الفئة <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 bg-white"
+            >
+              <option value="">اختر الفئة</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-2">
+            <label className="block text-gray-700 font-semibold mb-2">
+              المورد <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="supplierCode"
+              value={formData.supplierCode}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 bg-white"
+            >
+              <option value="">اختر المورد</option>
+              {suppliers.map((sup) => (
+                <option key={sup.id} value={sup.code}>
+                  {sup.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="mb-4">
-          <label htmlFor="canceledPrice" className="block mb-1 font-medium text-gray-700">
-            السعر قبل الخصم
-          </label>
-          <input
-            type="number"
-            name="canceledPrice"
-            id="canceledPrice"
-            value={formData.canceledPrice}
-            onChange={handleInputChange}
-            required
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="category" className="block mb-1 font-medium text-gray-700">
-            رقم الفئة
-          </label>
-          <input
-            type="text"
-            name="category"
-            id="category"
-            value={formData.category}
-            onChange={handleInputChange}
-            required
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="supplierCode" className="block mb-1 font-medium text-gray-700">
-            كود المورد
-          </label>
-          <input
-            type="text"
-            name="supplierCode"
-            id="supplierCode"
-            value={formData.supplierCode}
-            onChange={handleInputChange}
-            required
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="description" className="block mb-1 font-medium text-gray-700">
-            الوصف
+        {/* Description */}
+        <div className="mb-5 mt-2">
+          <label className="block text-gray-700 font-semibold mb-2">
+            وصف المنتج <span className="text-red-500">*</span>
           </label>
           <textarea
             name="description"
-            id="description"
             value={formData.description}
             onChange={handleInputChange}
             required
-            className="w-full px-4 py-2 border rounded-md shadow-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-400"
             rows="4"
+            placeholder="اكتب وصفاً مفصلاً للمنتج..."
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 resize-y"
           />
         </div>
 
+        {/* Images section – existing + new */}
         <div className="mb-6">
-          <label htmlFor="images" className="block mb-2 font-medium text-gray-700">
-            رفع صور جديدة
+          <label className="block text-gray-700 font-semibold mb-2">
+            صور المنتج
           </label>
-          <input
-            type="file"
-            name="images"
-            id="images"
-            multiple
-            accept="image/*"
-            onChange={handleFileChange}
-            ref={fileInputRef}
-            className="w-full border border-dashed border-gray-400 rounded-md p-2 text-gray-600 bg-gray-50"
-          />
+
+          {/* Custom file input for new images */}
+          <div className="flex items-center justify-center w-full">
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <svg className="w-8 h-8 mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">انقر للرفع</span> أو اسحب الصور</p>
+                <p className="text-xs text-gray-500">أضف صوراً جديدة (PNG, JPG, WEBP)</p>
+              </div>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          {/* Existing images grid */}
+          {existingImages.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm text-gray-600 mb-2">الصور الحالية</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {existingImages.map((img, index) => (
+                  <div key={img.id} className="relative group">
+                    <img
+                      src={img.url}
+                      alt={`existing-${index}`}
+                      className="w-full h-28 object-cover rounded-lg border shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(index)}
+                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-700 transition shadow-md"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* New images preview grid */}
+          {newImages.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm text-gray-600 mb-2">الصور الجديدة</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {newImages.map((file, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={`new-${index}`}
+                      className="w-full h-28 object-cover rounded-lg border shadow-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeNewImage(index)}
+                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-700 transition shadow-md"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {existingImages.length > 0 && (
-          <div className="mb-6">
-            <p className="font-medium text-gray-700 mb-2">الصور الحالية</p>
-            <div className="grid grid-cols-3 gap-4">
-              {existingImages.map((img, index) => (
-                <div key={img.id} className="relative group">
-                  <img
-                    src={img.url}
-                    alt={`existing-${index}`}
-                    className="w-full h-24 object-cover rounded-lg shadow-md"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeExistingImage(index)}
-                    className="absolute top-1 left-1 bg-red-600 text-white text-xs px-2 py-1 rounded-full hover:bg-red-700 transition"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {newImages.length > 0 && (
-          <div className="mb-6">
-            <p className="font-medium text-gray-700 mb-2">الصور الجديدة</p>
-            <div className="grid grid-cols-3 gap-4">
-              {newImages.map((file, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={`new-${index}`}
-                    className="w-full h-24 object-cover rounded-lg shadow-md"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeNewImage(index)}
-                    className="absolute top-1 left-1 bg-red-600 text-white text-xs px-2 py-1 rounded-full hover:bg-red-700 transition"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="flex justify-between gap-4">
+        {/* Action Buttons */}
+        <div className="flex gap-4 mt-6">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 font-semibold"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
           >
             تحديث المنتج
           </button>
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex-1 bg-gray-300 text-gray-800 py-2 rounded-md hover:bg-gray-400 transition-colors duration-200 font-semibold"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
           >
             إلغاء
           </button>
         </div>
       </form>
 
-      <ToastContainer position="top-center" autoClose={3000} rtl />
+      <ToastContainer
+        position="top-center"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 };

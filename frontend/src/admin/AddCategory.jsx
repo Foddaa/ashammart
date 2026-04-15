@@ -3,12 +3,14 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const AddCategory = () => {
   const token = localStorage.getItem("token");
   const [name, setName] = useState("");
   const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -37,49 +39,61 @@ const AddCategory = () => {
         navigate("/login");
         return;
       }
-            const apiMessage =
-              error.response?.data?.message ||
-              error.response?.data ||
-              "❌ فشل في إضافة التصنيف";
-      
-            toast.error(apiMessage);
+      const apiMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        "❌ فشل في إضافة التصنيف";
+
+      toast.error(apiMessage);
       console.error("Error adding category:", error);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 flex items-center justify-center" dir="rtl">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-right"
-        dir="rtl"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 md:p-8 transition-all duration-300"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">إضافة تصنيف جديد</h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-blue-700">➕ إضافة تصنيف جديد</h2>
+          <p className="text-gray-500 mt-1">أدخل اسم التصنيف</p>
+        </div>
 
-        <div className="mb-4">
-          <label htmlFor="name" className="block mb-1 font-medium text-gray-700">
-            اسم التصنيف
+        <div className="mb-6">
+          <label className="block text-gray-700 font-semibold mb-2">
+            اسم التصنيف <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            id="name"
             name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
           />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors duration-200 font-semibold"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
         >
           إضافة التصنيف
         </button>
       </form>
 
-      <ToastContainer position="top-center" autoClose={3000} />
+      <ToastContainer
+        position="top-center"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 };

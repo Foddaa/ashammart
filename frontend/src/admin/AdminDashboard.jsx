@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const AdminDashboard = () => {
@@ -19,8 +20,8 @@ const AdminDashboard = () => {
         const response = await fetch(`${BASE_URL}/api/admin`, {
           method: "GET",
           headers: {
-            "Authorization": `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
 
         if (response.status === 200) {
@@ -41,9 +42,9 @@ const AdminDashboard = () => {
 
   if (isLoading) {
     return (
-      <div dir="rtl" className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="text-xl font-semibold text-gray-700">
-          جاري التحقق من صلاحيات المشرف...
+      <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="text-xl font-semibold text-gray-600">جاري التحقق من صلاحيات المشرف...</div>
         </div>
       </div>
     );
@@ -51,125 +52,152 @@ const AdminDashboard = () => {
 
   if (!isAdmin) {
     return (
-      <div dir="rtl" className="flex justify-center items-center min-h-screen bg-gray-100">
-        <div className="text-xl font-semibold text-red-600">
-          تم رفض الوصول. جاري إعادة التوجيه...
+      <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="text-xl font-semibold text-red-600">تم رفض الوصول. جاري إعادة التوجيه...</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div dir="rtl" className="flex min-h-screen bg-gray-100">
-      {/* الشريط الجانبي */}
-      <aside className="w-64 bg-white shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-6 text-gray-800">قائمة المشرف</h2>
-        <nav className="flex flex-col gap-3">
+    <div dir="rtl" className="flex min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
+      {/* الشريط الجانبي - تصميم حديث */}
+      <aside className="w-72 bg-white shadow-xl rounded-l-2xl m-4 ml-0 p-5 flex flex-col">
+        <div className="mb-8 pr-2">
+          <h2 className="text-2xl font-bold text-blue-700 border-r-4 border-blue-600 pr-3">لوحة المشرف</h2>
+          <p className="text-gray-500 text-sm mt-1 pr-3">إدارة المتجر</p>
+        </div>
+
+        <nav className="flex flex-col gap-2 flex-1">
           <NavLink
             to="/admin/products"
             className={({ isActive }) =>
-              `px-4 py-2 rounded-md text-right transition-colors ${
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-800 hover:bg-blue-100"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`
             }
           >
-            📦 جميع المنتجات
+            <span className="text-xl">📦</span>
+            <span className="font-medium">جميع المنتجات</span>
           </NavLink>
+
           <NavLink
             to="/admin/products/add"
             className={({ isActive }) =>
-              `px-4 py-2 rounded-md text-right transition-colors ${
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-100 text-gray-800 hover:bg-green-100"
+                  ? "bg-green-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-green-50 hover:text-green-700"
               }`
             }
           >
-            ➕ إضافة منتج
+            <span className="text-xl">➕</span>
+            <span className="font-medium">إضافة منتج</span>
           </NavLink>
+
+          <div className="border-t border-gray-200 my-3"></div>
+
           <NavLink
             to="/admin/categories"
             className={({ isActive }) =>
-              `px-4 py-2 rounded-md text-right transition-colors ${
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-800 hover:bg-blue-100"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`
             }
           >
-            📂 جميع الفئات
+            <span className="text-xl">📂</span>
+            <span className="font-medium">جميع الفئات</span>
           </NavLink>
+
           <NavLink
             to="/admin/categories/add"
             className={({ isActive }) =>
-              `px-4 py-2 rounded-md text-right transition-colors ${
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-100 text-gray-800 hover:bg-green-100"
+                  ? "bg-green-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-green-50 hover:text-green-700"
               }`
             }
           >
-            ➕ إضافة فئة
+            <span className="text-xl">➕</span>
+            <span className="font-medium">إضافة فئة</span>
           </NavLink>
+
+          <div className="border-t border-gray-200 my-3"></div>
+
           <NavLink
             to="/admin/suppliers"
             className={({ isActive }) =>
-              `px-4 py-2 rounded-md text-right transition-colors ${
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-800 hover:bg-blue-100"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`
             }
           >
-            🏭 جميع الموردين
+            <span className="text-xl">🏭</span>
+            <span className="font-medium">جميع الموردين</span>
           </NavLink>
+
           <NavLink
             to="/admin/supplier/add"
             className={({ isActive }) =>
-              `px-4 py-2 rounded-md text-right transition-colors ${
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-green-600 text-white"
-                  : "bg-gray-100 text-gray-800 hover:bg-green-100"
+                  ? "bg-green-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-green-50 hover:text-green-700"
               }`
             }
           >
-            ➕ إضافة مورد
+            <span className="text-xl">➕</span>
+            <span className="font-medium">إضافة مورد</span>
           </NavLink>
+
+          <div className="border-t border-gray-200 my-3"></div>
+
           <NavLink
             to="/admin/supplierRequests"
             className={({ isActive }) =>
-              `px-4 py-2 rounded-md text-right transition-colors ${
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-800 hover:bg-blue-100"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`
             }
           >
-            📋 طلبات الانضمام
+            <span className="text-xl">📋</span>
+            <span className="font-medium">طلبات الانضمام</span>
           </NavLink>
+
           <NavLink
             to="/admin/update/prices"
             className={({ isActive }) =>
-              `px-4 py-2 rounded-md text-right transition-colors ${
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 isActive
-                  ? "bg-red-600 text-white"
-                  : "bg-gray-100 text-gray-800 hover:bg-red-100"
+                  ? "bg-red-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-red-50 hover:text-red-700"
               }`
             }
           >
-            💰 تعديل الأسعار
+            <span className="text-xl">💰</span>
+            <span className="font-medium">تعديل الأسعار</span>
           </NavLink>
         </nav>
+
+        {/* Optional footer in sidebar */}
+        <div className="mt-8 pt-4 border-t border-gray-200 text-xs text-gray-400 text-center">
+          لوحة تحكم المشرف
+        </div>
       </aside>
 
-      {/* منطقة المحتوى */}
-      <main className="flex-grow p-8">
-        <h1 className="text-2xl font-bold mb-6 text-gray-900">لوحة تحكم المشرف</h1>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <Outlet />
-        </div>
+      {/* منطقة المحتوى - بدون حاوية إضافية لتجنب تداخل التصميمات */}
+      <main className="flex-1 p-6 overflow-auto">
+        <Outlet />
       </main>
     </div>
   );

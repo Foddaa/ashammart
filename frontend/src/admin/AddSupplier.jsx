@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const AddSupplier = () => {
@@ -47,7 +48,8 @@ const AddSupplier = () => {
         toast.error("⚠️ انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى");
         navigate("/login");
         return;
-      } const apiMessage =
+      }
+      const apiMessage =
         error.response?.data?.message || error.response?.data || "❌ Failed to add supplier";
 
       toast.error(apiMessage);
@@ -55,67 +57,78 @@ const AddSupplier = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 flex items-center justify-center" dir="rtl">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-right"
+        className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 md:p-8 transition-all duration-300"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">إضافة مورد جديد</h2>
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-blue-700">➕ إضافة مورد جديد</h2>
+          <p className="text-gray-500 mt-1">أدخل بيانات المورد</p>
+        </div>
 
         <div className="mb-4">
-          <label htmlFor="name" className="block mb-1 font-medium text-gray-700">
-            اسم المورد
+          <label className="block text-gray-700 font-semibold mb-2">
+            اسم المورد <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            id="name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
           />
         </div>
 
         <div className="mb-4">
-          <label htmlFor="code" className="block mb-1 font-medium text-gray-700">
-            كود المورد
+          <label className="block text-gray-700 font-semibold mb-2">
+            كود المورد <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            id="code"
             name="code"
             value={formData.code}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
           />
         </div>
 
         <div className="mb-6">
-          <label htmlFor="address" className="block mb-1 font-medium text-gray-700">
-            عنوان المورد
+          <label className="block text-gray-700 font-semibold mb-2">
+            عنوان المورد <span className="text-red-500">*</span>
           </label>
           <textarea
-            id="address"
             name="address"
             value={formData.address}
             onChange={handleChange}
             rows="3"
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
             required
-          ></textarea>
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 resize-y transition"
+          />
         </div>
 
         <button
           type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition-colors duration-200 font-semibold"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
         >
           إضافة المورد
         </button>
       </form>
 
-      <ToastContainer position="top-center" autoClose={3000} />
+      <ToastContainer
+        position="top-center"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 };

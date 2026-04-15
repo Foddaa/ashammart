@@ -1,4 +1,3 @@
-// src/pages/admin/CategoryList.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
@@ -13,9 +12,7 @@ const CategoryList = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(`${BASE_URL}/api/admin/category/all`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setCategories(res.data);
     } catch (error) {
@@ -26,15 +23,12 @@ const CategoryList = () => {
   const handleDelete = async (id) => {
     const confirmed = window.confirm("هل أنت متأكد أنك تريد حذف هذه الفئة؟");
     if (!confirmed) return;
-
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`${BASE_URL}/api/admin/category/delete?id=${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      fetchCategories(); // refresh list
+      fetchCategories();
     } catch (error) {
       console.error("Error deleting category:", error);
       alert("فشل في حذف الفئة. قد تكون مرتبطة بمنتجات.");
@@ -50,85 +44,96 @@ const CategoryList = () => {
   );
 
   return (
-    <div className="container mt-4">
-      <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
-        <div className="card-header bg-white py-4 border-0">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-            <h3 className="mb-0 text-primary fw-bold">
-              <i className="fas fa-tags me-2"></i>جميع الفئات
-            </h3>
-            <div className="position-relative w-100" style={{ maxWidth: "400px" }}>
+    <div className="container mx-auto px-4 py-6" dir="rtl">
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+        {/* Header with title and search */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 border-b border-gray-200">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <i className="fas fa-tags text-2xl text-blue-600"></i>
+              <h2 className="text-2xl font-bold text-gray-800">جميع الفئات</h2>
+            </div>
+            <div className="relative w-full md:w-80">
+              <i className="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
               <input
                 type="text"
-                className="form-control form-control-lg border-2 border-primary rounded-pill ps-4 py-2"
+                className="w-full pr-10 pl-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 placeholder="ابحث بالاسم..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <i className="fas fa-search position-absolute top-50 end-0 translate-middle-y me-3 text-primary"></i>
             </div>
           </div>
         </div>
 
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover table-bordered align-middle mb-0">
-              <thead className="bg-light">
-                <tr>
-                  <th className="py-3 px-4 text-secondary fw-medium text-center">ID</th>
-                  <th className="py-3 px-4 text-secondary fw-medium text-center">اسم الفئة</th>
-                  <th className="py-3 px-4 text-secondary fw-medium text-center">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCategories.length > 0 ? (
-                  filteredCategories.map((cat) => (
-                    <tr key={cat.id}>
-                      <td className="px-4 text-center">{cat.id}</td>
-                      <td className="px-4 text-center">{cat.name}</td>
-                      <td className="text-center">
-                        <Link
-                          to={`/admin/categories/edit/${cat.id}`}
-                          className="btn btn-sm btn-primary me-2"
-                        >
-                          <i className="fas fa-edit me-1"></i>تعديل
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(cat.id)}
-                          className="btn btn-sm btn-danger"
-                        >
-                          <i className="fas fa-trash me-1"></i>حذف
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="3" className="text-center py-5 text-muted">
-                      <i className="fas fa-tag fa-2x mb-3"></i>
-                      <p className="h5">لا توجد فئات</p>
-                      {searchTerm && (
-                        <p className="mt-2">
-                          لا توجد نتائج لـ "<strong>{searchTerm}</strong>"
-                        </p>
-                      )}
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ID
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  اسم الفئة
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  الإجراءات
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {filteredCategories.length > 0 ? (
+                filteredCategories.map((cat) => (
+                  <tr key={cat.id} className="hover:bg-gray-50 transition">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">
+                      {cat.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800 text-center">
+                      {cat.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                      <Link
+                        to={`/admin/categories/edit/${cat.id}`}
+                        className="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition shadow-sm ml-2"
+                      >
+                        <i className="fas fa-edit ml-1"></i>
+                        تعديل
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(cat.id)}
+                        className="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition shadow-sm"
+                      >
+                        <i className="fas fa-trash ml-1"></i>
+                        حذف
+                      </button>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3" className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <i className="fas fa-tag text-5xl mb-3"></i>
+                      <p className="text-lg font-medium">لا توجد فئات</p>
+                      {searchTerm && (
+                        <p className="text-sm mt-1">
+                          لا توجد نتائج لـ "<span className="font-semibold">{searchTerm}</span>"
+                        </p>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        <div className="card-footer bg-white py-3 border-0">
-          <div className="d-flex justify-content-between align-items-center">
-            <div className="text-muted small">
-              عرض <strong>{filteredCategories.length}</strong> من{" "}
-              <strong>{categories.length}</strong> فئة
-            </div>
-            <button onClick={fetchCategories} className="btn btn-sm btn-outline-primary">
-              <i className="fas fa-sync me-1"></i> تحديث القائمة
-            </button>
+        {/* Footer */}
+        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="text-sm text-gray-600">
+            عرض <span className="font-semibold text-gray-800">{filteredCategories.length}</span> من{" "}
+            <span className="font-semibold text-gray-800">{categories.length}</span> فئة
           </div>
         </div>
       </div>
