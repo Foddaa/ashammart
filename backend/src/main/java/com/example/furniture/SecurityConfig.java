@@ -34,8 +34,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost",
                 "http://localhost:5173",
-                "http://ashammart.com",
-                "https://ashammart.com"
+                "https://anttikka.com",
+                "http://anttikka.com"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
