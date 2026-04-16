@@ -69,8 +69,8 @@ public class ProductController {
         return res;
     }
     @PostMapping("/by-ids")
-    public List<ProductDTO> getProductsByIds(@RequestBody List<Long> ids) {
-        return productService.findAllById(ids);
+    public List<ProductDTO> getProductsByIds(@RequestBody List<Long> idList) {
+        return productService.findAllByIdList(idList);
     }
 
 

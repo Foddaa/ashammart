@@ -1,0 +1,27 @@
+username : root 
+pass : buWvAJm639857hu3tKqCKec0i
+
+PAYBAL REF ID PP-L-573252376747
+
+
+pass:
+Godisgood26@#
+ vps hostname: 
+srv946960.hstgr.cloud
+
+📌 3. Get the Public Key Content
+Run:
+cat ~/.ssh/id_rsa.pub
+
+Name:
+Any name you choose (like my-key, fady-laptop, or home-key)
+
+SSH Key Content:
+Paste the full content from the .pub file, like:
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3z7Zk... your_email@example.com
+
+SSH access
+Access your VPS using terminal by enter this command
+
+ssh root@148.230.71.92

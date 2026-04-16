@@ -183,7 +183,12 @@ public class ProductService {
     @Transactional
     public ProductDTO getProduct(Long id) {
         logger.info("Fetching product with ID: {}", id);
-        Product product = productRepository.findByIdWithImages(id);
+        Optional<Product> optionalProduct = productRepository.findByIdWithImages(id);
+        if (optionalProduct.isEmpty()) {
+            logger.warn("Product not found with ID: {}", id);
+            return null;
+        }
+        Product product = optionalProduct.get();
         logger.debug("Product fetched: {}", product.getName());
         ProductDTO productDto = ProductDTO.withRatings(product);
         logger.info("Returning product DTO for ID: {}", id);
@@ -296,7 +301,7 @@ public class ProductService {
             if (products.containsKey(r.getProduct().getId())) {
                 product = products.get(r.getProduct().getId());
             } else {
-                product = productRepository.findByIdWithImages(r.getProduct().getId());
+                product = productRepository.findByIdWithImages(r.getProduct().getId()).get();
             }
             product.getRatings().add(r);
             products.put(product.getId(), product);
@@ -304,11 +309,13 @@ public class ProductService {
         return products.values().stream().toList();
     }
     @Transactional
-    public List<ProductDTO> findAllById(List<Long> ids) {
-        System.out.println(ids);
+    public List<ProductDTO> findAllByIdList(List<Long> ids) {
         List<ProductDTO> products = new ArrayList<>();
         for (long id:ids){
             ProductDTO product = getProduct(id);
+            if (product==null){
+                continue;
+            }
             products.add(product);
         }
         return products;

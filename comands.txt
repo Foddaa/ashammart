@@ -1,0 +1,58 @@
+1 - getting the spring as service
+
+mvn clean package
+cp target/*.jar /opt/app.jar
+java -jar /opt/app.jar    // test it:
+
+sudo nano /etc/systemd/system/springboot.service 
+
+put them on it  
+
+[Unit]
+Description=Spring Boot App
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/bin/java -jar /opt/app.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.targets
+
+close it 
+
+sudo systemctl daemon-reexec   // run it
+sudo systemctl daemon-reload
+sudo systemctl enable springboot
+sudo systemctl start springboot
+
+sudo systemctl status springboot                       // check if it working
+
+------- replace spring service with new one ---------
+mvn clean package
+sudo cp target/*.jar /opt/app.jar
+sudo systemctl restart springboot
+sudo systemctl status springboot
+
+
+
+2 - Build React Frontend
+
+npm install
+npm run build
+sudo cp -r /var/www/html/* /opt/lastWorkingVersion/ copy last working version
+sudo cp -r /opt/sourceCode/frontend/dist/* /var/www/html/
+ 
+last working frontend right version /opt/lastWorkingVersion/
+cp -r /opt/lastWorkingVersion/* /dwbckajckjs
+
+3 - restart nginx
+sudo nginx -t
+sudo systemctl restart nginx
+
+
+4 - open database
+mysql -u root -p

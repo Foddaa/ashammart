@@ -33,7 +33,7 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
         LEFT JOIN FETCH p.images
         WHERE p.id = :productId
     """)
-    Product findByIdWithImages(@Param("productId") Long productId);
+    Optional<Product> findByIdWithImages(@Param("productId") Long productId);
 
     Product findByCode(String code);
 
