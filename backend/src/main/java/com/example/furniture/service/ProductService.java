@@ -10,6 +10,7 @@ import com.example.furniture.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -355,29 +356,65 @@ public class ProductService {
         logger.info("Bulk price update completed. Updated {} products", updatedCount);
         return updatedCount;
     }
+    private String escapeXml(String input) {
+        if (input == null) return "";
+        return input
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
+    }
 
+    @Cacheable(value = "facebookFeed")
     @Transactional
     public String getFacebookFeed(){
         List<Product> products = productRepository.findAll();
         StringBuilder xml = new StringBuilder();
 
-        xml.append("<rss version=\"2.0\"><channel>");
+        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        xml.append("<rss version=\"2.0\" xmlns:g=\"http://base.google.com/ns/1.0\">");
+        xml.append("<channel>");
+        xml.append("<title>Anttikka Product Feed</title>");
+        xml.append("<link>https://anttikka.com</link>");
+        xml.append("<description>Anttikka Furniture Catalog</description>");
 
         for (Product p : products) {
-            xml.append("<item>");
-            xml.append("<id>").append(p.getId()).append("</id>");
-            xml.append("<title>").append(p.getName()).append("</title>");
-            xml.append("<description>").append(p.getDescription()).append("</description>");
-            xml.append("<price>").append(p.getPrice()).append(" EGP</price>");
-            xml.append("<availability>in stock</availability>");
-            if (p.getImages().isEmpty()) {
+            // Skip products with no images entirely — don't emit a broken item
+            if (p.getImages() == null || p.getImages().isEmpty()) {
                 continue;
-            }else {
-                xml.append("<image_link>")
-                        .append("https://anttikka.com/api")
-                        .append(p.getImages().get(0).getUrl())
-                        .append("</image_link>");
             }
+
+            xml.append("<item>");
+
+            // ✅ Required fields
+            xml.append("<g:id>").append(p.getId()).append("</g:id>");
+            xml.append("<title>").append(escapeXml(p.getName())).append("</title>");
+            xml.append("<description>").append(escapeXml(p.getDescription())).append("</description>");
+            xml.append("<link>https://anttikka.com/product/").append(p.getId()).append("</link>");
+            xml.append("<g:image_link>")
+                    .append("https://anttikka.com/api")
+                    .append(p.getImages().get(0).getUrl())
+                    .append("</g:image_link>");
+            xml.append("<g:price>")
+                    .append(String.format("%.2f", p.getPrice()))
+                    .append(" EGP</g:price>");
+            xml.append("<g:availability>in stock</g:availability>");
+            xml.append("<g:condition>new</g:condition>");
+
+            // ✅ Recommended fields for better ad performance
+            xml.append("<g:brand>Anttikka</g:brand>");
+            xml.append("<g:google_product_category>436</g:google_product_category>"); // Furniture category
+
+            // ✅ Additional images (Meta supports up to 10)
+            List<?> images = p.getImages();
+            for (int i = 1; i < Math.min(images.size(), 10); i++) {
+                xml.append("<g:additional_image_link>")
+                        .append("https://anttikka.com/api")
+                        .append(p.getImages().get(i).getUrl())
+                        .append("</g:additional_image_link>");
+            }
+
             xml.append("</item>");
         }
 
