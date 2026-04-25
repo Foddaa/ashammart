@@ -39,6 +39,12 @@ public class ProductController {
         public ResponseEntity<?> getByCategory(@RequestParam Long categoryId){
         return productService.getByCategoryId(categoryId);
     }
+    @GetMapping(value = "/feed/facebook", produces = "application/xml")
+    public String getFacebookFeed() {
+        return productService.getFacebookFeed();
+    }
+
+
 
     @GetMapping("/search")
     public List<Product> searchProductsContaining(@RequestParam String search) {

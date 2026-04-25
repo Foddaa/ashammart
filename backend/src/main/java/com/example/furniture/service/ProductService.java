@@ -355,4 +355,34 @@ public class ProductService {
         logger.info("Bulk price update completed. Updated {} products", updatedCount);
         return updatedCount;
     }
+
+    @Transactional
+    public String getFacebookFeed(){
+        List<Product> products = productRepository.findAll();
+        StringBuilder xml = new StringBuilder();
+
+        xml.append("<rss version=\"2.0\"><channel>");
+
+        for (Product p : products) {
+            xml.append("<item>");
+            xml.append("<id>").append(p.getId()).append("</id>");
+            xml.append("<title>").append(p.getName()).append("</title>");
+            xml.append("<description>").append(p.getDescription()).append("</description>");
+            xml.append("<price>").append(p.getPrice()).append(" EGP</price>");
+            xml.append("<availability>in stock</availability>");
+            if (p.getImages().isEmpty()) {
+                continue;
+            }else {
+                xml.append("<image_link>")
+                        .append("https://anttikka.com/api")
+                        .append(p.getImages().get(0).getUrl())
+                        .append("</image_link>");
+            }
+            xml.append("</item>");
+        }
+
+        xml.append("</channel></rss>");
+
+        return xml.toString();
+    }
 }
