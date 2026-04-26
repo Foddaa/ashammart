@@ -356,14 +356,20 @@ public class ProductService {
         logger.info("Bulk price update completed. Updated {} products", updatedCount);
         return updatedCount;
     }
-    private String escapeXml(String input) {
+    private String sanitizeForXml(String input) {
         if (input == null) return "";
-        return input
+
+        String escaped = input
                 .replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("'", "&apos;");
+
+        return escaped.replaceAll(
+                "[^\\x09\\x0A\\x0D\\x20-\\uD7FF\\uE000-\\uFFFD]",
+                ""
+        );
     }
 
     @Cacheable(value = "facebookFeed")
@@ -387,10 +393,9 @@ public class ProductService {
 
             xml.append("<item>");
 
-            // ✅ Required fields
             xml.append("<g:id>").append(p.getId()).append("</g:id>");
-            xml.append("<title>").append(escapeXml(p.getName())).append("</title>");
-            xml.append("<description>").append(escapeXml(p.getDescription())).append("</description>");
+            xml.append("<title>").append(sanitizeForXml(p.getName())).append("</title>");
+            xml.append("<description>").append(sanitizeForXml(p.getDescription())).append("</description>");
             xml.append("<link>https://anttikka.com/product/").append(p.getId()).append("</link>");
             xml.append("<g:image_link>")
                     .append("https://anttikka.com/api")
@@ -402,11 +407,9 @@ public class ProductService {
             xml.append("<g:availability>in stock</g:availability>");
             xml.append("<g:condition>new</g:condition>");
 
-            // ✅ Recommended fields for better ad performance
             xml.append("<g:brand>Anttikka</g:brand>");
             xml.append("<g:google_product_category>436</g:google_product_category>"); // Furniture category
 
-            // ✅ Additional images (Meta supports up to 10)
             List<?> images = p.getImages();
             for (int i = 1; i < Math.min(images.size(), 10); i++) {
                 xml.append("<g:additional_image_link>")
