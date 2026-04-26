@@ -399,7 +399,8 @@ public class ProductService {
 
             xml.append("<item>");
 
-            xml.append("<g:id>").append(p.getId()).append("</g:id>");
+            xml.append("<id>").append(p.getId()).append("</id>");
+
 
             // Use CDATA to avoid all entity-related errors in titles/descriptions
             xml.append("<title><![CDATA[").append(escapeCdata(p.getName())).append("]]></title>");
