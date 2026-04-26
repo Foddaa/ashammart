@@ -372,6 +372,12 @@ public class ProductService {
         );
     }
 
+    private String escapeCdata(String input) {
+        if (input == null) return "";
+        // Prevent premature CDATA termination
+        return input.replace("]]>", "]]&gt;");
+    }
+
     @Cacheable(value = "facebookFeed")
     @Transactional
     public String getFacebookFeed(){
@@ -394,13 +400,17 @@ public class ProductService {
             xml.append("<item>");
 
             xml.append("<g:id>").append(p.getId()).append("</g:id>");
-            xml.append("<title>").append(sanitizeForXml(p.getName())).append("</title>");
-            xml.append("<description>").append(sanitizeForXml(p.getDescription())).append("</description>");
+
+            // Use CDATA to avoid all entity-related errors in titles/descriptions
+            xml.append("<title><![CDATA[").append(escapeCdata(p.getName())).append("]]></title>");
+            xml.append("<description><![CDATA[").append(escapeCdata(p.getDescription())).append("]]></description>");
+
             xml.append("<link>https://anttikka.com/product/").append(p.getId()).append("</link>");
+
             xml.append("<g:image_link>")
-                    .append("https://anttikka.com/api")
-                    .append(p.getImages().get(0).getUrl())
+                    .append(sanitizeForXml("https://anttikka.com/api" + p.getImages().get(0).getUrl()))
                     .append("</g:image_link>");
+
             xml.append("<g:price>")
                     .append(String.format("%.2f", p.getPrice()))
                     .append(" EGP</g:price>");
@@ -413,8 +423,7 @@ public class ProductService {
             List<?> images = p.getImages();
             for (int i = 1; i < Math.min(images.size(), 10); i++) {
                 xml.append("<g:additional_image_link>")
-                        .append("https://anttikka.com/api")
-                        .append(p.getImages().get(i).getUrl())
+                        .append(sanitizeForXml("https://anttikka.com/api" + p.getImages().get(i).getUrl()))
                         .append("</g:additional_image_link>");
             }
 
