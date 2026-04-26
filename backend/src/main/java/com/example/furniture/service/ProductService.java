@@ -412,9 +412,19 @@ public class ProductService {
                     .append(sanitizeForXml("https://anttikka.com/api" + p.getImages().get(0).getUrl()))
                     .append("</g:image_link>");
 
-            xml.append("<g:price>")
-                    .append(String.format("%.2f", p.getPrice()))
-                    .append(" EGP</g:price>");
+
+            if (p.getCanceledPrice() != 0 && p.getCanceledPrice() > p.getPrice()) {
+                xml.append("<g:price>")
+                        .append(String.format("%.2f", p.getCanceledPrice()))
+                        .append(" EGP</g:price>");
+                xml.append("<g:sale_price>")
+                        .append(String.format("%.2f", p.getPrice()))
+                        .append(" EGP</g:sale_price>");
+            } else {
+                xml.append("<g:price>")
+                        .append(String.format("%.2f", p.getPrice()))
+                        .append(" EGP</g:price>");
+            }
             xml.append("<g:availability>in stock</g:availability>");
             xml.append("<g:condition>new</g:condition>");
 
