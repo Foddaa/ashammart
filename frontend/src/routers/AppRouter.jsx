@@ -41,7 +41,7 @@ import PaymentMethods from "@/pages/PaymentMethod";
 import SupplierRequestList from "@/admin/SupplierRequestList";
 import UserProfilePage from "@/pages/UserProfilePage";
 import UpdatePrices from "@/admin/UpdatePrices";
-import UpdateImages from "@/admin/updateImages";
+import UpdateImages from "@/admin/UpdateImages";
 
 const router = createBrowserRouter([
   {
