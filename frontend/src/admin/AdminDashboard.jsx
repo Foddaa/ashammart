@@ -187,7 +187,20 @@ const AdminDashboard = () => {
             <span className="text-xl">💰</span>
             <span className="font-medium">تعديل الأسعار</span>
           </NavLink>
-        </nav>
+          <NavLink
+              to="/admin/update/images"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? "bg-violet-600 text-white shadow-md"
+                    : "text-gray-700 hover:bg-violet-50 hover:text-violet-700"
+                }`
+              }
+            >
+              <span className="text-xl">🖼️</span>
+              <span className="font-medium">تعديل الصور والوسائط</span>
+            </NavLink>
+          </nav>
 
         {/* Optional footer in sidebar */}
         <div className="mt-8 pt-4 border-t border-gray-200 text-xs text-gray-400 text-center">

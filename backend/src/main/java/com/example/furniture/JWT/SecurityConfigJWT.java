@@ -24,6 +24,7 @@ public class SecurityConfigJWT {
                         .requestMatchers("/api/product/**").permitAll()
                         .requestMatchers("/api/category/**").permitAll()
                         .requestMatchers("/api/uploads/**").permitAll()
+                        .requestMatchers("/api/public/assets/**").permitAll()
                         .requestMatchers("/api/supplier/**").permitAll()
                         .requestMatchers("/api/client/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

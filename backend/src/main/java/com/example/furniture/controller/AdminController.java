@@ -9,12 +9,14 @@ import com.example.furniture.repository.SupplierRepository;
 import com.example.furniture.repository.SupplierRequestRepository;
 import com.example.furniture.service.CategoryService;
 import com.example.furniture.service.ProductService;
+import com.example.furniture.service.SiteAssetService;
 import com.example.furniture.service.SupplierService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +47,8 @@ public class AdminController {
     public String admin() {
         return "success";
     }
+    @Autowired
+    private SiteAssetService assetService;
 
     @Autowired
     ProductService productService;
@@ -249,5 +254,72 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Update failed: " + e.getMessage());
         }
     }
+    @GetMapping("/assets/logo")
+    public ResponseEntity<Map<String, String>> getLogoUrl() {
+        return ResponseEntity.ok(Map.of("url", assetService.getAssetDataUrl("logo")));
+    }
 
+    @GetMapping("/assets/slider")
+    public ResponseEntity<Map<String, String>> getSliderUrls() {
+        Map<String, String> urls = new HashMap<>();
+        urls.put("1", assetService.getAssetDataUrl("slider1"));
+        urls.put("2", assetService.getAssetDataUrl("slider2"));
+        urls.put("3", assetService.getAssetDataUrl("slider3"));
+        return ResponseEntity.ok(urls);
+    }
+
+    @GetMapping("/assets/hero-video")
+    public ResponseEntity<Map<String, String>> getHeroVideoUrl() {
+        return ResponseEntity.ok(Map.of("url", assetService.getAssetDataUrl("heroVideo")));
+    }
+
+    @GetMapping("/assets/best-seller")
+    public ResponseEntity<Map<String, String>> getBestSellerUrl() {
+        return ResponseEntity.ok(Map.of("url", assetService.getAssetDataUrl("bestSeller")));
+    }
+
+    @GetMapping("/assets/most-rated")
+    public ResponseEntity<Map<String, String>> getMostRatedUrl() {
+        return ResponseEntity.ok(Map.of("url", assetService.getAssetDataUrl("mostRated")));
+    }
+
+    // NEW: Serve the actual image/video bytes
+    @GetMapping("/assets/data/{assetKey}")
+    public ResponseEntity<byte[]> getAssetData(@PathVariable String assetKey) {
+        byte[] data = assetService.getAssetData(assetKey);
+        String mimeType = assetService.getAssetMimeType(assetKey);
+        if (data == null || data.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(mimeType));
+        return new ResponseEntity<>(data, headers, HttpStatus.OK);
+    }
+
+    // PUT endpoint remains the same – updates database with new file bytes
+    @PutMapping("/update/assets")
+    public ResponseEntity<?> updateAssets(
+            @RequestParam(value = "logo", required = false) MultipartFile logo,
+            @RequestParam(value = "slider1", required = false) MultipartFile slider1,
+            @RequestParam(value = "slider2", required = false) MultipartFile slider2,
+            @RequestParam(value = "slider3", required = false) MultipartFile slider3,
+            @RequestParam(value = "heroVideo", required = false) MultipartFile heroVideo,
+            @RequestParam(value = "bestSeller", required = false) MultipartFile bestSeller,
+            @RequestParam(value = "mostRated", required = false) MultipartFile mostRated) {
+
+        try {
+            if (logo != null) assetService.updateAsset("logo", logo);
+            if (slider1 != null) assetService.updateAsset("slider1", slider1);
+            if (slider2 != null) assetService.updateAsset("slider2", slider2);
+            if (slider3 != null) assetService.updateAsset("slider3", slider3);
+            if (heroVideo != null) assetService.updateAsset("heroVideo", heroVideo);
+            if (bestSeller != null) assetService.updateAsset("bestSeller", bestSeller);
+            if (mostRated != null) assetService.updateAsset("mostRated", mostRated);
+
+            return ResponseEntity.ok().body("Assets updated successfully");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Update failed: " + e.getMessage());
+        }
+    }
 }

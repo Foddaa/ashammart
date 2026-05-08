@@ -6,7 +6,7 @@ const ReturningAndReplacing = () => {
       <section>
         <h2 className="text-xl font-semibold mb-4 border-b pb-2">سياسة الاستبدال والاسترجاع</h2>
         <p className="text-sm leading-relaxed">
-          توفر <span className="font-semibold">عشم مارت</span> إمكانية الاستبدال أو الاسترجاع خلال مدة <span className="font-semibold">١٤ يومًا</span> من تاريخ استلام المنتج، دون الحاجة لتقديم سبب.
+          توفر <span className="font-semibold">أنتيكا</span> إمكانية الاستبدال أو الاسترجاع خلال مدة <span className="font-semibold">١٤ يومًا</span> من تاريخ استلام المنتج، دون الحاجة لتقديم سبب.
         </p>
         <p className="text-sm leading-relaxed mt-2">
           يشترط أن يكون المنتج في حالته الأصلية دون أي تلف أو استخدام.

@@ -6,7 +6,7 @@ const DileveryRules = () => {
       <section>
         <h2 className="text-xl font-semibold mb-4 border-b pb-2">سياسة الشحن</h2>
         <p className="text-sm leading-relaxed">
-          تقوم <span className="font-semibold">عشم مارت</span> بشحن المنتجات إلى جميع أنحاء الجمهورية.
+          تقوم <span className="font-semibold">أنتيكا</span> بشحن المنتجات إلى جميع أنحاء الجمهورية.
         </p>
         <p className="text-sm leading-relaxed mt-2">
           نرجو ملاحظة أنه لا يمكننا التوصيل إلى القرى الصغيرة أو النجوع غير المعروفة.

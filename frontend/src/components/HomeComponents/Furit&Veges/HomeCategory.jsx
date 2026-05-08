@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Heading from "@/components/shared/Heading";
-import ViewAll from "@/components/shared/ViewAll";
 import AD1 from "@/assets/images/categories/livingTable.jpg";
 import AD2 from "@/assets/images/categories/shoesCase.jpg";
 import AD3 from "@/assets/images/categories/coffeTable.jpg";
@@ -37,7 +36,6 @@ const HomeCategory = () => {
     <section className="container min-h-full py-6">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
         <Heading header="الأقسام الرئيسية" text="اكتشف تشكيلتنا الواسعة من الأثاث" />
-        <ViewAll />
       </div>
       <div className="grid grid-cols-5 gap-4 px-0 md:px-0">
         {categoryImages.map((cat) => (

@@ -6,7 +6,7 @@ const WhoAreWe = () => {
       <section>
         <h2 className="text-xl font-semibold mb-4 border-b pb-2">من نحن</h2>
         <p className="text-sm leading-relaxed">
-          <span className="font-semibold">عشم مارت</span> هي منصة تسوق إلكترونية توفر لك كل ما يلزم المنزل العصري بأقل الأسعار وأعلى جودة.
+          <span className="font-semibold">أنتيكا</span> هي منصة تسوق إلكترونية توفر لك كل ما يلزم المنزل العصري بأقل الأسعار وأعلى جودة.
         </p>
         <p className="text-sm leading-relaxed mt-2">
           تشمل منتجاتنا:

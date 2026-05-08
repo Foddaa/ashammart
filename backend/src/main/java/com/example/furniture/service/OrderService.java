@@ -101,7 +101,7 @@ public class OrderService {
             }
             order.setItems(orderItems);
             order.setSubtotal(order.getItems().stream().mapToDouble(OrderItem::getCost).sum());
-            order.setDeliveryCost(calculateDeliveryCost(request.getAddress()));
+            order.setDeliveryCost(request.getDeliveryCost());
             order.setTotalCost(order.getSubtotal() + order.getDeliveryCost());
             for (OrderItem orderItem : order.getItems()) {
                 Product product = productRepository.findById(orderItem.getProduct().getId())
@@ -140,9 +140,9 @@ public class OrderService {
 
     public double calculateDeliveryCost(Address address) {
         if (address.getCity().equals("القاهرة") || address.getCity().equals("الجيزة"))
-            return 300;
+            return 350;
         else {
-            return 500;
+            return 550;
         }
     }
 

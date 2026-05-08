@@ -6,7 +6,7 @@ const PrivacyRules = () => {
       <section>
         <h2 className="text-xl font-semibold mb-4 border-b pb-2">سياسة الخصوصية</h2>
         <p className="text-sm leading-relaxed">
-          نحن في <span className="font-semibold">عشم مارت</span> نحرص دائمًا على خصوصية عملائنا. لا نقوم بمشاركة أي معلومات
+          نحن في <span className="font-semibold">أنتيكا</span> نحرص دائمًا على خصوصية عملائنا. لا نقوم بمشاركة أي معلومات
           شخصية مثل أرقام الهواتف، العنوان، أو البريد الإلكتروني مع أي جهة خارجية.
         </p>
         <p className="text-sm leading-relaxed mt-2">

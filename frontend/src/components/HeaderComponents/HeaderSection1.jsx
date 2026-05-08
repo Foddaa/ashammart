@@ -1,14 +1,42 @@
-import { logo } from '@/assets/images/index.js';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CartWidget from './CartWidget';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import searchIcon from "@/assets/images/logos/search.ico";
 import menuIcon from "@/assets/images/logos/menu.ico";
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function HeaderSection1() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
+  const [logoUrl, setLogoUrl] = useState(null);
+
+  // Fetch dynamic logo from public endpoint
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/api/public/assets/logo`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          setLogoUrl(objectUrl);
+        } else {
+          console.error("Logo fetch failed:", response.status);
+        }
+      } catch (err) {
+        console.error("Failed to load dynamic logo:", err);
+      }
+    };
+    fetchLogo();
+
+    // Cleanup blob URL to avoid memory leaks
+    return () => {
+      if (logoUrl && logoUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(logoUrl);
+      }
+    };
+  }, []);
 
   const submitSearch = () => {
     if (searchTerm.trim()) {
@@ -45,10 +73,10 @@ export default function HeaderSection1() {
     <header className="container mx-auto bg-white px-2">
       <div className="flex items-center justify-between h-[80px]">
 
-        {/* Logo */}
+        {/* Logo - now dynamic from database */}
         <Link to="/">
           <img
-            src={logo}
+            src={logoUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='none' stroke='gray' stroke-width='2'%3E%3Crect x='2' y='2' width='20' height='20'/%3E%3C/svg%3E"}
             alt="Logo"
             className="w-[80px] h-[80px] object-cover"
           />
@@ -76,7 +104,7 @@ export default function HeaderSection1() {
 
         {/* Right actions */}
         <div className="flex items-center gap-3">
-        {/* Cart */}
+          {/* Cart */}
           <CartWidget />
           {/* Categories button */}
           <button

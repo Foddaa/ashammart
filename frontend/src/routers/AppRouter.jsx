@@ -41,6 +41,7 @@ import PaymentMethods from "@/pages/PaymentMethod";
 import SupplierRequestList from "@/admin/SupplierRequestList";
 import UserProfilePage from "@/pages/UserProfilePage";
 import UpdatePrices from "@/admin/UpdatePrices";
+import UpdateImages from "@/admin/updateImages";
 
 const router = createBrowserRouter([
   {
@@ -89,6 +90,7 @@ const router = createBrowserRouter([
     { path: 'suppliers', element: <SupplierList /> },
     { path: 'supplierRequests', element: <SupplierRequestList /> },
     { path: 'update/prices', element: <UpdatePrices/> },
+    { path: "update/images", element: <UpdateImages /> },
   ]
 },
 {path: '/executive',
