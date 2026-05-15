@@ -53,15 +53,191 @@ const ASSETS = [
     getUrlKey: "3",
   },
   {
-    key: "heroVideo",
-    label: "فيديو الهيرو",
-    icon: "🎬",
-    accept: "video/*",
-    type: "video",
-    color: "purple",
-    backendField: "heroVideo",
-    getUrlEndpoint: "/api/admin/assets/hero-video",
-    getUrlKey: "url",
+    key: "heroImg4",
+    label: "صورة السلايدر 4",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider4",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "4",
+  },
+  {
+    key: "heroImg5",
+    label: "صورة السلايدر 5",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider5",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "5",
+  },
+  {
+    key: "heroImg6",
+    label: "صورة السلايدر 6",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider6",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "6",
+  },
+  {
+    key: "heroImg7",
+    label: "صورة السلايدر 7",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider7",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "7",
+  },
+  {
+    key: "heroImg8",
+    label: "صورة السلايدر 8",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider8",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "8",
+  },
+  {
+    key: "heroImg9",
+    label: "صورة السلايدر 9",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider9",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "9",
+  },
+  {
+    key: "heroImg10",
+    label: "صورة السلايدر 10",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider10",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "10",
+  },
+  {
+    key: "heroImg11",
+    label: "صورة السلايدر 11",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider11",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "11",
+  },
+  {
+    key: "heroImg12",
+    label: "صورة السلايدر 12",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider12",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "12",
+  },
+  {
+    key: "heroImg13",
+    label: "صورة السلايدر 13",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider13",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "13",
+  },
+  {
+    key: "heroImg14",
+    label: "صورة السلايدر 14",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider14",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "14",
+  },
+  {
+    key: "heroImg15",
+    label: "صورة السلايدر 15",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider15",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "15",
+  },
+  {
+    key: "heroImg16",
+    label: "صورة السلايدر 16",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider16",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "16",
+  },
+  {
+    key: "heroImg17",
+    label: "صورة السلايدر 17",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider17",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "17",
+  },
+  {
+    key: "heroImg18",
+    label: "صورة السلايدر 18",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider18",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "18",
+  },
+  {
+    key: "heroImg19",
+    label: "صورة السلايدر 19",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider19",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "19",
+  },
+  {
+    key: "heroImg20",
+    label: "صورة السلايدر 20",
+    icon: "🖼️",
+    accept: "image/*",
+    type: "image",
+    color: "indigo",
+    backendField: "slider20",
+    getUrlEndpoint: "/api/admin/assets/slider",
+    getUrlKey: "20",
   },
   {
     key: "bestSellerHero",
@@ -334,8 +510,38 @@ const AssetCard = ({ asset }) => {
   );
 };
 
-/* ─── Main Page ─── */
+/* Helper: Sort assets by numeric suffix (e.g., heroImg1, heroImg2) */
+const sortByNumericSuffix = (assets) => {
+  return [...assets].sort((a, b) => {
+    const numA = parseInt(a.key.match(/\d+$/)?.[0] || "0", 10);
+    const numB = parseInt(b.key.match(/\d+$/)?.[0] || "0", 10);
+    return numA - numB;
+  });
+};
+
+/* ─── Main Page with Grouping ─── */
 const UpdateImages = () => {
+  // Group assets
+  const slider1Assets = sortByNumericSuffix(
+    ASSETS.filter(asset => {
+      const match = asset.key.match(/heroImg(\d+)/);
+      if (!match) return false;
+      const num = parseInt(match[1], 10);
+      return num >= 1 && num <= 10;
+    })
+  );
+
+  const slider2Assets = sortByNumericSuffix(
+    ASSETS.filter(asset => {
+      const match = asset.key.match(/heroImg(\d+)/);
+      if (!match) return false;
+      const num = parseInt(match[1], 10);
+      return num >= 11 && num <= 20;
+    })
+  );
+
+  const otherAssets = ASSETS.filter(asset => !asset.key.startsWith('heroImg'));
+
   return (
     <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 md:p-8">
       <div className="mb-8">
@@ -354,11 +560,59 @@ const UpdateImages = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-        {ASSETS.map((asset) => (
-          <AssetCard key={asset.key} asset={asset} />
-        ))}
-      </div>
+      {/* Additional Assets Section (Logo, Best Seller, Most Rated) */}
+      {otherAssets.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-1 bg-blue-500 rounded-full"></div>
+            <h2 className="text-xl font-bold text-gray-800">وسائط إضافية</h2>
+            <span className="text-sm text-gray-400">(شعار، صور مميزة)</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            {otherAssets.map((asset) => (
+              <AssetCard key={asset.key} asset={asset} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Slider 1 Section (Images 1-10) */}
+      {slider1Assets.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-1 bg-indigo-500 rounded-full"></div>
+            <h2 className="text-xl font-bold text-gray-800">السلايدر الرئيسي - المجموعة الأولى</h2>
+            <span className="text-sm text-gray-400">(10 صور)</span>
+          </div>
+          <div className="bg-indigo-50/30 border border-indigo-100 rounded-2xl p-4 mb-4 text-sm text-indigo-800">
+            <p className="flex items-center gap-2">💡 <span>يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.</span></p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            {slider1Assets.map((asset) => (
+              <AssetCard key={asset.key} asset={asset} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Slider 2 Section (Images 11-20) */}
+      {slider2Assets.length > 0 && (
+        <section className="mb-10">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-8 w-1 bg-purple-500 rounded-full"></div>
+            <h2 className="text-xl font-bold text-gray-800">السلايدر الثانوي - المجموعة الثانية</h2>
+            <span className="text-sm text-gray-400">(10 صور)</span>
+          </div>
+          <div className="bg-purple-50/30 border border-purple-100 rounded-2xl p-4 mb-4 text-sm text-purple-800">
+            <p className="flex items-center gap-2">💡 <span>يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.</span></p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            {slider2Assets.map((asset) => (
+              <AssetCard key={asset.key} asset={asset} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <ToastContainer
         position="top-center"

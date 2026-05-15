@@ -12,7 +12,7 @@ export default function OrderReview() {
   const { cartItems = [], subtotal = 0 } = location.state || {};
 
   const [paymentMethod, setPaymentMethod] = useState("CASH_ON_DELEVER");
-const [city, setCity] = useState("القاهرة");
+  const [city, setCity] = useState("القاهرة");
   const [description, setDescription] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -20,17 +20,49 @@ const [city, setCity] = useState("القاهرة");
   const [phone, setPhone] = useState("");
   const [deliveryCost, setDeliveryCost] = useState(0);
   const [showProducts, setShowProducts] = useState(true);
+  
+  // New state for delivery prices from API
+  const [deliveryPrices, setDeliveryPrices] = useState([]);
+  const [loadingPrices, setLoadingPrices] = useState(true);
+  
   const navigate = useNavigate();
 
+  // Fetch delivery prices from API
   useEffect(() => {
+    const fetchDeliveryPrices = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/public/assets/delivery/prices`);
+        // Expected response: [{ id: 1, city: "cairoAndGiza", price: 350 }, { id: 2, city: "restOfCities", price: 500 }]
+        setDeliveryPrices(response.data);
+      } catch (err) {
+        console.error("Failed to fetch delivery prices:", err);
+        toast.warn("تعذر تحميل أسعار التوصيل، سيتم استخدام الأسعار الافتراضية");
+        // Fallback hardcoded prices in case API fails
+        setDeliveryPrices([
+          { id: 1, city: "cairoAndGiza", price: 350 },
+          { id: 2, city: "restOfCities", price: 500 },
+        ]);
+      } finally {
+        setLoadingPrices(false);
+      }
+    };
+    fetchDeliveryPrices();
+  }, []);
+
+  // Calculate delivery cost based on selected city and fetched prices
+  useEffect(() => {
+    if (deliveryPrices.length === 0) return;
+
+    // Find price for Cairo/Giza (cairoAndGiza)
+    const cairoGizaPrice = deliveryPrices.find(item => item.city === "cairoAndGiza")?.price;
+    const restPrice = deliveryPrices.find(item => item.city === "restOfCities")?.price;
+    
     if (city === "القاهرة" || city === "الجيزة") {
-      setDeliveryCost(350);
-    } else if (city) {
-      setDeliveryCost(550);
+      setDeliveryCost(cairoGizaPrice ?? 350);
     } else {
-      setDeliveryCost(0);
+      setDeliveryCost(restPrice ?? 500);
     }
-  }, [city]);
+  }, [city, deliveryPrices]);
 
   const handleConfirmOrder = async () => {
     // validation
@@ -47,7 +79,7 @@ const [city, setCity] = useState("القاهرة");
           lastName,
           email: email || null,
           phone: phone || null,
-          paymentMethod, // "الدفع عند الاستلام" | "انستاباي" | "محفظة"
+          paymentMethod,
           address: {
             city,
             description,
@@ -71,9 +103,7 @@ const [city, setCity] = useState("القاهرة");
       }
     } catch (err) {
       console.error("Confirm order error:", err);
-
       if (err.response && err.response.data) {
-        // backend sent an error message
         toast.error(err.response.data);
       } else {
         toast.error("حدث خطأ أثناء تأكيد الطلب.");
@@ -104,7 +134,6 @@ const [city, setCity] = useState("القاهرة");
                 key={item.id}
                 className="py-3 flex justify-between items-center"
               >
-                {/* Product Image */}
                 <img
                   src={
                     item.images?.[0]?.url
@@ -114,14 +143,10 @@ const [city, setCity] = useState("القاهرة");
                   alt={item.name}
                   className="w-16 h-16 object-cover rounded border"
                 />
-
-                {/* Product Info */}
                 <div className="flex-1 px-3 text-right">
                   <p className="font-medium">{item.name}</p>
                   <p className="text-sm">الكمية: {item.quantity}</p>
                 </div>
-
-                {/* Price Info */}
                 <div className="text-left">
                   <p className="text-sm">السعر: {item.price} جنيه</p>
                   <p className="text-sm font-semibold">
@@ -141,10 +166,16 @@ const [city, setCity] = useState("القاهرة");
           الإجمالي بدون شحن: <strong>{subtotal} جنيه</strong>
         </p>
         <p>
-          تكلفة التوصيل: <strong>{deliveryCost} جنيه</strong>
+          تكلفة التوصيل:{" "}
+          <strong>
+            {loadingPrices ? "جاري التحميل..." : `${deliveryCost} جنيه`}
+          </strong>
         </p>
         <p className="text-xl mt-2">
-          الإجمالي الكلي: <strong>{subtotal + deliveryCost} جنيه</strong>
+          الإجمالي الكلي:{" "}
+          <strong>
+            {loadingPrices ? "---" : `${subtotal + deliveryCost} جنيه`}
+          </strong>
         </p>
       </div>
 
@@ -245,7 +276,6 @@ const [city, setCity] = useState("القاهرة");
       </div>
 
       {/* Payment Method */}
-
       <div className="bg-white shadow rounded-lg p-4 mb-6">
         <PaymentMethod payment={paymentMethod} setPayment={setPaymentMethod} />
       </div>

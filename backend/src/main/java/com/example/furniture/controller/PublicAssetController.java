@@ -1,5 +1,7 @@
 package com.example.furniture.controller;
 
+import com.example.furniture.model.DeliveryPrice;
+import com.example.furniture.repository.DeliveryPriceRepository;
 import com.example.furniture.service.SiteAssetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -10,10 +12,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/public/assets")
 public class PublicAssetController {
 
+    @Autowired
+    private DeliveryPriceRepository deliveryPriceRepository;
     @Autowired
     private SiteAssetService assetService;
 
@@ -56,5 +62,10 @@ public class PublicAssetController {
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
+    }
+    @GetMapping("/delivery/prices")
+    public ResponseEntity<?> getDeliveryPrices() {
+        List<DeliveryPrice> deliveryPrices = deliveryPriceRepository.findAll();
+        return ResponseEntity.ok(deliveryPrices);
     }
 }

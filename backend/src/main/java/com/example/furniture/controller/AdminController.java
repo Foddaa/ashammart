@@ -2,9 +2,11 @@ package com.example.furniture.controller;
 
 import com.example.furniture.inputDTO.UpdatePricesRequest;
 import com.example.furniture.model.Category;
+import com.example.furniture.model.DeliveryPrice;
 import com.example.furniture.model.Product;
 import com.example.furniture.model.Supplier;
 import com.example.furniture.repository.CategoryRepository;
+import com.example.furniture.repository.DeliveryPriceRepository;
 import com.example.furniture.repository.SupplierRepository;
 import com.example.furniture.repository.SupplierRequestRepository;
 import com.example.furniture.service.CategoryService;
@@ -43,6 +45,9 @@ public class AdminController {
     SupplierService supplierService;
     @Autowired
     SupplierRequestRepository supplierRequestRepository;
+
+    @Autowired
+    DeliveryPriceRepository deliveryPriceRepository;
     @GetMapping
     public String admin() {
         return "success";
@@ -265,6 +270,24 @@ public class AdminController {
         urls.put("1", assetService.getAssetDataUrl("slider1"));
         urls.put("2", assetService.getAssetDataUrl("slider2"));
         urls.put("3", assetService.getAssetDataUrl("slider3"));
+        urls.put("4", assetService.getAssetDataUrl("slider4"));
+        urls.put("5", assetService.getAssetDataUrl("slider5"));
+        urls.put("6", assetService.getAssetDataUrl("slider6"));
+        urls.put("7", assetService.getAssetDataUrl("slider7"));
+        urls.put("8", assetService.getAssetDataUrl("slider8"));
+        urls.put("9", assetService.getAssetDataUrl("slider9"));
+        urls.put("10", assetService.getAssetDataUrl("slider10"));
+        urls.put("11", assetService.getAssetDataUrl("slider11"));
+        urls.put("12", assetService.getAssetDataUrl("slider12"));
+        urls.put("13", assetService.getAssetDataUrl("slider13"));
+        urls.put("14", assetService.getAssetDataUrl("slider14"));
+        urls.put("15", assetService.getAssetDataUrl("slider15"));
+        urls.put("16", assetService.getAssetDataUrl("slider16"));
+        urls.put("17", assetService.getAssetDataUrl("slider17"));
+        urls.put("18", assetService.getAssetDataUrl("slider18"));
+        urls.put("19", assetService.getAssetDataUrl("slider19"));
+        urls.put("20", assetService.getAssetDataUrl("slider20"));
+
         return ResponseEntity.ok(urls);
     }
 
@@ -303,6 +326,23 @@ public class AdminController {
             @RequestParam(value = "slider1", required = false) MultipartFile slider1,
             @RequestParam(value = "slider2", required = false) MultipartFile slider2,
             @RequestParam(value = "slider3", required = false) MultipartFile slider3,
+            @RequestParam(value = "slider4", required = false) MultipartFile slider4,
+            @RequestParam(value = "slider5", required = false) MultipartFile slider5,
+            @RequestParam(value = "slider6", required = false) MultipartFile slider6,
+            @RequestParam(value = "slider7", required = false) MultipartFile slider7,
+            @RequestParam(value = "slider8", required = false) MultipartFile slider8,
+            @RequestParam(value = "slider9", required = false) MultipartFile slider9,
+            @RequestParam(value = "slider10", required = false) MultipartFile slider10,
+            @RequestParam(value = "slider11", required = false) MultipartFile slider11,
+            @RequestParam(value = "slider12", required = false) MultipartFile slider12,
+            @RequestParam(value = "slider13", required = false) MultipartFile slider13,
+            @RequestParam(value = "slider14", required = false) MultipartFile slider14,
+            @RequestParam(value = "slider15", required = false) MultipartFile slider15,
+            @RequestParam(value = "slider16", required = false) MultipartFile slider16,
+            @RequestParam(value = "slider17", required = false) MultipartFile slider17,
+            @RequestParam(value = "slider18", required = false) MultipartFile slider18,
+            @RequestParam(value = "slider19", required = false) MultipartFile slider19,
+            @RequestParam(value = "slider20", required = false) MultipartFile slider20,
             @RequestParam(value = "heroVideo", required = false) MultipartFile heroVideo,
             @RequestParam(value = "bestSeller", required = false) MultipartFile bestSeller,
             @RequestParam(value = "mostRated", required = false) MultipartFile mostRated) {
@@ -312,6 +352,23 @@ public class AdminController {
             if (slider1 != null) assetService.updateAsset("slider1", slider1);
             if (slider2 != null) assetService.updateAsset("slider2", slider2);
             if (slider3 != null) assetService.updateAsset("slider3", slider3);
+            if (slider4 != null) assetService.updateAsset("slider4", slider4);
+            if (slider5 != null) assetService.updateAsset("slider5", slider5);
+            if (slider6 != null) assetService.updateAsset("slider6", slider6);
+            if (slider7 != null) assetService.updateAsset("slider7", slider7);
+            if (slider8 != null) assetService.updateAsset("slider8", slider8);
+            if (slider9 != null) assetService.updateAsset("slider9", slider9);
+            if (slider10 != null) assetService.updateAsset("slider10", slider10);
+            if (slider11 != null) assetService.updateAsset("slider11", slider11);
+            if (slider12 != null) assetService.updateAsset("slider12", slider12);
+            if (slider13 != null) assetService.updateAsset("slider13", slider13);
+            if (slider14 != null) assetService.updateAsset("slider14", slider14);
+            if (slider15 != null) assetService.updateAsset("slider15", slider15);
+            if (slider16 != null) assetService.updateAsset("slider16", slider16);
+            if (slider17 != null) assetService.updateAsset("slider17", slider17);
+            if (slider18 != null) assetService.updateAsset("slider18", slider18);
+            if (slider19 != null) assetService.updateAsset("slider19", slider19);
+            if (slider20 != null) assetService.updateAsset("slider20", slider20);
             if (heroVideo != null) assetService.updateAsset("heroVideo", heroVideo);
             if (bestSeller != null) assetService.updateAsset("bestSeller", bestSeller);
             if (mostRated != null) assetService.updateAsset("mostRated", mostRated);
@@ -320,6 +377,20 @@ public class AdminController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Update failed: " + e.getMessage());
+        }
+    }
+    @GetMapping("/delivery/prices")
+    public ResponseEntity<?> getDeliveryPrices() {
+        List<DeliveryPrice> deliveryPrices = deliveryPriceRepository.findAll();
+        return ResponseEntity.ok(deliveryPrices);
+    }
+    @PutMapping("/delivery/prices/update")
+    public ResponseEntity<?> updateDeliveryPrices(@RequestBody List<DeliveryPrice> deliveryPrices) {
+        try {
+            deliveryPriceRepository.saveAll(deliveryPrices);
+            return ResponseEntity.ok("Delivery prices updated successfully");
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body("Update failed: " + e.getMessage());
         }
     }
 }

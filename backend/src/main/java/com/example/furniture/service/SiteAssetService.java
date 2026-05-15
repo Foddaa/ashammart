@@ -19,24 +19,58 @@ public class SiteAssetService {
     @Autowired
     private SiteAssetRepository assetRepository;
 
-    private static final Map<String, String> ASSET_KEY_TO_FILENAME = Map.of(
-            "logo", "logo.ico",
-            "slider1", "HeroImg1.webp",
-            "slider2", "HeroImg2.webp",
-            "slider3", "HeroImg3.webp",
-            "heroVideo", "HeroSectionVedio.mp4",
-            "bestSeller", "ad5.webp",
-            "mostRated", "ad6.webp"
+    private static final Map<String, String> ASSET_KEY_TO_FILENAME = Map.ofEntries(
+            Map.entry("logo", "logo.ico"),
+            Map.entry("slider1", "HeroImg1.webp"),
+            Map.entry("slider2", "HeroImg2.webp"),
+            Map.entry("slider3", "HeroImg3.webp"),
+            Map.entry("slider4", "HeroImg4.webp"),
+            Map.entry("slider5", "HeroImg5.webp"),
+            Map.entry("slider6", "HeroImg6.webp"),
+            Map.entry("slider7", "HeroImg7.webp"),
+            Map.entry("slider8", "HeroImg8.webp"),
+            Map.entry("slider9", "HeroImg9.webp"),
+            Map.entry("slider10", "HeroImg10.webp"),
+            Map.entry("slider11", "HeroImg11.webp"),
+            Map.entry("slider12", "HeroImg12.webp"),
+            Map.entry("slider13", "HeroImg13.webp"),
+            Map.entry("slider14", "HeroImg14.webp"),
+            Map.entry("slider15", "HeroImg15.webp"),
+            Map.entry("slider16", "HeroImg16.webp"),
+            Map.entry("slider17", "HeroImg17.webp"),
+            Map.entry("slider18", "HeroImg18.webp"),
+            Map.entry("slider19", "HeroImg19.webp"),
+            Map.entry("slider20", "HeroImg20.webp"),
+            Map.entry("heroVideo", "HeroSectionVedio.mp4"),
+            Map.entry("bestSeller", "ad5.webp"),
+            Map.entry("mostRated", "ad6.webp")
     );
 
-    private static final Map<String, String> ASSET_KEY_TO_TYPE = Map.of(
-            "logo", "image",
-            "slider1", "image",
-            "slider2", "image",
-            "slider3", "image",
-            "heroVideo", "video",
-            "bestSeller", "image",
-            "mostRated", "image"
+    private static final Map<String, String> ASSET_KEY_TO_TYPE = Map.ofEntries(
+            Map.entry("logo", "image"),
+            Map.entry("slider1", "image"),
+            Map.entry("slider2", "image"),
+            Map.entry("slider3", "image"),
+            Map.entry("slider4", "image"),
+            Map.entry("slider5", "image"),
+            Map.entry("slider6", "image"),
+            Map.entry("slider7", "image"),
+            Map.entry("slider8", "image"),
+            Map.entry("slider9", "image"),
+            Map.entry("slider10", "image"),
+            Map.entry("slider11", "image"),
+            Map.entry("slider12", "image"),
+            Map.entry("slider13", "image"),
+            Map.entry("slider14", "image"),
+            Map.entry("slider15", "image"),
+            Map.entry("slider16", "image"),
+            Map.entry("slider17", "image"),
+            Map.entry("slider18", "image"),
+            Map.entry("slider19", "image"),
+            Map.entry("slider20", "image"),
+            Map.entry("heroVideo", "video"),
+            Map.entry("bestSeller", "image"),
+            Map.entry("mostRated", "image")
     );
 
     // Get the data URL endpoint for frontend
