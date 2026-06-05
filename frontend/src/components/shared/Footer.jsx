@@ -47,14 +47,14 @@ const Footer = () => {
     </h3>
 
     <a
-      href="https://maps.app.goo.gl/MqHSFDNNgW3UKGZ47"
+      href="https://maps.app.goo.gl/cycaUgKdu5BLscEF7"
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-right w-full font-family: 'Cairo sans-serif gap-2 text-[#1e3a8a] tracking-wide hover:opacity-80 transition duration-200 "
     >
       <span className="text-xl">📍</span>
       <span className="hover:underline hover:scale-[1.02] bold text-sm sm:text-base underline leading-relaxed">
-        جسر السويس : اخر شارع القدس متفرع من شارع الخمسين - برتي - القاهرة
+        السلام شارع الحجاز متفرع من شارع الترولي بجوار الكنيسه - القاهرة
       </span>
     </a>
 
