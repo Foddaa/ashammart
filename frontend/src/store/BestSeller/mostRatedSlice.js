@@ -1,5 +1,5 @@
 import { createSlice }  from "@reduxjs/toolkit";
-import actionTables from "./thunk/actionTables";
+import actionMostRated from "./thunk/actionMostRated";
 
 
 const initialState = {
@@ -8,8 +8,8 @@ const initialState = {
   error: null,
 }
 
-const tablesSlice = createSlice({
-  name: "tables",
+const mostRatedSlice = createSlice({
+  name: "mostRated",
   initialState: {
     products: [],
     error: null,
@@ -18,19 +18,19 @@ const tablesSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(actionTables.pending, (state) => {
+      .addCase(actionMostRated.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(actionTables.fulfilled, (state, action) => {
-        state.products = action.payload; // ✅ This should match what API returns
+      .addCase(actionMostRated.fulfilled, (state, action) => {
+        state.products = action.payload;
         state.loading = false;
       })
-      .addCase(actionTables.rejected, (state, action) => {
+      .addCase(actionMostRated.rejected, (state, action) => {
         state.error = action.payload;
         state.loading = false;
       });
   },
 });
 
-export default tablesSlice.reducer; 
+export default mostRatedSlice.reducer; 

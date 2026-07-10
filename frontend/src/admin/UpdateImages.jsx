@@ -131,7 +131,7 @@ const ASSETS = [
   },
   {
     key: "heroImg11",
-    label: "صورة السلايدر 11",
+    label: "صورة السلايدر 1",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -142,7 +142,7 @@ const ASSETS = [
   },
   {
     key: "heroImg12",
-    label: "صورة السلايدر 12",
+    label: "صورة السلايدر 2",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -153,7 +153,7 @@ const ASSETS = [
   },
   {
     key: "heroImg13",
-    label: "صورة السلايدر 13",
+    label: "صورة السلايدر 3",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -164,7 +164,7 @@ const ASSETS = [
   },
   {
     key: "heroImg14",
-    label: "صورة السلايدر 14",
+    label: "صورة السلايدر 4",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -175,7 +175,7 @@ const ASSETS = [
   },
   {
     key: "heroImg15",
-    label: "صورة السلايدر 15",
+    label: "صورة السلايدر 5",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -186,7 +186,7 @@ const ASSETS = [
   },
   {
     key: "heroImg16",
-    label: "صورة السلايدر 16",
+    label: "صورة السلايدر 6",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -197,7 +197,7 @@ const ASSETS = [
   },
   {
     key: "heroImg17",
-    label: "صورة السلايدر 17",
+    label: "صورة السلايدر 7",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -208,7 +208,7 @@ const ASSETS = [
   },
   {
     key: "heroImg18",
-    label: "صورة السلايدر 18",
+    label: "صورة السلايدر 8",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -219,7 +219,7 @@ const ASSETS = [
   },
   {
     key: "heroImg19",
-    label: "صورة السلايدر 19",
+    label: "صورة السلايدر 9",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -230,7 +230,7 @@ const ASSETS = [
   },
   {
     key: "heroImg20",
-    label: "صورة السلايدر 20",
+    label: "صورة السلايدر 10",
     icon: "🖼️",
     accept: "image/*",
     type: "image",
@@ -240,26 +240,70 @@ const ASSETS = [
     getUrlKey: "20",
   },
   {
-    key: "bestSellerHero",
-    label: "صورة الأكثر مبيعاً",
+    key: "bestSeller1",
+    label: "صورة الأكثر مبيعاً 1",
     icon: "⭐",
     accept: "image/*",
     type: "image",
     color: "amber",
-    backendField: "bestSeller",
+    backendField: "bestSeller1",
     getUrlEndpoint: "/api/admin/assets/best-seller",
-    getUrlKey: "url",
+    getUrlKey: "1",
   },
   {
-    key: "mostRatedHero",
-    label: "صورة الأعلى تقييماً",
+    key: "bestSeller2",
+    label: "صورة الأكثر مبيعاً 2",
+    icon: "⭐",
+    accept: "image/*",
+    type: "image",
+    color: "amber",
+    backendField: "bestSeller2",
+    getUrlEndpoint: "/api/admin/assets/best-seller",
+    getUrlKey: "2",
+  },
+    {
+    key: "bestSeller3",
+    label: "صورة الأكثر مبيعا 3",
+    icon: "⭐",
+    accept: "image/*",
+    type: "image",
+    color: "amber",
+    backendField: "bestSeller3",
+    getUrlEndpoint: "/api/admin/assets/best-seller",
+    getUrlKey: "3",
+  },
+  {
+    key: "mostRated1",
+    label: "صورة الأعلى تقييماً 1",
     icon: "🏆",
     accept: "image/*",
     type: "image",
     color: "emerald",
-    backendField: "mostRated",
+    backendField: "mostRated1",
     getUrlEndpoint: "/api/admin/assets/most-rated",
-    getUrlKey: "url",
+    getUrlKey: "1",
+  },
+  {
+    key: "mostRated2",
+    label: "صورة الأعلى تقييماً 2",
+    icon: "🏆",
+    accept: "image/*",
+    type: "image",
+    color: "emerald",
+    backendField: "mostRated2",
+    getUrlEndpoint: "/api/admin/assets/most-rated",
+    getUrlKey: "2",
+  },
+  {
+    key: "mostRated3",
+    label: "صورة الأعلى تقييماً 3",
+    icon: "🏆",
+    accept: "image/*",
+    type: "image",
+    color: "emerald",
+    backendField: "mostRated3",
+    getUrlEndpoint: "/api/admin/assets/most-rated",
+    getUrlKey: "3",
   },
 ];
 
@@ -519,8 +563,74 @@ const sortByNumericSuffix = (assets) => {
   });
 };
 
-/* ─── Main Page with Grouping ─── */
+/* ─── Tab bar ─── */
+const TABS_META = {
+  other: {
+    label: "اللوجو",
+    hint: "شعار، صور مميزة",
+    accent: "blue",
+    tip: null,
+  },
+  slider1: {
+    label: "سلايدر 1",
+    hint: "1 – 10",
+    accent: "indigo",
+    tip: "يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.",
+  },
+  slider2: {
+    label: "سلايدر 2",
+    hint: "11 – 20",
+    accent: "purple",
+    tip: "يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.",
+  },
+  bestSellerSlider: {
+    label: "سلايدر الاكثر مبيعا",
+    hint: "21 - 23",
+    accent: "amber",
+    tip: "يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.",
+  },
+  mostRatedSlider: {
+    label: "سلايدر الاعلي تقييما",
+    hint: "24 – 26",
+    accent: "emerald",
+    tip: "يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.",
+  }
+};
+
+const TAB_ACCENTS = {
+  blue:   { activeBg: "bg-blue-600",   activeText: "text-white", idleText: "text-blue-700",   idleBg: "bg-blue-50 hover:bg-blue-100",     dot: "bg-blue-500" },
+  indigo: { activeBg: "bg-indigo-600", activeText: "text-white", idleText: "text-indigo-700", idleBg: "bg-indigo-50 hover:bg-indigo-100", dot: "bg-indigo-500" },
+  purple: { activeBg: "bg-purple-600", activeText: "text-white", idleText: "text-purple-700", idleBg: "bg-purple-50 hover:bg-purple-100", dot: "bg-purple-500" },
+  amber:  { activeBg: "bg-amber-600",  activeText: "text-white", idleText: "text-amber-700",  idleBg: "bg-amber-50 hover:bg-amber-100",   dot: "bg-amber-500" },
+  emerald:{ activeBg: "bg-emerald-600",activeText: "text-white", idleText: "text-emerald-700",idleBg: "bg-emerald-50 hover:bg-emerald-100", dot: "bg-emerald-500" },
+};
+
+const TabButton = ({ id, meta, count, active, onClick }) => {
+  const a = TAB_ACCENTS[meta.accent];
+  return (
+    <button
+      onClick={() => onClick(id)}
+      className={`relative flex-1 min-w-[180px] flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 ${
+        active ? `${a.activeBg} ${a.activeText} shadow-md` : `${a.idleBg} ${a.idleText}`
+      }`}
+    >
+      <span className={`h-2 w-2 rounded-full ${active ? "bg-white" : a.dot}`}></span>
+      <span>{meta.label}</span>
+      <span
+        className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+          active ? "bg-white/20" : "bg-white text-gray-500"
+        }`}
+      >
+        {count}
+      </span>
+    </button>
+  );
+};
+
+/* ─── Main Page with Tabs ─── */
 const UpdateImages = () => {
+  const [activeTab, setActiveTab] = useState("other");
+
   // Group assets
   const slider1Assets = sortByNumericSuffix(
     ASSETS.filter(asset => {
@@ -540,7 +650,35 @@ const UpdateImages = () => {
     })
   );
 
-  const otherAssets = ASSETS.filter(asset => !asset.key.startsWith('heroImg'));
+const bestSellerSliderAssets = sortByNumericSuffix(
+  ASSETS.filter(asset => {
+    const match = asset.key.match(/bestSeller(\d+)/);
+    if (!match) return false;
+    const num = parseInt(match[1], 10);
+    return num >= 1 && num <= 3; 
+  })
+);
+
+const mostRatedSliderAssets = sortByNumericSuffix(
+  ASSETS.filter(asset => {
+    const match = asset.key.match(/mostRated(\d+)/);
+    if (!match) return false;
+    const num = parseInt(match[1], 10); 
+    return num >= 1 && num <= 3; 
+  })
+);
+  const otherAssets = ASSETS.filter(asset => asset.key.startsWith('logo'));
+
+  const GROUPS = {
+    other: otherAssets,
+    slider1: slider1Assets,
+    slider2: slider2Assets,
+    bestSellerSlider: bestSellerSliderAssets,
+    mostRatedSlider: mostRatedSliderAssets
+  };
+
+  const currentAssets = GROUPS[activeTab];
+  const currentMeta = TABS_META[activeTab];
 
   return (
     <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 md:p-8">
@@ -560,59 +698,44 @@ const UpdateImages = () => {
         </p>
       </div>
 
-      {/* Additional Assets Section (Logo, Best Seller, Most Rated) */}
-      {otherAssets.length > 0 && (
-        <section className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-8 w-1 bg-blue-500 rounded-full"></div>
-            <h2 className="text-xl font-bold text-gray-800">وسائط إضافية</h2>
-            <span className="text-sm text-gray-400">(شعار، صور مميزة)</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            {otherAssets.map((asset) => (
-              <AssetCard key={asset.key} asset={asset} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Tab bar */}
+      <div className="flex flex-wrap gap-2 mb-6 bg-white/60 backdrop-blur border border-gray-200 rounded-2xl p-2 sticky top-2 z-10 shadow-sm">
+        {Object.entries(TABS_META).map(([id, meta]) => (
+          <TabButton
+            key={id}
+            id={id}
+            meta={meta}
+            count={GROUPS[id].length}
+            active={activeTab === id}
+            onClick={setActiveTab}
+          />
+        ))}
+      </div>
 
-      {/* Slider 1 Section (Images 1-10) */}
-      {slider1Assets.length > 0 && (
-        <section className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-8 w-1 bg-indigo-500 rounded-full"></div>
-            <h2 className="text-xl font-bold text-gray-800">السلايدر الرئيسي - المجموعة الأولى</h2>
-            <span className="text-sm text-gray-400">(10 صور)</span>
-          </div>
-          <div className="bg-indigo-50/30 border border-indigo-100 rounded-2xl p-4 mb-4 text-sm text-indigo-800">
-            <p className="flex items-center gap-2">💡 <span>يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.</span></p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            {slider1Assets.map((asset) => (
-              <AssetCard key={asset.key} asset={asset} />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Active tab content */}
+      <section>
+        <div className="flex items-center gap-2 mb-4">
+          <div className={`h-8 w-1 ${TAB_ACCENTS[currentMeta.accent].dot} rounded-full`}></div>
+          <h2 className="text-xl font-bold text-gray-800">{currentMeta.label}</h2>
+          <span className="text-sm text-gray-400">({currentMeta.hint})</span>
+        </div>
 
-      {/* Slider 2 Section (Images 11-20) */}
-      {slider2Assets.length > 0 && (
-        <section className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="h-8 w-1 bg-purple-500 rounded-full"></div>
-            <h2 className="text-xl font-bold text-gray-800">السلايدر الثانوي - المجموعة الثانية</h2>
-            <span className="text-sm text-gray-400">(10 صور)</span>
+        {currentMeta.tip && (
+          <div className="bg-white/70 border border-gray-200 rounded-2xl p-4 mb-4 text-sm text-gray-700">
+            <p className="flex items-center gap-2">💡 <span>{currentMeta.tip}</span></p>
           </div>
-          <div className="bg-purple-50/30 border border-purple-100 rounded-2xl p-4 mb-4 text-sm text-purple-800">
-            <p className="flex items-center gap-2">💡 <span>يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.</span></p>
-          </div>
+        )}
+
+        {currentAssets.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-            {slider2Assets.map((asset) => (
+            {currentAssets.map((asset) => (
               <AssetCard key={asset.key} asset={asset} />
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <p className="text-gray-400 text-sm">لا توجد عناصر في هذا القسم.</p>
+        )}
+      </section>
 
       <ToastContainer
         position="top-center"

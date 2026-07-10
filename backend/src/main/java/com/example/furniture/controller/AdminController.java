@@ -298,12 +298,22 @@ public class AdminController {
 
     @GetMapping("/assets/best-seller")
     public ResponseEntity<Map<String, String>> getBestSellerUrl() {
-        return ResponseEntity.ok(Map.of("url", assetService.getAssetDataUrl("bestSeller")));
+        Map<String, String> urls = new HashMap<>();
+        urls.put("1", assetService.getAssetDataUrl("bestSeller1"));
+        urls.put("2", assetService.getAssetDataUrl("bestSeller2"));
+        urls.put("3", assetService.getAssetDataUrl("bestSeller3"));
+
+        return ResponseEntity.ok(urls);
     }
 
     @GetMapping("/assets/most-rated")
     public ResponseEntity<Map<String, String>> getMostRatedUrl() {
-        return ResponseEntity.ok(Map.of("url", assetService.getAssetDataUrl("mostRated")));
+        Map<String, String> urls = new HashMap<>();
+        urls.put("1", assetService.getAssetDataUrl("mostRated1"));
+        urls.put("2", assetService.getAssetDataUrl("mostRated2"));
+        urls.put("3", assetService.getAssetDataUrl("mostRated3"));
+
+        return ResponseEntity.ok(urls);
     }
 
     // NEW: Serve the actual image/video bytes
@@ -344,8 +354,14 @@ public class AdminController {
             @RequestParam(value = "slider19", required = false) MultipartFile slider19,
             @RequestParam(value = "slider20", required = false) MultipartFile slider20,
             @RequestParam(value = "heroVideo", required = false) MultipartFile heroVideo,
-            @RequestParam(value = "bestSeller", required = false) MultipartFile bestSeller,
-            @RequestParam(value = "mostRated", required = false) MultipartFile mostRated) {
+            @RequestParam(value = "bestSeller1", required = false) MultipartFile bestSeller1,
+            @RequestParam(value = "bestSeller2", required = false) MultipartFile bestSeller2,
+            @RequestParam(value = "bestSeller3", required = false) MultipartFile bestSeller3,
+            @RequestParam(value = "mostRated1", required = false) MultipartFile mostRated1,
+            @RequestParam(value = "mostRated2", required = false) MultipartFile mostRated2,
+            @RequestParam(value = "mostRated3", required = false) MultipartFile mostRated3
+
+        ) {
 
         try {
             if (logo != null) assetService.updateAsset("logo", logo);
@@ -370,8 +386,12 @@ public class AdminController {
             if (slider19 != null) assetService.updateAsset("slider19", slider19);
             if (slider20 != null) assetService.updateAsset("slider20", slider20);
             if (heroVideo != null) assetService.updateAsset("heroVideo", heroVideo);
-            if (bestSeller != null) assetService.updateAsset("bestSeller", bestSeller);
-            if (mostRated != null) assetService.updateAsset("mostRated", mostRated);
+            if (bestSeller1 != null) assetService.updateAsset("bestSeller1", bestSeller1);
+            if (bestSeller2 != null) assetService.updateAsset("bestSeller2", bestSeller2);
+            if (bestSeller3 != null) assetService.updateAsset("bestSeller3", bestSeller3);
+            if (mostRated1 != null) assetService.updateAsset("mostRated1", mostRated1);
+            if (mostRated2 != null) assetService.updateAsset("mostRated2", mostRated2);
+            if (mostRated3 != null) assetService.updateAsset("mostRated3", mostRated3);
 
             return ResponseEntity.ok().body("Assets updated successfully");
         } catch (Exception e) {

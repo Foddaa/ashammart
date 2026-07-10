@@ -3,7 +3,7 @@ import HomeCategory from "@/components/HomeComponents/Furit&Veges/HomeCategory";
 import BestSellers from "@/components/HomeComponents/BestSeller/BestSellers";
 import WrapperMargin from "@/constants/WrapperMargin";
 import React from "react";
-import Tables from "@/components/HomeComponents/BestSeller/Tables";
+import MostRated from "@/components/HomeComponents/BestSeller/MostRated";
 
 export default function Home() {
   return (
@@ -17,7 +17,7 @@ export default function Home() {
           <BestSellers />
         </div>
         <div className="text-right">
-          <Tables />
+          <MostRated />
         </div>
       </WrapperMargin>
     </section>

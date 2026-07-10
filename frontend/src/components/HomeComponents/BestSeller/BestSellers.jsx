@@ -7,13 +7,19 @@ import 'react-multi-carousel/lib/styles.css';
 import "./BestSellers.css"
 import Heading from "@/components/shared/Heading";
 import { responsive } from "@/constants";
-import ViewAll from "@/components/shared/ViewAll";
 import { useNavigate } from "react-router-dom";
 import Rating from "@mui/material/Rating";
-
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import { Autoplay } from "swiper/modules";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function BestSellers() {
+    const sliderImages = [
+    `${BASE_URL}/api/public/assets/best-seller/1`,
+    `${BASE_URL}/api/public/assets/best-seller/2`,
+    `${BASE_URL}/api/public/assets/best-seller/3`,
+  ];
   const { products, error } = useSelector(state => state.bestSeller);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -148,15 +154,32 @@ function BestSellers() {
         )}
 
         {/* Advertisement section – now using dynamic hero image */}
-        <div className="flex justify-center items-center mt-10 px-4">
-          <div className="w-full max-w-7xl aspect-[48/9] rounded-xl shadow-md overflow-hidden">
-            <img
-              src={bestSellerHeroUrl || placeholderImage}
-              alt="Advertisement"
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
+        <div className="w-full aspect-[288/100] rounded-2xl overflow-hidden 
+                        bg-gray-100 shadow-md hover:shadow-xl transition-shadow duration-300">
+          <Swiper
+            className="w-full h-full"
+            modules={[Autoplay]}
+            spaceBetween={0}
+            slidesPerView={1}
+            speed={1000}
+            loop={true}
+            autoplay={{
+              delay: 1000,
+              disableOnInteraction: false,
+            }}
+          >
+            {sliderImages.map((imgUrl, index) => (
+              <SwiperSlide key={index} className="w-full h-full">
+                <img
+                  src={imgUrl}
+                  alt={`hero-${index}`}
+                  className="w-full h-full object-contain"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  onError={(e) => { e.target.src = placeholderImage; }}
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
       </div>
     </div>

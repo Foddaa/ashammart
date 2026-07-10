@@ -39,14 +39,16 @@ public class PublicAssetController {
         return getAssetData("heroVideo");
     }
 
-    @GetMapping("/best-seller")
-    public ResponseEntity<byte[]> getBestSeller() {
-        return getAssetData("bestSeller");
+    @GetMapping("/best-seller/{index}")
+    public ResponseEntity<byte[]> getBestSeller(@PathVariable int index) {
+        String assetKey = "bestSeller" + index;
+        return getAssetData(assetKey);
     }
 
-    @GetMapping("/most-rated")
-    public ResponseEntity<byte[]> getMostRated() {
-        return getAssetData("mostRated");
+    @GetMapping("/most-rated/{index}")
+    public ResponseEntity<byte[]> getMostRated(@PathVariable int index) {
+        String assetKey = "mostRated" + index;
+        return getAssetData(assetKey);
     }
 
     private ResponseEntity<byte[]> getAssetData(String assetKey) {

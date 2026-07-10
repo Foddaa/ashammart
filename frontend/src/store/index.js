@@ -5,7 +5,7 @@ import categoryProducts from './categorySlice/categorySlices.js'
 import homeproducts from "./HomeCategoryProducts/homecategoryslice.js"
 import productDetailsReducer from "./productDetails/productDetailsSlice.js";
 import { configureStore } from "@reduxjs/toolkit";
-import tables from "./BestSeller/tableSlice.js";
+import mostRated from "./BestSeller/mostRatedSlice.js";
 
 
 export const store = configureStore({
@@ -16,6 +16,6 @@ export const store = configureStore({
     homeproducts,
     categoryProducts,
     search,
-    tables
+    mostRated
   },
 });

@@ -6,19 +6,22 @@ import 'react-multi-carousel/lib/styles.css';
 import "./BestSellers.css"
 import Heading from "@/components/shared/Heading";
 import { responsive } from "@/constants";
-import ViewAll from "@/components/shared/ViewAll";
 import { useNavigate } from "react-router-dom";
-import actionTables from "@/store/BestSeller/thunk/actionTables";
+import actionMostRated from "@/store/BestSeller/thunk/actionMostRated";
 import Rating from "@mui/material/Rating";
-import { useContext } from "react";
-import { UserContext } from "@/Context/AuthContext"; 
-
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import { Autoplay } from "swiper/modules";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-function Tables() {
-  const { products, error } = useSelector(state => state.tables);
+function MostRated() {
+      const sliderImages = [
+    `${BASE_URL}/api/public/assets/most-rated/1`,
+    `${BASE_URL}/api/public/assets/most-rated/2`,
+    `${BASE_URL}/api/public/assets/most-rated/3`,
+  ];
+  const { products, error } = useSelector(state => state.mostRated);
   const dispatch = useDispatch();
-  const { Token, setToken, userRole, setUserRole } = useContext(UserContext);
   const navigate = useNavigate();
 
   const [mostRatedHeroUrl, setMostRatedHeroUrl] = useState(null);
@@ -54,7 +57,7 @@ function Tables() {
   }
 
   useEffect(() => {
-    dispatch(actionTables());
+    dispatch(actionMostRated());
   }, [dispatch]);
 
   // Fallback placeholder SVG (transparent gray square)
@@ -154,19 +157,36 @@ function Tables() {
         )}
 
         {/* Advertisement section – now using dynamic most rated hero image */}
-        <div className="flex justify-center items-center mt-10 px-4">
-          <div className="w-full max-w-7xl aspect-[48/9] rounded-xl shadow-md overflow-hidden">
-            <img
-              src={mostRatedHeroUrl || placeholderImage}
-              alt="Advertisement"
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
+        <div className="w-full aspect-[288/100] rounded-2xl overflow-hidden 
+                        bg-gray-100 shadow-md hover:shadow-xl transition-shadow duration-300">
+          <Swiper
+            className="w-full h-full"
+            modules={[Autoplay]}
+            spaceBetween={0}
+            slidesPerView={1}
+            speed={1000}
+            loop={true}
+            autoplay={{
+              delay: 1000,
+              disableOnInteraction: false,
+            }}
+          >
+            {sliderImages.map((imgUrl, index) => (
+              <SwiperSlide key={index} className="w-full h-full">
+                <img
+                  src={imgUrl}
+                  alt={`hero-${index}`}
+                  className="w-full h-full object-contain"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  onError={(e) => { e.target.src = placeholderImage; }}
+                />
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </div>
       </div>
     </div>
   );
 }
 
-export default Tables;
+export default MostRated;
