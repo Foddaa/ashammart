@@ -6,7 +6,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { IconButton, Tooltip } from '@mui/material';
 import { toast } from 'react-toastify';
 
-export default function ActionButtons({ handleAddToCart }) {
+export default function AddToCartButtons({ handleAddToCart }) {
   const location = useLocation()
   const style = {
   position: 'absolute',

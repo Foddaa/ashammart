@@ -1,3 +1,4 @@
+server password : 447A8BB8B930B5ADp@1S
 1 - getting the spring as service
 
 mvn clean package

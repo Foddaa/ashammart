@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import CartItems from "@/components/CartComponents/CartItems";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getCart, saveCart } from "@/components/shared/cartService";
 import axios from "axios";
@@ -9,10 +9,22 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Cart() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Check if this is a direct buy now
+  const isBuyNow = location.state?.buyNow || false;
+  const directProduct = location.state?.directProduct || null;
 
   const fetchCartItems = async () => {
+    // If this is a buy now with direct product, use that instead of cart
+    if (isBuyNow && directProduct) {
+      setCartItems([directProduct]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const localCart = getCart();
@@ -35,7 +47,7 @@ export default function Cart() {
         .map((item) => {
           const product = products.find((p) => p.id === item.id);
           if (!product) {
-            console.warn(`Product ${item.id} not found, skipping`);
+            console.warn(`Product ${product.id} not found, skipping`);
             return null;
           }
           return {
@@ -75,8 +87,16 @@ export default function Cart() {
         (sum, item) => sum + item.price * item.quantity,
         0
       );
+      
+      // Pass through buy now state
       navigate("/review-order", {
-        state: { cartItems, subtotal },
+        state: { 
+          cartItems, 
+          subtotal,
+          buyNow: isBuyNow,
+          directProduct: directProduct,
+          comment: location.state?.comment || ""
+        },
       });
     } else {
       toast.warn("سلة المشتريات فارغة. أضف منتجات قبل إتمام الطلب.");
@@ -88,8 +108,14 @@ export default function Cart() {
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800">🛒 سلة المشتريات</h1>
-          <p className="text-gray-500 mt-2">مراجعة المنتجات المضافة قبل إتمام الطلب</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
+            {isBuyNow ? "🛍️ مراجعة الطلب" : "🛒 سلة المشتريات"}
+          </h1>
+          <p className="text-gray-500 mt-2">
+            {isBuyNow 
+              ? "مراجعة المنتج المحدد قبل إتمام الشراء" 
+              : "مراجعة المنتجات المضافة قبل إتمام الطلب"}
+          </p>
         </div>
 
         {loading ? (
@@ -110,7 +136,11 @@ export default function Cart() {
 
             {/* Cart Items */}
             <div className="divide-y divide-gray-100">
-              <CartItems items={cartItems} onUpdate={fetchCartItems} />
+              <CartItems 
+                items={cartItems} 
+                onUpdate={fetchCartItems} 
+                isBuyNow={isBuyNow}
+              />
             </div>
 
             {/* Footer with checkout button */}
@@ -122,7 +152,7 @@ export default function Cart() {
                 onClick={handleCheckout}
                 className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
               >
-                إتمام الشراء →
+                {isBuyNow ? "إتمام الشراء →" : "إتمام الشراء →"}
               </button>
             </div>
           </div>

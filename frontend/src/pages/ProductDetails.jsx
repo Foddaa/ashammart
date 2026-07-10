@@ -7,7 +7,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Rating from "@mui/material/Rating";
 import { UserContext } from "@/Context/AuthContext";
-import ActionButtons from "@/components/ProductDetails/ActionButtons";
+import AddToCartButtons from "@/components/ProductDetails/AddToCartButtons";
 import ImageGallery from "@/components/ProductDetails/ImageGallery";
 import QuantityControls from "@/components/ProductDetails/QuantityControls";
 import RelatedProductsSlider from "@/components/ProductDetails/RelatedProductsSlider";
@@ -128,6 +128,35 @@ export default function ProductDetails() {
     toast.success("تمت إضافة المنتج إلى السلة 🛒");
   };
 
+  // New handler for Buy Now
+  const handleBuyNow = () => {
+    if (!product) return;    
+
+    const orderItem = {
+    id: product.id,
+    name: product.name || product.title,
+    price: product.price,
+    code: product.code,
+    canceledPrice: product.canceledPrice,
+    images: product.images,
+    quantity: quantityToAdd,
+    comment: comment
+  };
+
+  // Navigate directly to review order with just this product
+  navigate("/review-order", { 
+    state: { 
+      buyNow: true,
+      directProduct: orderItem,
+      subtotal: product.price * quantityToAdd,
+      quantity: quantityToAdd,
+      comment: comment
+    } 
+  });
+  
+  toast.success("جاري التوجيه إلى صفحة الدفع...");
+  };
+
   const handleClose = () => {
     if (background) navigate(background);
     else navigate(-1);
@@ -244,9 +273,33 @@ export default function ProductDetails() {
               </div>
             </div>
 
-            {/* Action buttons */}
+            {/* Action buttons - Add to Cart */}
             <div className="pt-2">
-              <ActionButtons handleAddToCart={handleAddToCart} />
+              <AddToCartButtons handleAddToCart={handleAddToCart} />
+            </div>
+
+            {/* NEW: Buy Now Button */}
+            <div className="pt-2">
+              <button
+                onClick={handleBuyNow}
+                className="bg-blue-800 py-4 flex items-center justify-center gap-2 text-white w-full rounded-sm font-semibold text-base cursor-pointer"
+              >
+              <svg 
+                className="w-6 h-6" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" 
+                />
+              </svg>
+                
+                اشتر الآن
+              </button>
             </div>
 
             {/* Add review button */}
