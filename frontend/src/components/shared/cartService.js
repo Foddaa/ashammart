@@ -1,5 +1,3 @@
-import Cookies from "js-cookie";
-
 const CART_KEY = "cart";
 
 // Event name for cart updates
@@ -7,25 +5,46 @@ const CART_UPDATE_EVENT = "cartUpdated";
 
 // Helper function to trigger cart update event
 export const triggerCartUpdate = () => {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(CART_UPDATE_EVENT, { 
-      detail: { cart: getCart() } 
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(CART_UPDATE_EVENT, {
+      detail: { cart: getCart() },
     }));
   }
 };
 
 export const getCart = () => {
   try {
-    return JSON.parse(Cookies.get(CART_KEY) || "[]");
+    if (typeof window === "undefined") return [];
+    return JSON.parse(window.localStorage.getItem(CART_KEY) || "[]");
   } catch {
     return [];
   }
 };
 
 export const saveCart = (cart) => {
-  Cookies.set(CART_KEY, JSON.stringify(cart), { expires: 7 }); // store 7 days
+  try {
+    window.localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  } catch (err) {
+    // e.g. storage quota exceeded / private-browsing restrictions
+    console.error("Failed to save cart:", err);
+  }
   triggerCartUpdate(); // Trigger event when cart is saved
 };
+
+/**
+ * Reduce a full product object down to only what the cart needs to display
+ * and check out. Keeps cart payload tiny and avoids caching stale
+ * description/ratings/full-size image data inside the cart item.
+ */
+const toCartItem = (product, quantity) => ({
+  id: product.id,
+  name: product.name || product.title,
+  price: product.price,
+  canceledPrice: product.canceledPrice,
+  code: product.code,
+  image: product.images?.[0]?.url || null,
+  quantity,
+});
 
 export const addToCart = (product, quantity = 1) => {
   const cart = getCart();
@@ -33,7 +52,7 @@ export const addToCart = (product, quantity = 1) => {
   if (existing) {
     existing.quantity += quantity;
   } else {
-    cart.push({ ...product, quantity });
+    cart.push(toCartItem(product, quantity));
   }
   saveCart(cart);
   // triggerCartUpdate() is already called inside saveCart
@@ -49,13 +68,17 @@ export const updateCartItem = (productId, quantity) => {
 };
 
 export const clearCart = () => {
-  Cookies.remove(CART_KEY);
+  try {
+    window.localStorage.removeItem(CART_KEY);
+  } catch (err) {
+    console.error("Failed to clear cart:", err);
+  }
   triggerCartUpdate(); // Trigger event when cart is cleared
 };
 
 export const updateCartItemQuantity = (productId, newQuantity) => {
   const cart = getCart();
-  const existingIndex = cart.findIndex(item => item.id === productId);
+  const existingIndex = cart.findIndex((item) => item.id === productId);
   if (existingIndex !== -1) {
     if (newQuantity <= 0) {
       // remove if quantity becomes zero
@@ -70,7 +93,7 @@ export const updateCartItemQuantity = (productId, newQuantity) => {
 
 export const removeFromCart = (productId) => {
   const cart = getCart();
-  const filtered = cart.filter(item => item.id !== productId);
+  const filtered = cart.filter((item) => item.id !== productId);
   saveCart(filtered);
   // triggerCartUpdate() is already called inside saveCart
 };
