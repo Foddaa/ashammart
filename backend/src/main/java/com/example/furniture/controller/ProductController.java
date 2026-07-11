@@ -79,7 +79,13 @@ public class ProductController {
         return productService.findAllByIdList(idList);
     }
 
-
+    @GetMapping("/fastDelivery")
+    public List<ProductDTO> getFastDelivery(){
+        System.out.println("fast delivery list requested");
+        List<Product> products = productService.getFastDelivery();
+        return products.stream().map(ProductDTO::toDto)
+                .collect(Collectors.toList());
+    }
 
 
 

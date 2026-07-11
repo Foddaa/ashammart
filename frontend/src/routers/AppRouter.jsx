@@ -42,6 +42,10 @@ import SupplierRequestList from "@/admin/SupplierRequestList";
 import UserProfilePage from "@/pages/UserProfilePage";
 import UpdatePrices from "@/admin/UpdatePrices";
 import UpdateImages from "@/admin/UpdateImages";
+import RealLifePhotos from "@/pages/RealLifePhotos";
+import AddRealLifePhoto from "@/admin/AddRealLifePhoto";
+import RealLifePhotoList from "@/admin/RealLifePhotoList";
+
 
 const router = createBrowserRouter([
   {
@@ -68,7 +72,7 @@ const router = createBrowserRouter([
       { path:'/whoAreWe' ,element:<WhoAreWe/>},
       { path:'/paymentMethods' ,element:<PaymentMethods/>},
       { path:"/profile" ,element:<UserProfilePage /> },
-
+      { path:"/realLifePhotos" ,element:<RealLifePhotos /> },
 
 
 
@@ -91,6 +95,8 @@ const router = createBrowserRouter([
     { path: 'supplierRequests', element: <SupplierRequestList /> },
     { path: 'update/prices', element: <UpdatePrices/> },
     { path: "update/images", element: <UpdateImages /> },
+    { path: 'realLifeImages/add', element: <AddRealLifePhoto /> },
+    { path: 'realLifeImages', element: <RealLifePhotoList /> },
   ]
 },
 {path: '/executive',

@@ -11,11 +11,11 @@ export default function Shop({ cartItems = [] }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  
+  const isFastDelivery = categoryId === "fast-delivery";
   const searchTerm = (searchParams.get("search") || "").toLowerCase();
   const [products, setProducts] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState(
-    categoryId ? [parseInt(categoryId)] : []
+    categoryId && !isFastDelivery ? [parseInt(categoryId)] : []
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -42,8 +42,10 @@ export default function Shop({ cartItems = [] }) {
 
   // Handle categoryId from URL
   useEffect(() => {
-    if (categoryId) {
+    if (categoryId && categoryId !== "fast-delivery") {
       setSelectedCategories([parseInt(categoryId)]);
+    } else {
+      setSelectedCategories([]);
     }
   }, [categoryId]);
 
@@ -53,16 +55,21 @@ export default function Shop({ cartItems = [] }) {
   }, [searchTerm]); 
 
   // Fetch products based on selected categories
+// Fetch products based on selected categories / fast delivery
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       setError("");
 
       try {
-        let url = `${BASE_URL}/api/product/all`;
-        if (selectedCategories.length > 0) {
+        let url;
+        if (categoryId === "fast-delivery") {
+          url = `${BASE_URL}/api/product/fastDelivery`;
+        } else if (selectedCategories.length > 0) {
           const idsParam = selectedCategories.join(",");
           url = `${BASE_URL}/api/product/byCategory?categoryId=${idsParam}`;
+        } else {
+          url = `${BASE_URL}/api/product/all`;
         }
 
         const res = await fetch(url);
@@ -85,7 +92,7 @@ export default function Shop({ cartItems = [] }) {
     };
 
     fetchProducts();
-  }, [selectedCategories]);
+  }, [selectedCategories, categoryId]);
 
   const safeProducts = Array.isArray(products) ? products : [];
   const filteredProducts = safeProducts.filter(

@@ -200,6 +200,7 @@ public class ProductService {
     public ResponseEntity<?> updateProductById(Long id, String name, String code, String description,
                                                double price, double canceledPrice,
                                                Long categoryId, String supplierCode,
+                                               boolean freeDelivery, boolean fastDelivery,
                                                MultipartFile[] newImages,
                                                List<Long> deletedImages) {
         try {
@@ -216,7 +217,8 @@ public class ProductService {
             product.setCategory(categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new IllegalArgumentException("Category not found")));
             product.setSupplier(supplierRepository.findByCode(supplierCode));
-
+            product.setFreeDelivery(freeDelivery);
+            product.setFastDelivery(fastDelivery);
             // Handle deleted images
             if (deletedImages != null && !deletedImages.isEmpty()) {
                 List<Image> existingImages = imageRepository.findByProduct(product);
@@ -293,6 +295,15 @@ public class ProductService {
         return products;
     }
 
+    @Transactional
+    public List<Product> getFastDelivery() {
+        List<Product> products = productRepository.findFastDelivery();
+        for (Product p : products) {
+            Set<Rating> ratings = ratingRepository.findByProductId(p.getId());
+            p.getRatings().addAll(ratings);
+        }
+        return products;
+    }
     @Transactional
     public List<Product> getMostRated() {
         Map<Long, Product> products = new HashMap<>();

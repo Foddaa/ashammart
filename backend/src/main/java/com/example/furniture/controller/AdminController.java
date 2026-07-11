@@ -1,18 +1,10 @@
 package com.example.furniture.controller;
 
+import com.example.furniture.inputDTO.RealLifePhotoDTO;
 import com.example.furniture.inputDTO.UpdatePricesRequest;
-import com.example.furniture.model.Category;
-import com.example.furniture.model.DeliveryPrice;
-import com.example.furniture.model.Product;
-import com.example.furniture.model.Supplier;
-import com.example.furniture.repository.CategoryRepository;
-import com.example.furniture.repository.DeliveryPriceRepository;
-import com.example.furniture.repository.SupplierRepository;
-import com.example.furniture.repository.SupplierRequestRepository;
-import com.example.furniture.service.CategoryService;
-import com.example.furniture.service.ProductService;
-import com.example.furniture.service.SiteAssetService;
-import com.example.furniture.service.SupplierService;
+import com.example.furniture.model.*;
+import com.example.furniture.repository.*;
+import com.example.furniture.service.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -24,7 +16,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +51,12 @@ public class AdminController {
 
     @Autowired
     ProductService productService;
+
+    @Autowired
+    private RealLifePhotoRepository realLifePhotoRepository;
+
+    @Autowired
+    private RealLifePhotoStorageService realLifePhotoStorageService;
     @PatchMapping(value = "/product/{id}/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProduct(@PathVariable Long id,
                                            @RequestParam("name") String name,
@@ -66,6 +66,8 @@ public class AdminController {
                                            @RequestParam("canceledPrice") double canceledPrice,
                                            @RequestParam("categoryId") Long categoryId,
                                            @RequestParam("supplierCode") String supplierCode,
+                                           @RequestParam("freeDelivery") boolean freeDelivery,
+                                           @RequestParam("fastDelivery") boolean fastDelivery,
                                            @RequestParam(value = "images", required = false) MultipartFile[] newImages,
                                            @RequestParam(value = "deletedImages", required = false) String deletedImagesJson) {
         logger.info("Updating product with ID: {}", id);
@@ -78,7 +80,7 @@ public class AdminController {
             }
             ResponseEntity<?> response = productService.updateProductById(
                     id, name, code, description, price,canceledPrice, categoryId,
-                    supplierCode, newImages != null ? newImages : new MultipartFile[0],
+                    supplierCode, freeDelivery, fastDelivery, newImages != null ? newImages : new MultipartFile[0],
                     deletedImages
             );
             logger.info("Product updated successfully with ID: {}", id);
@@ -100,9 +102,11 @@ public class AdminController {
                                            @RequestParam double canceledPrice,
                                            @RequestParam long category,
                                            @RequestParam String supplierCode,
+                                           @RequestParam("freeDelivery") boolean freeDelivery,
+                                           @RequestParam("fastDelivery") boolean fastDelivery,
                                            @RequestParam(value = "images", required = false) MultipartFile[] images) {
         try {
-            logger.info("Adding product: {}", name);
+            logger.info("new product request, name: {}, code: {}, description: {}, price: {}, canceledPrice: {}, category: {}, supplierCode: {}, images: {}", name, code, description, price, canceledPrice, category, supplierCode, images);
 
             Product product = new Product();
             product.setName(name);
@@ -110,7 +114,8 @@ public class AdminController {
             product.setPrice(price);
             product.setCanceledPrice(canceledPrice);
             product.setDescription(description);
-
+            product.setFreeDelivery(freeDelivery);
+            product.setFastDelivery(fastDelivery);
             Category categoryEntity = categoryRepository.findById(category)
                     .orElse(null);
             if (categoryEntity == null) {
@@ -263,6 +268,15 @@ public class AdminController {
     public ResponseEntity<Map<String, String>> getLogoUrl() {
         return ResponseEntity.ok(Map.of("url", assetService.getAssetDataUrl("logo")));
     }
+    @GetMapping("/assets/fastDelivery")
+    public ResponseEntity<Map<String, String>> getFastDeliveryUrl() {
+        return ResponseEntity.ok(Map.of("url", assetService.getAssetDataUrl("fastDelivery")));
+    }
+
+    @GetMapping("/assets/realLifePhotos")
+    public ResponseEntity<Map<String, String>> getRealLifePhotosUrl() {
+        return ResponseEntity.ok(Map.of("url", assetService.getAssetDataUrl("realLifePhotos")));
+    }
 
     @GetMapping("/assets/slider")
     public ResponseEntity<Map<String, String>> getSliderUrls() {
@@ -316,6 +330,15 @@ public class AdminController {
         return ResponseEntity.ok(urls);
     }
 
+    @GetMapping("/assets/homeCategory")
+    public ResponseEntity<Map<String, String>> getHomeCategoryUrl() {
+        Map<String, String> urls = new HashMap<>();
+        urls.put("1", assetService.getAssetDataUrl("fastDelivery"));
+        urls.put("2", assetService.getAssetDataUrl("realLifePhotos"));
+
+        return ResponseEntity.ok(urls);
+    }
+
     // NEW: Serve the actual image/video bytes
     @GetMapping("/assets/data/{assetKey}")
     public ResponseEntity<byte[]> getAssetData(@PathVariable String assetKey) {
@@ -359,7 +382,9 @@ public class AdminController {
             @RequestParam(value = "bestSeller3", required = false) MultipartFile bestSeller3,
             @RequestParam(value = "mostRated1", required = false) MultipartFile mostRated1,
             @RequestParam(value = "mostRated2", required = false) MultipartFile mostRated2,
-            @RequestParam(value = "mostRated3", required = false) MultipartFile mostRated3
+            @RequestParam(value = "mostRated3", required = false) MultipartFile mostRated3,
+            @RequestParam(value = "fastDelivery", required = false) MultipartFile fastDelivery,
+            @RequestParam(value = "realLifePhotos", required = false) MultipartFile realLifePhotos
 
         ) {
 
@@ -392,6 +417,8 @@ public class AdminController {
             if (mostRated1 != null) assetService.updateAsset("mostRated1", mostRated1);
             if (mostRated2 != null) assetService.updateAsset("mostRated2", mostRated2);
             if (mostRated3 != null) assetService.updateAsset("mostRated3", mostRated3);
+            if (fastDelivery != null) assetService.updateAsset("fastDelivery", fastDelivery);
+            if (realLifePhotos != null) assetService.updateAsset("realLifePhotos", realLifePhotos);
 
             return ResponseEntity.ok().body("Assets updated successfully");
         } catch (Exception e) {
@@ -412,5 +439,28 @@ public class AdminController {
         }catch (Exception e){
             return ResponseEntity.badRequest().body("Update failed: " + e.getMessage());
         }
+    }
+
+    // real life images handling
+    @PostMapping(value = "/real-life-photos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<RealLifePhotoDTO> upload(@RequestParam("file") MultipartFile file) throws IOException {
+        String fileName = realLifePhotoStorageService.store(file);
+        String url = "/api/uploads/real-life-photos/" + fileName;
+
+        RealLifePhoto photo = new RealLifePhoto();
+        photo.setFileName(fileName);
+        photo.setUrl(url);
+        realLifePhotoRepository.save(photo);
+
+        return ResponseEntity.ok(new RealLifePhotoDTO(photo.getId(), photo.getUrl()));
+    }
+
+    @DeleteMapping("/real-life-photos/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) throws IOException {
+        RealLifePhoto photo = realLifePhotoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        realLifePhotoStorageService.delete(photo.getFileName());
+        realLifePhotoRepository.delete(photo);
+        return ResponseEntity.noContent().build();
     }
 }

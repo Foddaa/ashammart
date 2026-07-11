@@ -21,6 +21,8 @@ const AddProduct = () => {
     canceledPrice: "",
     category: "",
     supplierCode: "",
+    freeDelivery: false,   // new
+    fastDelivery: false,   // new
   });
 
   const [images, setImages] = useState([]);
@@ -59,6 +61,15 @@ const AddProduct = () => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
+    }));
+  };
+
+  // Handler for toggle switches (checkbox)
+  const handleToggle = (e) => {
+    const { name, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: checked,
     }));
   };
 
@@ -104,7 +115,12 @@ const AddProduct = () => {
     }
 
     for (const key in formData) {
-      data.append(key, formData[key]);
+      // Append boolean values as strings "true"/"false"
+      if (typeof formData[key] === "boolean") {
+        data.append(key, formData[key] ? "true" : "false");
+      } else {
+        data.append(key, formData[key]);
+      }
     }
 
     try {
@@ -117,6 +133,7 @@ const AddProduct = () => {
 
       toast.success("✅ تم إضافة المنتج بنجاح!");
 
+      // Reset form
       setFormData({
         name: "",
         code: "",
@@ -125,6 +142,8 @@ const AddProduct = () => {
         canceledPrice: "",
         category: "",
         supplierCode: "",
+        freeDelivery: false,
+        fastDelivery: false,
       });
 
       setImages([]);
@@ -146,9 +165,6 @@ const AddProduct = () => {
     }
   };
 
-  // ------------------------------------------------------------
-  // UI only – no logic changed
-  // ------------------------------------------------------------
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 flex items-center justify-center" dir="rtl">
       <form
@@ -262,6 +278,48 @@ const AddProduct = () => {
             className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 resize-y"
           />
         </div>
+
+        {/* Delivery Toggles - With Icons */}
+<div className="mb-6">
+  <label className="block text-gray-700 font-semibold mb-3">خيارات التوصيل</label>
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
+      formData.freeDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
+    }`}>
+      <div className="flex items-center gap-3">
+        <span className="text-gray-700 font-medium">توصيل مجاني</span>
+      </div>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          name="freeDelivery"
+          checked={formData.freeDelivery}
+          onChange={handleToggle}
+          className="sr-only peer"
+        />
+        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+      </label>
+    </div>
+
+    <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
+      formData.fastDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
+    }`}>
+      <div className="flex items-center gap-3">
+        <span className="text-gray-700 font-medium">توصيل سريع</span>
+      </div>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          name="fastDelivery"
+          checked={formData.fastDelivery}
+          onChange={handleToggle}
+          className="sr-only peer"
+        />
+        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+      </label>
+    </div>
+  </div>
+</div>
 
         {/* Images section */}
         <div className="mb-6">

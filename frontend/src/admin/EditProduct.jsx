@@ -11,7 +11,6 @@ const EditProduct = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef();
 
-  // New state for categories and suppliers
   const [categories, setCategories] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
 
@@ -23,19 +22,20 @@ const EditProduct = () => {
     canceledPrice: "",
     category: "",
     supplierCode: "",
+    freeDelivery: false,   // new
+    fastDelivery: false,   // new
   });
 
   const [newImages, setNewImages] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [deletedImages, setDeletedImages] = useState([]);
 
-  // Fetch categories (same as AddProduct)
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/category/all`);
-        const categoriesData = Array.isArray(response.data) ? response.data : [];
-        setCategories(categoriesData);
+        setCategories(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching categories:", err);
       }
@@ -43,13 +43,12 @@ const EditProduct = () => {
     fetchCategories();
   }, []);
 
-  // Fetch suppliers (same as AddProduct)
+  // Fetch suppliers
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/supplier/all`);
-        const suppliersData = Array.isArray(response.data) ? response.data : [];
-        setSuppliers(suppliersData);
+        setSuppliers(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching suppliers:", err);
       }
@@ -70,8 +69,10 @@ const EditProduct = () => {
           description: product.description || "",
           price: product.price || "",
           canceledPrice: product.canceledPrice || "",
-          category: product.categoryId || "",      // categoryId is a number
-          supplierCode: product.supplierCode || "", // string code
+          category: product.categoryId || "",
+          supplierCode: product.supplierCode || "",
+          freeDelivery: product.freeDelivery || false,
+          fastDelivery: product.fastDelivery || false,
         });
 
         const fixedImages = (product.images || []).map((img) => ({
@@ -95,6 +96,14 @@ const EditProduct = () => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleToggle = (e) => {
+    const { name, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: checked,
     }));
   };
 
@@ -128,6 +137,8 @@ const EditProduct = () => {
     data.append("canceledPrice", formData.canceledPrice);
     data.append("categoryId", formData.category);
     data.append("supplierCode", formData.supplierCode);
+    data.append("freeDelivery", formData.freeDelivery ? "true" : "false");
+    data.append("fastDelivery", formData.fastDelivery ? "true" : "false");
 
     if (deletedImages.length > 0) {
       data.append(
@@ -151,9 +162,6 @@ const EditProduct = () => {
     }
   };
 
-  // ------------------------------------------------------------
-  // UI – same as AddProduct but with dropdowns for category/supplier
-  // ------------------------------------------------------------
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 flex items-center justify-center" dir="rtl">
       <form
@@ -183,7 +191,7 @@ const EditProduct = () => {
                 onChange={handleInputChange}
                 required
                 placeholder={placeholder}
-                readOnly={name === "code"} // code remains readOnly
+                readOnly={name === "code"}
                 className={`w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition ${
                   name === "code" ? "bg-gray-100 cursor-not-allowed" : ""
                 }`}
@@ -212,7 +220,7 @@ const EditProduct = () => {
           ))}
         </div>
 
-        {/* Category & Supplier – now dropdowns (same as AddProduct) */}
+        {/* Category & Supplier */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-3">
           <div className="mb-2">
             <label className="block text-gray-700 font-semibold mb-2">
@@ -271,6 +279,50 @@ const EditProduct = () => {
           />
         </div>
 
+        {/* Delivery Toggles - With Icons (same as AddProduct) */}
+        <div className="mb-6">
+          <label className="block text-gray-700 font-semibold mb-3">خيارات التوصيل</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
+              formData.freeDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🚚</span>
+                <span className="text-gray-700 font-medium">توصيل مجاني</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="freeDelivery"
+                  checked={formData.freeDelivery}
+                  onChange={handleToggle}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
+              formData.fastDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="flex items-center gap-3">
+                <span className="text-xl">⚡</span>
+                <span className="text-gray-700 font-medium">توصيل سريع</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="fastDelivery"
+                  checked={formData.fastDelivery}
+                  onChange={handleToggle}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
         {/* Images section – existing + new */}
         <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2">
@@ -281,7 +333,7 @@ const EditProduct = () => {
           <div className="flex items-center justify-center w-full">
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <svg className="w-8 h-8 mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-8 h-8 mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
                 <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">انقر للرفع</span> أو اسحب الصور</p>

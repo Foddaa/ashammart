@@ -28,6 +28,9 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images ORDER BY p.quantitySailed DESC LIMIT 8")
     List<Product> findTop8ByQuantitySailed();
 
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.fastDelivery = true")
+    List<Product> findFastDelivery();
+
     @Query("""
         SELECT  p FROM Product p
         LEFT JOIN FETCH p.images

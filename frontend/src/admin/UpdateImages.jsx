@@ -305,6 +305,28 @@ const ASSETS = [
     getUrlEndpoint: "/api/admin/assets/most-rated",
     getUrlKey: "3",
   },
+  {
+    key: "fastDelivery",
+    label: "صورة قسم التوصيل السريع",
+    icon: "🚚",
+    accept: "image/*",
+    type: "image",
+    color: "blue",        // or any color you like
+    backendField: "fastDelivery",
+    getUrlEndpoint: "/api/admin/assets/fastDelivery",
+    getUrlKey: "url",
+  },
+  {
+    key: "realLife",
+    label: "صورة قسم الصور على الطبيعة",
+    icon: "🏞️",
+    accept: "image/*",
+    type: "image",
+    color: "blue",
+    backendField: "realLifePhotos",
+    getUrlEndpoint: "/api/admin/assets/realLifePhotos",
+    getUrlKey: "url",
+  },
 ];
 
 const COLOR_VARIANTS = {
@@ -566,8 +588,8 @@ const sortByNumericSuffix = (assets) => {
 /* ─── Tab bar ─── */
 const TABS_META = {
   other: {
-    label: "اللوجو",
-    hint: "شعار، صور مميزة",
+    label: "أخرى",
+    hint: "شعار، توصيل سريع، صور واقعية", // updated
     accent: "blue",
     tip: null,
   },
@@ -631,43 +653,37 @@ const TabButton = ({ id, meta, count, active, onClick }) => {
 const UpdateImages = () => {
   const [activeTab, setActiveTab] = useState("other");
 
-  // Group assets
-  const slider1Assets = sortByNumericSuffix(
-    ASSETS.filter(asset => {
-      const match = asset.key.match(/heroImg(\d+)/);
-      if (!match) return false;
-      const num = parseInt(match[1], 10);
-      return num >= 1 && num <= 10;
-    })
-  );
+  const matchesAnyPattern = (key, patterns) => patterns.some(pattern => pattern.test(key));
 
+  const slider1Pattern = /^heroImg([1-9]|10)$/;
+  const slider2Pattern = /^heroImg(1[1-9]|20)$/;
+  const bestSellerPattern = /^bestSeller[1-3]$/;
+  const mostRatedPattern = /^mostRated[1-3]$/;
+
+    const slider1Assets = sortByNumericSuffix(
+    ASSETS.filter(asset => matchesAnyPattern(asset.key, [slider1Pattern]))
+  );
   const slider2Assets = sortByNumericSuffix(
-    ASSETS.filter(asset => {
-      const match = asset.key.match(/heroImg(\d+)/);
-      if (!match) return false;
-      const num = parseInt(match[1], 10);
-      return num >= 11 && num <= 20;
-    })
+    ASSETS.filter(asset => matchesAnyPattern(asset.key, [slider2Pattern]))
   );
+  const bestSellerSliderAssets = sortByNumericSuffix(
+    ASSETS.filter(asset => matchesAnyPattern(asset.key, [bestSellerPattern]))
+  );
+  const mostRatedSliderAssets = sortByNumericSuffix(
+    ASSETS.filter(asset => matchesAnyPattern(asset.key, [mostRatedPattern]))
+  );
+  // Group assets
+  
 
-const bestSellerSliderAssets = sortByNumericSuffix(
-  ASSETS.filter(asset => {
-    const match = asset.key.match(/bestSeller(\d+)/);
-    if (!match) return false;
-    const num = parseInt(match[1], 10);
-    return num >= 1 && num <= 3; 
-  })
-);
-
-const mostRatedSliderAssets = sortByNumericSuffix(
-  ASSETS.filter(asset => {
-    const match = asset.key.match(/mostRated(\d+)/);
-    if (!match) return false;
-    const num = parseInt(match[1], 10); 
-    return num >= 1 && num <= 3; 
-  })
-);
-  const otherAssets = ASSETS.filter(asset => asset.key.startsWith('logo'));
+const otherAssets = ASSETS.filter(asset => {
+    const key = asset.key;
+    return !(
+      matchesAnyPattern(key, [slider1Pattern]) ||
+      matchesAnyPattern(key, [slider2Pattern]) ||
+      matchesAnyPattern(key, [bestSellerPattern]) ||
+      matchesAnyPattern(key, [mostRatedPattern])
+    );
+  });
 
   const GROUPS = {
     other: otherAssets,

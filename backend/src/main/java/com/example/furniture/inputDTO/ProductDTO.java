@@ -25,6 +25,8 @@ public class ProductDTO {
     private double canceledPrice;
     private Long categoryId;
     private String supplierCode;
+    private boolean freeDelivery;
+    private boolean fastDelivery;
     private List<Image> images = new ArrayList<>();
     private double averageRating;
     private List<ReviewDTO> ratings; // <-- use DTO not entity
@@ -37,6 +39,8 @@ public class ProductDTO {
         this.canceledPrice = product.getCanceledPrice();
         this.categoryId = product.getCategory().getId();
         this.supplierCode = product.getSupplier().getCode();
+        this.freeDelivery = product.isFreeDelivery();
+        this.fastDelivery = product.isFastDelivery();
         this.images = product.getImages();
         this.averageRating = product.getAverageRating(); // use method from Option 1
     }
@@ -60,6 +64,8 @@ public class ProductDTO {
         dto.setCategoryId(product.getCategory().getId());
         dto.setSupplierCode(product.getSupplier().getCode());
         dto.setAverageRating(product.getAverageRating());
+        dto.setFreeDelivery(product.isFreeDelivery());
+        dto.setFastDelivery(product.isFastDelivery());
         dto.setImages(product.getImages());
         return dto;
     }
@@ -73,6 +79,8 @@ public class ProductDTO {
         dto.canceledPrice = product.getCanceledPrice();
         dto.categoryId = product.getCategory().getId();
         dto.supplierCode = product.getSupplier().getCode();
+        dto.freeDelivery = product.isFreeDelivery();
+        dto.fastDelivery = product.isFastDelivery();
         dto.images = product.getImages();
         dto.averageRating = product.getAverageRating();
         List<ReviewDTO> ratingDTOs = product.getRatings()

@@ -47,7 +47,9 @@ public class SiteAssetService {
             Map.entry("bestSeller3", "bestSeller3.webp"),
             Map.entry("mostRated1", "mostRated1.webp"),
             Map.entry("mostRated2", "mostRated2.webp"),
-            Map.entry("mostRated3", "mostRated3.webp")
+            Map.entry("mostRated3", "mostRated3.webp"),
+            Map.entry("fastDelivery", "fastDelivery.webp"),
+            Map.entry("realLifePhotos", "realLifePhotos.webp")
     );
 
     private static final Map<String, String> ASSET_KEY_TO_TYPE = Map.ofEntries(
@@ -78,7 +80,9 @@ public class SiteAssetService {
             Map.entry("bestSeller3", "image"),
             Map.entry("mostRated1", "image"),
             Map.entry("mostRated2", "image"),
-            Map.entry("mostRated3", "image")
+            Map.entry("mostRated3", "image"),
+            Map.entry("fastDelivery", "image"),
+            Map.entry("realLifePhotos", "image")
     );
 
     // Get the data URL endpoint for frontend

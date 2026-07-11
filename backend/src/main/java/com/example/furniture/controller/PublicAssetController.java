@@ -51,6 +51,16 @@ public class PublicAssetController {
         return getAssetData(assetKey);
     }
 
+    @GetMapping("/fastDelivery")
+    public ResponseEntity<byte[]> getFastDelivery() {
+        return getAssetData("fastDelivery");
+    }
+
+    @GetMapping("/realLifePhotos")
+    public ResponseEntity<byte[]> getRealLifePhotos() {
+        return getAssetData("realLifePhotos");
+    }
+
     private ResponseEntity<byte[]> getAssetData(String assetKey) {
         try {
             byte[] data = assetService.getAssetData(assetKey);
@@ -65,6 +75,7 @@ public class PublicAssetController {
             return ResponseEntity.notFound().build();
         }
     }
+
     @GetMapping("/delivery/prices")
     public ResponseEntity<?> getDeliveryPrices() {
         List<DeliveryPrice> deliveryPrices = deliveryPriceRepository.findAll();

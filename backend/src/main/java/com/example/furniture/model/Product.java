@@ -4,18 +4,14 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@Getter
-@Setter
+@Data
 @Entity
 public class Product {
     @Id
@@ -58,6 +54,8 @@ public class Product {
     private List<CartItem> cartItems;
 
     private int quantitySailed;
+    private boolean freeDelivery ;
+    private boolean fastDelivery ;
 
     @Transient
     public double getAverageRating() {
@@ -80,4 +78,5 @@ public class Product {
         }
         return "Product{ id =" + id + ", name =" + name +", categoryId =" + category.getId() +", rating =" + averageRating +", imagesCount =" + (images != null ? images.size() : 0) +"}+\n";
     }
+
 }

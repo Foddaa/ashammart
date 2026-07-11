@@ -72,11 +72,11 @@ const AdminDashboard = () => {
         <nav className="flex flex-col gap-2 flex-1">
           <NavLink
             to="/admin/products"
+            end   
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-blue-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`
             }
           >
@@ -87,10 +87,9 @@ const AdminDashboard = () => {
           <NavLink
             to="/admin/products/add"
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "bg-green-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-green-50 hover:text-green-700"
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-green-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-green-50 hover:text-green-700"
               }`
             }
           >
@@ -102,11 +101,11 @@ const AdminDashboard = () => {
 
           <NavLink
             to="/admin/categories"
+            end   
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-blue-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`
             }
           >
@@ -117,10 +116,9 @@ const AdminDashboard = () => {
           <NavLink
             to="/admin/categories/add"
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "bg-green-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-green-50 hover:text-green-700"
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-green-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-green-50 hover:text-green-700"
               }`
             }
           >
@@ -132,11 +130,11 @@ const AdminDashboard = () => {
 
           <NavLink
             to="/admin/suppliers"
+            end
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-blue-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`
             }
           >
@@ -147,10 +145,9 @@ const AdminDashboard = () => {
           <NavLink
             to="/admin/supplier/add"
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "bg-green-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-green-50 hover:text-green-700"
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-green-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-green-50 hover:text-green-700"
               }`
             }
           >
@@ -163,10 +160,9 @@ const AdminDashboard = () => {
           <NavLink
             to="/admin/supplierRequests"
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-blue-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
               }`
             }
           >
@@ -177,10 +173,9 @@ const AdminDashboard = () => {
           <NavLink
             to="/admin/update/prices"
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? "bg-red-600 text-white shadow-md"
-                  : "text-gray-700 hover:bg-red-50 hover:text-red-700"
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-red-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-red-50 hover:text-red-700"
               }`
             }
           >
@@ -188,19 +183,44 @@ const AdminDashboard = () => {
             <span className="font-medium">تعديل الأسعار</span>
           </NavLink>
           <NavLink
-              to="/admin/update/images"
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-violet-600 text-white shadow-md"
-                    : "text-gray-700 hover:bg-violet-50 hover:text-violet-700"
-                }`
-              }
-            >
-              <span className="text-xl">🖼️</span>
-              <span className="font-medium">تعديل الصور والوسائط</span>
-            </NavLink>
-          </nav>
+            to="/admin/update/images"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-violet-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-violet-50 hover:text-violet-700"
+              }`
+            }
+          >
+            <span className="text-xl">🖼️</span>
+            <span className="font-medium">تعديل الصور والوسائط</span>
+          </NavLink>
+          <div className="border-t border-gray-200 my-3"></div>
+          <NavLink
+            to="/admin/realLifeImages/add"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-violet-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-violet-50 hover:text-violet-700"
+              }`
+            }
+          >
+            <span className="text-xl">🖼️</span>
+            <span className="font-medium">اضافة صورة علي الطبيعه</span>
+          </NavLink>
+          <NavLink
+            to="/admin/realLifeImages"
+            end   
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                ? "bg-violet-600 text-white shadow-md"
+                : "text-gray-700 hover:bg-violet-50 hover:text-violet-700"
+              }`
+            }
+          >
+            <span className="text-xl">🖼️</span>
+            <span className="font-medium">صورة علي الطبيعه</span>
+          </NavLink>
+        </nav>
 
         {/* Optional footer in sidebar */}
         <div className="mt-8 pt-4 border-t border-gray-200 text-xs text-gray-400 text-center">
