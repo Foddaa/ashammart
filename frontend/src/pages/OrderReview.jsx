@@ -19,29 +19,21 @@ export default function OrderReview() {
     comment = ""
   } = location.state || {};
 
-  // Determine items and total based on buy now or regular cart
+  // Determine items and total
   const items = buyNow && directProduct ? [directProduct] : cartItems;
   const totalAmount = buyNow && directProduct 
     ? directProduct.price * directProduct.quantity 
     : subtotal;
 
-  // Helper function to get correct image URL
+  // ✅ Check if ALL items have free delivery
+  const allFreeDelivery = items.length > 0 && items.every(item => item.freeDelivery === true);
+
+  // Helper to get image URL
   const getImageUrl = (image) => {
     if (!image) return "/default-image.jpg";
-    
     let imageUrl = image.url || image;
-    
-    // If URL already starts with http, return as is
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-      return imageUrl;
-    }
-    
-    // If URL starts with /api, add BASE_URL
-    if (imageUrl.startsWith("/api")) {
-      return `${BASE_URL}${imageUrl}`;
-    }
-    
-    // Otherwise, add /api prefix and BASE_URL
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+    if (imageUrl.startsWith("/api")) return `${BASE_URL}${imageUrl}`;
     return `${BASE_URL}/api${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
   };
 
@@ -55,20 +47,18 @@ export default function OrderReview() {
   const [deliveryCost, setDeliveryCost] = useState(0);
   const [showProducts, setShowProducts] = useState(true);
   
-  // New state for delivery prices from API
   const [deliveryPrices, setDeliveryPrices] = useState([]);
   const [loadingPrices, setLoadingPrices] = useState(true);
   
   const navigate = useNavigate();
 
-  // If this is a buy now, pre-populate comment from product page
   useEffect(() => {
     if (buyNow && comment) {
       setDescription(comment);
     }
   }, [buyNow, comment]);
 
-  // Fetch delivery prices from API
+  // Fetch delivery prices
   useEffect(() => {
     const fetchDeliveryPrices = async () => {
       try {
@@ -77,7 +67,6 @@ export default function OrderReview() {
       } catch (err) {
         console.error("Failed to fetch delivery prices:", err);
         toast.warn("تعذر تحميل أسعار التوصيل، سيتم استخدام الأسعار الافتراضية");
-        // Fallback hardcoded prices in case API fails
         setDeliveryPrices([
           { id: 1, city: "cairoAndGiza", price: 350 },
           { id: 2, city: "restOfCities", price: 500 },
@@ -89,9 +78,14 @@ export default function OrderReview() {
     fetchDeliveryPrices();
   }, []);
 
-  // Calculate delivery cost based on selected city and fetched prices
+  // Calculate delivery cost: free only if ALL items have free delivery
   useEffect(() => {
     if (deliveryPrices.length === 0) return;
+
+    if (allFreeDelivery) {
+      setDeliveryCost(0);
+      return;
+    }
 
     const cairoGizaPrice = deliveryPrices.find(item => item.city === "cairoAndGiza")?.price;
     const restPrice = deliveryPrices.find(item => item.city === "restOfCities")?.price;
@@ -101,10 +95,9 @@ export default function OrderReview() {
     } else {
       setDeliveryCost(restPrice ?? 500);
     }
-  }, [city, deliveryPrices]);
+  }, [city, deliveryPrices, allFreeDelivery]);
 
   const handleConfirmOrder = async () => {
-    // validation
     if (!firstName.trim() || !lastName.trim() || !phone.trim() || !paymentMethod || !city || !description.trim()) {
       toast.error("يرجى إدخال جميع البيانات المطلوبة");
       return;
@@ -119,10 +112,7 @@ export default function OrderReview() {
           email: email || null,
           phone: phone || null,
           paymentMethod,
-          address: {
-            city,
-            description,
-          },
+          address: { city, description },
           deliveryCost,
           items: items.map((item) => ({
             productId: item.id,
@@ -130,18 +120,15 @@ export default function OrderReview() {
           })),
           subtotal: totalAmount,
           total: totalAmount + deliveryCost,
-          isBuyNow: buyNow, // Add flag to identify buy now orders
+          isBuyNow: buyNow,
         }
       );
 
       if (res.data === "تم تأكيد الطلب بنجاح" || res.data === "success") {
         toast.success("تم تأكيد الطلب بنجاح!");
-        
-        // Clear cart only if it's a regular cart order or if clearCartAfterOrder is true
         if (!buyNow || clearCartAfterOrder) {
           clearCart();
         }
-        
         navigate("/");
       } else {
         toast.error(res.data || "فشل في تأكيد الطلب.");
@@ -177,30 +164,24 @@ export default function OrderReview() {
         {showProducts && (
           <div className="divide-y">
             {items.map((item) => {
-              // Get the first image URL correctly
               const imageUrl = item.images?.[0] 
                 ? getImageUrl(item.images[0])
                 : "/default-image.jpg";
               
               return (
-                <div
-                  key={item.id}
-                  className="py-3 flex justify-between items-center"
-                >
+                <div key={item.id} className="py-3 flex justify-between items-center">
                   <img
                     src={imageUrl}
                     alt={item.name}
                     className="w-16 h-16 object-cover rounded border"
-                    onError={(e) => {
-                      // Fallback if image fails to load
-                      e.target.src = "/default-image.jpg";
-                    }}
+                    onError={(e) => { e.target.src = "/default-image.jpg"; }}
                   />
                   <div className="flex-1 px-3 text-right">
                     <p className="font-medium">{item.name}</p>
                     <p className="text-sm">الكمية: {item.quantity}</p>
-                    {buyNow && (
-                      <p className="text-xs text-blue-600">شراء فوري</p>
+                    {buyNow && <p className="text-xs text-blue-600">شراء فوري</p>}
+                    {item.freeDelivery && (
+                      <span className="text-xs text-green-600 font-semibold">🚚 توصيل مجاني</span>
                     )}
                   </div>
                   <div className="text-left">
@@ -215,7 +196,6 @@ export default function OrderReview() {
           </div>
         )}
         
-        {/* Show comment if it's a buy now with comment */}
         {buyNow && comment && (
           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
@@ -234,7 +214,8 @@ export default function OrderReview() {
         <p>
           تكلفة التوصيل:{" "}
           <strong>
-            {loadingPrices ? "جاري التحميل..." : `${deliveryCost} جنيه`}
+            {loadingPrices ? "جاري التحميل..." : 
+              allFreeDelivery ? "0 جنيه (🎉 توصيل مجاني)" : `${deliveryCost} جنيه`}
           </strong>
         </p>
         <p className="text-xl mt-2">
@@ -243,8 +224,16 @@ export default function OrderReview() {
             {loadingPrices ? "---" : `${totalAmount + deliveryCost} جنيه`}
           </strong>
         </p>
-        
-
+        {allFreeDelivery && (
+          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+            ✅ جميع المنتجات مشمولة بالتوصيل المجاني!
+          </div>
+        )}
+        {!allFreeDelivery && items.some(item => item.freeDelivery === true) && (
+          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
+            ⚠️ يوجد منتجات غير مشمولة بالتوصيل المجاني، سيتم تطبيق رسوم التوصيل المعتادة.
+          </div>
+        )}
       </div>
 
       {/* Customer Info */}
@@ -356,7 +345,6 @@ export default function OrderReview() {
         {buyNow ? "تأكيد الشراء الفوري" : "تأكيد الطلب"}
       </button>
       
-      {/* Back button */}
       <button
         onClick={() => navigate(-1)}
         className="mt-3 text-gray-600 hover:text-gray-800 text-sm w-full text-center"

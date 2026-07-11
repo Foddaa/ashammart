@@ -13,12 +13,10 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Check if this is a direct buy now
   const isBuyNow = location.state?.buyNow || false;
   const directProduct = location.state?.directProduct || null;
 
   const fetchCartItems = async () => {
-    // If this is a buy now with direct product, use that instead of cart
     if (isBuyNow && directProduct) {
       setCartItems([directProduct]);
       setLoading(false);
@@ -58,13 +56,13 @@ export default function Cart() {
             canceledPrice: product.canceledPrice,
             images: product.images,
             quantity: item.quantity,
+            freeDelivery: product.freeDelivery, // ✅ include free delivery flag
           };
         })
         .filter((item) => item !== null);
 
       setCartItems(mergedCart);
 
-      // Clean up local storage if some products were removed
       if (mergedCart.length !== localCart.length) {
         const cleanCart = mergedCart.map(({ id, quantity }) => ({ id, quantity }));
         saveCart(cleanCart);
@@ -88,7 +86,6 @@ export default function Cart() {
         0
       );
       
-      // Pass through buy now state
       navigate("/review-order", {
         state: { 
           cartItems, 
@@ -106,7 +103,6 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-8 px-4" dir="rtl">
       <div className="container mx-auto max-w-6xl">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
             {isBuyNow ? "🛍️ مراجعة الطلب" : "🛒 سلة المشتريات"}
@@ -125,7 +121,6 @@ export default function Cart() {
           </div>
         ) : cartItems.length > 0 ? (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* Table header - hidden on mobile, visible on sm+ */}
             <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_0.5fr] gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200 text-gray-700 font-semibold">
               <span className="text-right">المنتج</span>
               <span className="text-center">السعر</span>
@@ -134,7 +129,6 @@ export default function Cart() {
               <span className="text-center"></span>
             </div>
 
-            {/* Cart Items */}
             <div className="divide-y divide-gray-100">
               <CartItems 
                 items={cartItems} 
@@ -143,7 +137,6 @@ export default function Cart() {
               />
             </div>
 
-            {/* Footer with checkout button */}
             <div className="bg-gray-50 px-6 py-5 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="text-gray-600 text-sm">
                 إجمالي عدد المنتجات: <span className="font-bold text-gray-800">{cartItems.length}</span>

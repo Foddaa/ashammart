@@ -1,108 +1,69 @@
-import { useDispatch } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
 import { Autoplay, Navigation } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { useContext } from "react";
-import { UserContext } from "@/Context/AuthContext";
-import Rating from "@mui/material/Rating";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import ProductCard from "@/components/shared/ProductCard";
 
 export default function RelatedProductsSlider({ relatedProducts }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const dispatch = useDispatch();
-  const { Token, setToken } = useContext(UserContext);
-
   if (!relatedProducts?.length) return null;
-
-  function productPopUp(product) {
-    navigate(`/product/${product.id}`, { state: { product } });
-  }
 
   return (
     <div className="mt-14 px-4 py-6 overflow-hidden text-right" dir="rtl">
-      <h2 className="text-2xl font-bold leading-8 mb-4 text-green-700">منتجات مشابهة</h2>
+      {/* Heading with gradient line - matches product details style */}
+      <div className="flex items-center gap-3 mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 shrink-0">
+          منتجات مشابهة
+        </h2>
+        <div className="flex-1 h-0.5 bg-gradient-to-l from-blue-200 to-transparent" />
+      </div>
 
-      <Swiper
-        modules={[Navigation, Autoplay]}
-        navigation
-        loop
-        autoplay={{ delay: 3000, disableOnInteraction: false }}
-        spaceBetween={20}
-        slidesPerView={1.2}
-        breakpoints={{
-          480: { slidesPerView: 1.5 },
-          640: { slidesPerView: 2 },
-          768: { slidesPerView: 3 },
-          1024: { slidesPerView: 4 },
-        }}
-        className="relative py-4 overflow-hidden"
-      >
-        {relatedProducts.map((product) => {
-          const imageUrl =
-            product.images?.[0]?.url
-              ? `${BASE_URL}/api${product.images[0].url}`
-              : "/placeholder.png";
-
-          const displayCanceledPrice =
-            !product.canceledPrice || product.canceledPrice <= product.price
-              ? Math.round(product.price * 1.12)
-              : product.canceledPrice;
-
-          return (
+      {/* Swiper with subtle card background */}
+      <div className="relative bg-white/50 backdrop-blur-sm rounded-3xl p-4 md:p-6 shadow-inner">
+        <Swiper
+          modules={[Navigation, Autoplay]}
+          navigation={{
+            nextEl: ".swiper-button-next-custom",
+            prevEl: ".swiper-button-prev-custom",
+          }}
+          loop={true}
+          autoplay={{
+            delay: 4000,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          }}
+          spaceBetween={24}
+          slidesPerView={1.2}
+          breakpoints={{
+            480: { slidesPerView: 1.5, spaceBetween: 20 },
+            640: { slidesPerView: 2, spaceBetween: 24 },
+            768: { slidesPerView: 3, spaceBetween: 28 },
+            1024: { slidesPerView: 4, spaceBetween: 30 },
+          }}
+          className="relative py-2"
+        >
+          {relatedProducts.map((product) => (
             <SwiperSlide key={product.id}>
-              <div
-                onClick={() => productPopUp(product)}
-                className="flex flex-col border border-gray-300 rounded-lg overflow-hidden shadow-sm cursor-pointer h-full"
-              >
-                <div className="aspect-square w-full flex justify-center items-center bg-gray-100">
-                  <img
-                    src={imageUrl}
-                    className="w-full h-full object-cover p-1"
-                    alt={product.name}
-                    loading="lazy"
-                  />
-                </div>
-
-                <div className="p-3 text-right">
-                  <h3 className="font-semibold text-sm text-gray-800 truncate">
-                    {product.name}
-                  </h3>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {product.description?.length > 30
-                      ? `${product.description.substring(0, 30)}...`
-                      : product.description}
-                  </p>
-                  <span className="text-xs text-green-700 mt-1 block">
-                    تصميم خاص
-                  </span>
-                  <div className="p-2 border-t border-gray-200">
-                    <p className="text-black-600 font-bold mb-2">
-                      {product.price} جنيه
-                      <span className="mr-2 text-gray-500 line-through text-base font-normal">
-                        {displayCanceledPrice.toFixed(2)} جنيه
-                      </span>
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 justify-end">
-                    <Rating
-                      name="read-only"
-                      value={product.averageRating || 0}
-                      readOnly
-                      precision={0.5}
-                      size="small"
-                    />
-                    <span className="text-xs text-gray-600">
-                      ({product.averageRating?.toFixed(1) || "0.0"})
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <ProductCard product={product} className="hover:shadow-xl transition-shadow" />
             </SwiperSlide>
-          );
-        })}
-      </Swiper>
+          ))}
+        </Swiper>
+
+        {/* Custom navigation buttons - positioned outside the slides */}
+        <button
+          className="swiper-button-next-custom absolute top-1/2 -right-4 -translate-y-1/2 z-10 bg-white rounded-full shadow-lg w-10 h-10 flex items-center justify-center text-blue-600 hover:bg-blue-50 transition border border-gray-200 hover:border-blue-300 focus:outline-none"
+          aria-label="التالي"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          className="swiper-button-prev-custom absolute top-1/2 -left-4 -translate-y-1/2 z-10 bg-white rounded-full shadow-lg w-10 h-10 flex items-center justify-center text-blue-600 hover:bg-blue-50 transition border border-gray-200 hover:border-blue-300 focus:outline-none"
+          aria-label="السابق"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
-}
+} 

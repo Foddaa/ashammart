@@ -1,164 +1,67 @@
-import { useEffect, useState } from "react";
-// import Rating from "@mui/material/Rating";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Carousel from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 import "./BestSellers.css"
 import Heading from "@/components/shared/Heading";
 import { responsive } from "@/constants";
-import { useNavigate } from "react-router-dom";
 import actionMostRated from "@/store/BestSeller/thunk/actionMostRated";
-import Rating from "@mui/material/Rating";
+import ProductCard from "@/components/shared/ProductCard";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay } from "swiper/modules";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function MostRated() {
-      const sliderImages = [
+  const sliderImages = [
     `${BASE_URL}/api/public/assets/most-rated/1`,
     `${BASE_URL}/api/public/assets/most-rated/2`,
     `${BASE_URL}/api/public/assets/most-rated/3`,
   ];
   const { products, error } = useSelector(state => state.mostRated);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const [mostRatedHeroUrl, setMostRatedHeroUrl] = useState(null);
-
-  // Fetch dynamic most rated hero image (ad6.webp) from public endpoint
-  useEffect(() => {
-    const fetchMostRatedHero = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/api/public/assets/most-rated`);
-        if (response.ok) {
-          const blob = await response.blob();
-          const objectUrl = URL.createObjectURL(blob);
-          setMostRatedHeroUrl(objectUrl);
-        } else {
-          console.error("Most rated hero fetch failed:", response.status);
-        }
-      } catch (err) {
-        console.error("Failed to load most rated hero:", err);
-      }
-    };
-    fetchMostRatedHero();
-
-    // Cleanup object URL on unmount
-    return () => {
-      if (mostRatedHeroUrl && mostRatedHeroUrl.startsWith("blob:")) {
-        URL.revokeObjectURL(mostRatedHeroUrl);
-      }
-    };
-  }, []);
-
-  function productPopUp(product) {
-    navigate(`/product/${product.id}`, { state: { product } });
-  }
 
   useEffect(() => {
     dispatch(actionMostRated());
   }, [dispatch]);
 
-  // Fallback placeholder SVG (transparent gray square)
   const placeholderImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 24 24' fill='none' stroke='gray' stroke-width='2'%3E%3Crect x='2' y='2' width='20' height='20'/%3E%3C/svg%3E";
 
   if (error) {
-    return (
-      <div className="text-red-400 text-3xl">
-        {error}
-      </div>
-    );
+    return <div className="text-red-400 text-3xl">{error}</div>;
   }
 
   return (
     <div>
       <div className="py-5">
         <div className="flex justify-between mb-5">
-          <Heading 
-            header={"الاعلي تقيِما"} 
+          <Heading
+            header={"الاعلي تقيِما"}
             text={"منتجات نالت أعلى تقييمات وثقة المستخدمين."}
           />
-          {/* <ViewAll /> */}
         </div>
+
         {!Array.isArray(products) || products.length === 0 ? (
           <div className="text-center text-gray-500 text-lg py-10">
             لا يوجد منتجات
           </div>
         ) : (
-          <Carousel 
-            autoPlay 
-            responsive={responsive} 
+          <Carousel
+            autoPlay
+            responsive={responsive}
             infinite={true}
             containerClass="carousel-container"
             itemClass="px-1"
           >
-            {products.map((e) => (
-              <div
-                key={e.id}
-                className="flex flex-col border border-gray-200 rounded-lg overflow-hidden shadow-sm w-full mx-1"
-              >
-                <div className="aspect-square w-full flex justify-center items-center bg-gray-50">
-                  <img
-                    src={e.images[0]?.url ? `${BASE_URL}/api${e.images[0].url}` : placeholderImage}
-                    alt={e.name}
-                    className="w-full h-full object-cover p-1 cursor-pointer"
-                    loading="lazy"
-                    onClick={() => productPopUp(e)}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = placeholderImage;
-                    }}
-                  />
-                </div>
-
-                <div className="p-2">
-                  <h3 className="font-semibold text-sm text-gray-800 truncate">
-                    {e.name}
-                  </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {e.description?.length > 30 
-                      ? `${e.description.substring(0, 30)}...` 
-                      : e.description}
-                  </p>
-                  <span className="text-xs text-blue-600 mt-1 block">
-                    تصميم مخصص
-                  </span>
-                
-                  <div className="flex items-center mt-0.5 mb-0.5 px-2">
-                    <Rating
-                      name="read-only"
-                      value={e.averageRating || 0}
-                      readOnly
-                      precision={0.5}
-                      size="small"
-                    />
-                    <span className="text-xs text-gray-600 ml-1">
-                      ({e.averageRating?.toFixed(1) || '0.0'})
-                    </span>
-                  </div>
-
-                  <div className="p-2 border-t border-gray-100">
-                    <p className="text-black-600 font-bold mb-2">
-                      <span className="text-gray-500 line-through text-base font-normal mr-2">
-                        {e.canceledPrice
-                          ? `${e.canceledPrice.toFixed(2)}`
-                          : `${(e.price * 1.12).toFixed(2)}`}
-                      </span>
-                      <span className="text-black-600 font-bold">
-                        {e.price} جنيه
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </Carousel>
         )}
 
-        {/* Advertisement section – now using dynamic most rated hero image */}
-        <div className="w-full aspect-[288/100] rounded-2xl overflow-hidden 
-                        bg-gray-100 shadow-md hover:shadow-xl transition-shadow duration-300">
+        {/* Advertisement section */}
+               <div className="w-full aspect-[288/100] rounded-2xl overflow-hidden
+                        bg-gray-100 shadow-md hover:shadow-xl transition-shadow duration-300 mt-8">
           <Swiper
             className="w-full h-full"
             modules={[Autoplay]}

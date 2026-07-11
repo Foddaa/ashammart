@@ -101,6 +101,11 @@ public class OrderService {
             }
             order.setItems(orderItems);
             order.setSubtotal(order.getItems().stream().mapToDouble(OrderItem::getCost).sum());
+            if (request.getDeliveryCost() == 0) {
+                if (!checkEligibilityForFreeDelivery(products)){
+                    throw new Exception("عذراً، لا يمكن تحميل هذا الطلب");
+                }
+            }
             order.setDeliveryCost(request.getDeliveryCost());
             order.setTotalCost(order.getSubtotal() + order.getDeliveryCost());
             for (OrderItem orderItem : order.getItems()) {
@@ -123,6 +128,7 @@ public class OrderService {
                 clientService.save(client);
                 order.setClient(client);
             }
+
 
             orderRepository.save(order);
             return ResponseEntity.ok("تم تأكيد الطلب بنجاح");
@@ -204,5 +210,15 @@ public class OrderService {
         order.setStatus(status);
         orderRepository.save(order);
         return "success";
+    }
+
+    @Transactional
+    public boolean checkEligibilityForFreeDelivery(List<Product> items) {
+        for (Product product : items) {
+            if (!product.isFreeDelivery()) {
+                return false;
+            }
+        }
+        return true;
     }
 }
