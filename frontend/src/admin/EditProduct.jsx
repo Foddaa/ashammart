@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";  // ✅ use the configured instance
 import { useParams, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -34,7 +34,7 @@ const EditProduct = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/category/all`);
+        const response = await api.get("/api/category/all");  // ✅ using api
         setCategories(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching categories:", err);
@@ -47,7 +47,7 @@ const EditProduct = () => {
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/supplier/all`);
+        const response = await api.get("/api/supplier/all");
         setSuppliers(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching suppliers:", err);
@@ -57,10 +57,10 @@ const EditProduct = () => {
   }, []);
 
   // Fetch product details
-  useEffect(() => {
+ useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/product/byId?id=${id}`);
+        const res = await api.get(`/api/product/byId?id=${id}`); // ✅ using api
         const product = res.data;
 
         setFormData({
@@ -79,7 +79,7 @@ const EditProduct = () => {
           ...img,
           url: img.url.startsWith("http")
             ? img.url
-            : `${BASE_URL}/api${img.url}`,
+            : `${import.meta.env.VITE_API_BASE_URL}/api${img.url}`, // keep full URL if needed
         }));
 
         setExistingImages(fixedImages);
@@ -91,6 +91,7 @@ const EditProduct = () => {
 
     fetchProduct();
   }, [id]);
+
 
   const handleInputChange = (e) => {
     setFormData((prev) => ({
@@ -126,10 +127,7 @@ const EditProduct = () => {
     e.preventDefault();
     const data = new FormData();
 
-    newImages.forEach((image) => {
-      data.append("images", image);
-    });
-
+    newImages.forEach((image) => data.append("images", image));
     data.append("name", formData.name);
     data.append("code", formData.code);
     data.append("description", formData.description);
@@ -148,11 +146,7 @@ const EditProduct = () => {
     }
 
     try {
-      await axios.patch(`${BASE_URL}/api/admin/product/${id}/update`, data, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await api.patch(`/api/admin/product/${id}/update`, data);
       
       toast.success("✅ تم تحديث المنتج بنجاح!");
       setTimeout(() => navigate("/admin/products"), 1500);

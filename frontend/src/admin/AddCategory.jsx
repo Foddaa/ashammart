@@ -1,13 +1,10 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";           // ✅ your configured instance
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 const AddCategory = () => {
-  const token = localStorage.getItem("token");
   const [name, setName] = useState("");
   const navigate = useNavigate();
 
@@ -20,20 +17,13 @@ const AddCategory = () => {
     }
 
     try {
-      await axios.post(
-        `${BASE_URL}/api/admin/category/add`,
-        { name },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // ✅ api.post – no manual headers or token
+      await api.post("/api/admin/category/add", { name });
 
       toast.success("✅ تم إضافة التصنيف بنجاح!");
       setName("");
     } catch (error) {
+      // The interceptor handles token refresh; if it fails, we get a 401.
       if (error.response?.status === 401) {
         toast.error("⚠️ انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى");
         navigate("/login");

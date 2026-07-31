@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";   // ✅ your configured instance
 import { Link } from "react-router-dom";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
@@ -10,10 +8,8 @@ const CategoryList = () => {
 
   const fetchCategories = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${BASE_URL}/api/admin/category/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ✅ relative path – no manual headers
+      const res = await api.get("/api/admin/category/all");
       setCategories(res.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -24,11 +20,9 @@ const CategoryList = () => {
     const confirmed = window.confirm("هل أنت متأكد أنك تريد حذف هذه الفئة؟");
     if (!confirmed) return;
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${BASE_URL}/api/admin/category/delete?id=${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchCategories();
+      // ✅ api.delete – token handled automatically
+      await api.delete(`/api/admin/category/delete?id=${id}`);
+      fetchCategories(); // refresh the list
     } catch (error) {
       console.error("Error deleting category:", error);
       alert("فشل في حذف الفئة. قد تكون مرتبطة بمنتجات.");

@@ -44,7 +44,7 @@ public class ProductService {
     public ResponseEntity<?> deleteById(Long id) {
         try {
             logger.info("Deleting product with id: {}", id);
-            productRepository.deleteById(id);
+            productRepository.updateStatus(id,"DELETED");
             logger.info("Successfully deleted product with id: {}", id);
             return ResponseEntity.ok("تم حذف المنتج");
         } catch (Exception e) {

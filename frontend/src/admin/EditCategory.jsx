@@ -1,24 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "@/api/axiosInstance";   // ✅ your configured instance
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const EditCategory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchCategory = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/admin/category/byId?id=${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // ✅ relative path – baseURL is already set in api
+        const res = await api.get(`/api/admin/category/byId?id=${id}`);
         setName(res.data.name);
         setIsLoading(false);
       } catch (err) {
@@ -40,16 +36,8 @@ const EditCategory = () => {
     }
 
     try {
-      await axios.patch(
-        `${BASE_URL}/api/admin/category/${id}/update`,
-        { name },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // ✅ api.patch – no manual headers needed
+      await api.patch(`/api/admin/category/${id}/update`, { name });
 
       toast.success("✅ تم تحديث الفئة بنجاح!");
       setTimeout(() => navigate("/admin/categories"), 1500);

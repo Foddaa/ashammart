@@ -1,13 +1,10 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";           // ✅ your configured instance
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 const AddSupplier = () => {
-  const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -32,25 +29,23 @@ const AddSupplier = () => {
     }
 
     try {
-      await axios.post(`${BASE_URL}/api/admin/supplier/add`, formData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // ✅ api.post – no manual headers, token injected via interceptor
+      await api.post("/api/admin/supplier/add", formData);
 
       toast.success("✅ تم إضافة المورد بنجاح!");
       setFormData({ name: "", code: "", address: "" });
     } catch (error) {
       console.error("Error adding supplier:", error);
 
+      // The interceptor already handles 401 by trying to refresh the token.
+      // If refresh fails, it will reject with a 401. We can still handle it gracefully.
       if (error.response?.status === 401) {
         toast.error("⚠️ انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى");
         navigate("/login");
         return;
       }
       const apiMessage =
-        error.response?.data?.message || error.response?.data || "❌ Failed to add supplier";
+        error.response?.data?.message || error.response?.data || "❌ فشل إضافة المورد";
 
       toast.error(apiMessage);
     }

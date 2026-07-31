@@ -56,6 +56,7 @@ public class Product {
     private int quantitySailed;
     private boolean freeDelivery ;
     private boolean fastDelivery ;
+    private String status = "AVAILABLE";
 
     @Transient
     public double getAverageRating() {
@@ -76,7 +77,15 @@ public class Product {
             }
             averageRating = sum / ratings.size();
         }
-        return "Product{ id =" + id + ", name =" + name +", categoryId =" + category.getId() +", rating =" + averageRating +", imagesCount =" + (images != null ? images.size() : 0) +"}+\n";
+        return
+                "Product{" +
+                        " id =" + id +
+                        ", name =" + name +
+                        ", code =" + code +
+                        ", status ="+ status +
+                        ", categoryId =" + category.getId() +
+                        ", rating =" + averageRating +
+                        ", imagesCount =" + (images != null ? images.size() : 0) +"}";
     }
 
 }

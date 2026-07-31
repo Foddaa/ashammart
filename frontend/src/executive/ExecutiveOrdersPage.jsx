@@ -1,8 +1,7 @@
 import { useContext, useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";          // ✅ centralized API client
 import { UserContext } from "../Context/AuthContext";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 const STATUSES = ["Pending", "Active", "delivered"];
 
 // Translation maps
@@ -56,16 +55,13 @@ export default function ExecutiveOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("Pending");
-  const { Token } = useContext(UserContext);
-  const token = localStorage.getItem("token");
+  const { Token } = useContext(UserContext); // still useful for conditional UI if needed
 
   useEffect(() => {
     const fetchAuthorization = async () => {
       try {
-        const res = await axios.get(`${BASE_URL}/api/executive`, {
-          headers: { Authorization: `Bearer ${Token}` },
-        });
-
+        // ✅ using api – relative path, token injected by interceptor
+        const res = await api.get("/api/executive");
         if (res.data === "success") {
           setAuthorized(true);
           fetchOrders("Pending");
@@ -85,8 +81,8 @@ export default function ExecutiveOrdersPage() {
   const fetchOrders = async (status) => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BASE_URL}/api/executive/allOrders`, {
-        headers: { Authorization: `Bearer ${token}` },
+      // ✅ using api with query param
+      const res = await api.get("/api/executive/allOrders", {
         params: { status },
       });
       setOrders(res.data);
@@ -99,8 +95,7 @@ export default function ExecutiveOrdersPage() {
 
   const handleOrderClick = async (orderId) => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/executive/byId`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await api.get("/api/executive/byId", {
         params: { id: orderId },
       });
       setSelectedOrderDetails(res.data);
@@ -111,8 +106,7 @@ export default function ExecutiveOrdersPage() {
 
   const handleStatusChange = async (newStatus) => {
     try {
-      await axios.patch(`${BASE_URL}/api/executive/updateStatus`, null, {
-        headers: { Authorization: `Bearer ${token}` },
+      await api.patch("/api/executive/updateStatus", null, {
         params: {
           id: selectedOrderDetails.orderId,
           status: newStatus,

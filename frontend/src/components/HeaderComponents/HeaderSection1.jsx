@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import CartWidget from './CartWidget';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import searchIcon from "@/assets/images/logos/search.ico";
 import menuIcon from "@/assets/images/logos/menu.ico";
+import { UserContext } from "@/Context/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -11,6 +12,10 @@ export default function HeaderSection1() {
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [logoUrl, setLogoUrl] = useState(null);
+
+  // Get authentication state
+  const { Token, role, logout } = useContext(UserContext);
+  const isAdminOrExecutive = Token && (role === 'ADMIN' || role === 'EXECUTIVE');
 
   // Fetch dynamic logo from public endpoint
   useEffect(() => {
@@ -69,11 +74,44 @@ export default function HeaderSection1() {
     }
   };
 
+  // Handle logout
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
+  // If admin/executive, render simplified header (logo + logout)
+  if (isAdminOrExecutive) {
+    return (
+      <header className="container mx-auto bg-white px-2">
+        <div className="flex items-center justify-between h-[80px]">
+          {/* Logo */}
+          <Link to="/">
+            <img
+              src={logoUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='none' stroke='gray' stroke-width='2'%3E%3Crect x='2' y='2' width='20' height='20'/%3E%3C/svg%3E"}
+              alt="Logo"
+              className="w-[80px] h-[80px] object-cover"
+            />
+          </Link>
+
+          {/* Logout button */}
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            تسجيل خروج
+          </button>
+        </div>
+      </header>
+    );
+  }
+
+  // Default header for non‑admin users
   return (
     <header className="container mx-auto bg-white px-2">
       <div className="flex items-center justify-between h-[80px]">
 
-        {/* Logo - now dynamic from database */}
+        {/* Logo */}
         <Link to="/">
           <img
             src={logoUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='none' stroke='gray' stroke-width='2'%3E%3Crect x='2' y='2' width='20' height='20'/%3E%3C/svg%3E"}

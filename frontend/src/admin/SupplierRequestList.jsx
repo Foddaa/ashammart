@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import api from "@/api/axiosInstance";   // ✅ your configured instance
 
 const SupplierRequestList = () => {
   const [suppliers, setSuppliers] = useState([]);
@@ -9,10 +7,8 @@ const SupplierRequestList = () => {
 
   const fetchSuppliers = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${BASE_URL}/api/admin/supplierRequest/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ✅ relative path – no manual headers
+      const res = await api.get("/api/admin/supplierRequest/all");
       setSuppliers(res.data);
     } catch (error) {
       console.error("Error fetching suppliers:", error);
@@ -23,10 +19,8 @@ const SupplierRequestList = () => {
     const confirmed = window.confirm("هل أنت متأكد أنك تريد حذف هذا المورد؟");
     if (!confirmed) return;
     try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`${BASE_URL}/api/admin/supplierRequest/delete?id=${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ✅ api.delete – token injected automatically
+      await api.delete(`/api/admin/supplierRequest/delete?id=${id}`);
       fetchSuppliers();
     } catch (error) {
       console.error("Error deleting supplier:", error);

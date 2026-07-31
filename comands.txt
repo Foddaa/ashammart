@@ -35,8 +35,8 @@ sudo systemctl status springboot                       // check if it working
 ------- replace spring service with new one ---------
 mvn clean package
 sudo cp target/*.jar /opt/app.jar
-sudo systemctl restart springboot
-sudo systemctl status springboot
+sudo systemctl restart anttikka.service
+sudo systemctl status anttikka.service
 
 
 

@@ -1,13 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";           // ✅ your configured instance
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 const AddProduct = () => {
-  const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const fileInputRef = useRef();
 
@@ -21,8 +18,8 @@ const AddProduct = () => {
     canceledPrice: "",
     category: "",
     supplierCode: "",
-    freeDelivery: false,   // new
-    fastDelivery: false,   // new
+    freeDelivery: false,
+    fastDelivery: false,
   });
 
   const [images, setImages] = useState([]);
@@ -30,7 +27,8 @@ const AddProduct = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/category/all`);
+        // ✅ api.get – relative path, no manual headers
+        const response = await api.get("/api/category/all");
         const categoriesData = Array.isArray(response.data)
           ? response.data
           : [];
@@ -45,7 +43,7 @@ const AddProduct = () => {
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/supplier/all`);
+        const response = await api.get("/api/supplier/all");
         const suppliersData = Array.isArray(response.data)
           ? response.data
           : [];
@@ -64,7 +62,6 @@ const AddProduct = () => {
     }));
   };
 
-  // Handler for toggle switches (checkbox)
   const handleToggle = (e) => {
     const { name, checked } = e.target;
     setFormData((prev) => ({
@@ -115,7 +112,6 @@ const AddProduct = () => {
     }
 
     for (const key in formData) {
-      // Append boolean values as strings "true"/"false"
       if (typeof formData[key] === "boolean") {
         data.append(key, formData[key] ? "true" : "false");
       } else {
@@ -124,12 +120,8 @@ const AddProduct = () => {
     }
 
     try {
-      await axios.post(`${BASE_URL}/api/admin/product/add`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // ✅ api.post – no manual headers, token injected by interceptor
+      await api.post("/api/admin/product/add", data);
 
       toast.success("✅ تم إضافة المنتج بنجاح!");
 
@@ -280,46 +272,46 @@ const AddProduct = () => {
         </div>
 
         {/* Delivery Toggles - With Icons */}
-<div className="mb-6">
-  <label className="block text-gray-700 font-semibold mb-3">خيارات التوصيل</label>
-  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-    <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
-      formData.freeDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
-    }`}>
-      <div className="flex items-center gap-3">
-        <span className="text-gray-700 font-medium">توصيل مجاني</span>
-      </div>
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          name="freeDelivery"
-          checked={formData.freeDelivery}
-          onChange={handleToggle}
-          className="sr-only peer"
-        />
-        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-      </label>
-    </div>
+        <div className="mb-6">
+          <label className="block text-gray-700 font-semibold mb-3">خيارات التوصيل</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
+              formData.freeDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="flex items-center gap-3">
+                <span className="text-gray-700 font-medium">توصيل مجاني</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="freeDelivery"
+                  checked={formData.freeDelivery}
+                  onChange={handleToggle}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
 
-    <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
-      formData.fastDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
-    }`}>
-      <div className="flex items-center gap-3">
-        <span className="text-gray-700 font-medium">توصيل سريع</span>
-      </div>
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          name="fastDelivery"
-          checked={formData.fastDelivery}
-          onChange={handleToggle}
-          className="sr-only peer"
-        />
-        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-      </label>
-    </div>
-  </div>
-</div>
+            <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
+              formData.fastDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
+            }`}>
+              <div className="flex items-center gap-3">
+                <span className="text-gray-700 font-medium">توصيل سريع</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="fastDelivery"
+                  checked={formData.fastDelivery}
+                  onChange={handleToggle}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+        </div>
 
         {/* Images section */}
         <div className="mb-6">
@@ -327,12 +319,11 @@ const AddProduct = () => {
             صور المنتج <span className="text-red-500">*</span>
           </label>
 
-          {/* Custom file input */}
           <div className="flex items-center justify-center w-full">
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <svg className="w-8 h-8 mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                <svg className="w-8 h-8 mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                 <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">انقر للرفع</span> أو اسحب الصور</p>
                 <p className="text-xs text-gray-500">PNG, JPG, WEBP (حد أقصى 2 ميجا لكل صورة)</p>
@@ -348,7 +339,6 @@ const AddProduct = () => {
             </label>
           </div>
 
-          {/* Image preview grid */}
           {images.length > 0 && (
             <div className="mt-4">
               <p className="text-sm text-gray-600 mb-2">
@@ -376,7 +366,6 @@ const AddProduct = () => {
           )}
         </div>
 
-        {/* Submit button */}
         <button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"

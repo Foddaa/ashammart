@@ -1,6 +1,6 @@
 // src/pages/admin/UpdateImages.jsx
 import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";           // ✅ your configured instance
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -348,26 +348,18 @@ const AssetCard = ({ asset }) => {
   // Helper: fetch the actual asset blob (image/video) using Authorization header
   const fetchAssetBlob = async () => {
     try {
-      const token = localStorage.getItem("token");
-      // Step 1: get the data endpoint URL (e.g., "/api/admin/assets/data/logo")
-      const res = await axios.get(`${BASE_URL}${asset.getUrlEndpoint}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      let dataUrl = null;
+      const metaRes = await api.get(asset.getUrlEndpoint);
+      let relativeUrl = null;
       if (asset.getUrlKey === "url") {
-        dataUrl = res.data.url;
+        relativeUrl = metaRes.data.url;
       } else {
-        dataUrl = res.data[asset.getUrlKey];
+        relativeUrl = metaRes.data[asset.getUrlKey];
       }
-      if (!dataUrl) return null;
+      if (!relativeUrl) return null;
 
-      // Step 2: fetch the actual binary data with token
-      const response = await fetch(`${BASE_URL}${dataUrl}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const blob = await response.blob();
-      return URL.createObjectURL(blob);
+      // 2. Fetch the binary data using the same api instance (with interceptor)
+      const blobRes = await api.get(relativeUrl, { responseType: "blob" });
+      return URL.createObjectURL(blobRes.data);
     } catch (err) {
       console.error(`Failed to fetch ${asset.label}`, err);
       return null;
@@ -380,7 +372,6 @@ const AssetCard = ({ asset }) => {
     const loadPreview = async () => {
       const blobUrl = await fetchAssetBlob();
       if (isMounted) {
-        // Revoke old blob URL if it exists
         if (previewUrl && previewUrl.startsWith("blob:")) {
           URL.revokeObjectURL(previewUrl);
         }
@@ -402,7 +393,6 @@ const AssetCard = ({ asset }) => {
     setFile(selected);
     setUploaded(false);
 
-    // Local preview for the selected file (before upload)
     if (previewUrl && previewUrl.startsWith("blob:")) {
       URL.revokeObjectURL(previewUrl);
     }
@@ -421,28 +411,22 @@ const AssetCard = ({ asset }) => {
       return;
     }
 
-    const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append(asset.backendField, file);
 
     try {
       setLoading(true);
-      await axios.put(`${BASE_URL}/api/admin/update/assets`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // ✅ api.put – token injected automatically, Content-Type handled by axios
+      await api.put("/api/admin/update/assets", formData);
       toast.success(`✅ تم تحديث "${asset.label}" بنجاح`);
       setUploaded(true);
 
-      // Reload the actual asset from backend (new blob)
+      // Reload the actual asset from backend
       const newBlobUrl = await fetchAssetBlob();
       if (previewUrl && previewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(previewUrl);
       }
       setPreviewUrl(newBlobUrl);
-      // Clear the selected file reference so the card shows the newly uploaded asset
       setFile(null);
       if (inputRef.current) inputRef.current.value = "";
     } catch (err) {
@@ -457,7 +441,6 @@ const AssetCard = ({ asset }) => {
     setFile(null);
     setUploaded(false);
     if (inputRef.current) inputRef.current.value = "";
-    // Reload the current asset from backend (revert to stored version)
     fetchAssetBlob().then((newBlobUrl) => {
       if (previewUrl && previewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(previewUrl);

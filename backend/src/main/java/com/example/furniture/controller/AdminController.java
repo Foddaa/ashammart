@@ -146,6 +146,10 @@ public class AdminController {
         }
     }
 
+    @DeleteMapping("/product/delete")
+    public ResponseEntity<?> deleteProduct(@RequestParam Long id){
+        return productService.deleteById(id);
+    }
 
 
 
@@ -456,7 +460,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/real-life-photos/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) throws IOException {
+    public ResponseEntity<Void> deleteRealLifePhoto(@PathVariable Long id) throws IOException {
         RealLifePhoto photo = realLifePhotoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         realLifePhotoStorageService.delete(photo.getFileName());

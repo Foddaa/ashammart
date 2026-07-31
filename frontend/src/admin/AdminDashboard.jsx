@@ -1,46 +1,19 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { useEffect, useContext } from "react";
+import { UserContext } from "@/Context/AuthContext";
 
 const AdminDashboard = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { Token, role, ready } = useContext(UserContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const verifyAdmin = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
+    if (!ready) return; // wait for the initial silent-refresh check to finish
+    if (!Token || role !== "ADMIN") {
+      navigate("/login");
+    }
+  }, [ready, Token, role, navigate]);
 
-        const response = await fetch(`${BASE_URL}/api/admin`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.status === 200) {
-          setIsAdmin(true);
-        } else {
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("فشل التحقق من المشرف:", error);
-        navigate("/error");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    verifyAdmin();
-  }, [navigate]);
-
-  if (isLoading) {
+  if (!ready) {
     return (
       <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -50,7 +23,7 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!isAdmin) {
+  if (!Token || role !== "ADMIN") {
     return (
       <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -72,7 +45,7 @@ const AdminDashboard = () => {
         <nav className="flex flex-col gap-2 flex-1">
           <NavLink
             to="/admin/products"
-            end   
+            end
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
                 ? "bg-blue-600 text-white shadow-md"
@@ -101,7 +74,7 @@ const AdminDashboard = () => {
 
           <NavLink
             to="/admin/categories"
-            end   
+            end
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
                 ? "bg-blue-600 text-white shadow-md"
@@ -209,7 +182,7 @@ const AdminDashboard = () => {
           </NavLink>
           <NavLink
             to="/admin/realLifeImages"
-            end   
+            end
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
                 ? "bg-violet-600 text-white shadow-md"

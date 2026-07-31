@@ -1,13 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";           // ✅ your configured instance
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 const AddRealLifePhoto = () => {
-  const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const inputRef = useRef();
 
@@ -19,7 +16,7 @@ const AddRealLifePhoto = () => {
   const [loadingPhotos, setLoadingPhotos] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
 
-  // Same 401 handling pattern as AddSupplier
+  // Same 401 handling pattern as AddSupplier – kept but the interceptor already handles refresh
   const handleAuthError = (error) => {
     if (error.response?.status === 401) {
       toast.error("⚠️ انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى");
@@ -32,7 +29,8 @@ const AddRealLifePhoto = () => {
   const fetchPhotos = async () => {
     setLoadingPhotos(true);
     try {
-      const res = await axios.get(`${BASE_URL}/api/product/realLife`);
+      // ✅ using api – no manual headers
+      const res = await api.get("/api/product/realLife");
       setPhotos(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Error fetching real-life photos:", error);
@@ -75,12 +73,8 @@ const AddRealLifePhoto = () => {
 
     try {
       setUploading(true);
-      await axios.post(`${BASE_URL}/api/admin/real-life-photos`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // ✅ api.post – no manual headers, token injected automatically
+      await api.post("/api/admin/real-life-photos", formData);
 
       toast.success("✅ تم رفع الصورة بنجاح!");
       clearSelection();
@@ -101,9 +95,8 @@ const AddRealLifePhoto = () => {
   const handleDelete = async (id) => {
     try {
       setDeletingId(id);
-      await axios.delete(`${BASE_URL}/api/admin/real-life-photos/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ✅ api.delete – no manual headers
+      await api.delete(`/api/admin/real-life-photos/${id}`);
       toast.success("🗑️ تم حذف الصورة");
       setPhotos((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {

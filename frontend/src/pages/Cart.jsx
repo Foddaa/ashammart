@@ -45,7 +45,7 @@ export default function Cart() {
         .map((item) => {
           const product = products.find((p) => p.id === item.id);
           if (!product) {
-            console.warn(`Product ${product.id} not found, skipping`);
+            console.warn(`Product with id ${item.id} not found, skipping`);
             return null;
           }
           return {

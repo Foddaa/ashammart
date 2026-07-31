@@ -56,10 +56,7 @@ public class ProductController {
         return products.stream().map(ProductDTO::toDto)
                 .collect(Collectors.toList());
     }
-    @DeleteMapping("/delete")
-    public ResponseEntity<?> delete(@RequestParam Long id){
-        return productService.deleteById(id);
-    }
+
     @GetMapping("/byId")
     public ResponseEntity<?> getById(@RequestParam Long id){
         ProductDTO product=productService.getProduct(id);

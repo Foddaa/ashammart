@@ -1,11 +1,9 @@
 // src/pages/admin/UpdatePrices.jsx
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";           // ✅ your configured instance
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const UpdatePrices = () => {
   // Product price update state
@@ -20,15 +18,13 @@ const UpdatePrices = () => {
   const [fetchingDelivery, setFetchingDelivery] = useState(true);
 
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
 
   // Fetch current delivery prices (list) on mount
   useEffect(() => {
     const fetchDeliveryPrices = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/admin/delivery/prices`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // ✅ using api – no manual token
+        const response = await api.get("/api/admin/delivery/prices");
         // Expecting an array like:
         // [{ id: 1, city: "cairoAndGiza", price: 350 }, { id: 2, city: "restOfCities", price: 500 }]
         setDeliveryPrices(response.data);
@@ -41,7 +37,7 @@ const UpdatePrices = () => {
     };
 
     fetchDeliveryPrices();
-  }, [token]);
+  }, []);
 
   // Handle product price update
   const handleProductSubmit = async (e) => {
@@ -65,19 +61,11 @@ const UpdatePrices = () => {
     try {
       setLoading(true);
 
-      const res = await axios.put(
-        `${BASE_URL}/api/admin/products/updatePrices`,
-        {
-          updatePricesType: type,
-          value: Number(value),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      // ✅ api.put – no manual headers
+      const res = await api.put("/api/admin/products/updatePrices", {
+        updatePricesType: type,
+        value: Number(value),
+      });
 
       toast.success(`✅ ${res.data}`);
 
@@ -114,16 +102,8 @@ const UpdatePrices = () => {
 
     try {
       setDeliveryLoading(true);
-      await axios.put(
-        `${BASE_URL}/api/admin/delivery/prices/update`,
-        deliveryPrices, // send the full array
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      // ✅ api.put – no manual headers
+      await api.put("/api/admin/delivery/prices/update", deliveryPrices);
       toast.success("✅ تم تحديث أسعار التوصيل بنجاح");
     } catch (err) {
       console.error(err);
@@ -265,12 +245,10 @@ const UpdatePrices = () => {
                 <button
                   type="button"
                   onClick={async () => {
-                    // Re-fetch current prices to reset form
+                    // Re-fetch current prices to reset form – using api
                     try {
                       setFetchingDelivery(true);
-                      const response = await axios.get(`${BASE_URL}/api/admin/delivery/prices`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                      });
+                      const response = await api.get("/api/admin/delivery/prices");
                       setDeliveryPrices(response.data);
                       toast.info("🔄 تم استعادة الأسعار الحالية");
                     } catch (err) {

@@ -116,36 +116,36 @@ const router = createBrowserRouter([
 ]);
 
 export default function AppRouter() {
-  const { setUserRole } = useContext(UserContext); // from context
+  // const { setUserRole } = useContext(UserContext); // from context
 
-  useEffect(() => {
-    // Clean up app state or memory
-    sessionStorage.clear();
+  // useEffect(() => {
+  //   // Clean up app state or memory
+  //   sessionStorage.clear();
 
-    // Load token and fetch user
-    const token = localStorage.getItem("token");
-    if (token) {
-      fetch(`${BASE_URL}/api/client`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then(res => {
-          if (!res.ok) throw new Error("Invalid token");
-          return res.json();
-        })
-        .catch(() => {
-          localStorage.removeItem("token");
-        });
-    } else {
-      setUserRole(null); // no token at all
-    }
-  }, []);
+  //   // Load token and fetch user
+  //   const token = localStorage.getItem("token");
+  //   if (token) {
+  //     fetch(`${BASE_URL}/api/client`, {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     })
+  //       .then(res => {
+  //         if (!res.ok) throw new Error("Invalid token");
+  //         return res.json();
+  //       })
+  //       .catch(() => {
+  //         localStorage.removeItem("token");
+  //       });
+  //   } else {
+  //     setUserRole(null); // no token at all
+  //   }
+  // }, []);
 
-  return (
-    <Suspense fallback={<SkeletonLoader />}>
-      <RouterProvider router={router} />
-      <ToastContainer position="top-right" autoClose={2000} />
-    </Suspense>
-  );
-}
+   return (
+     <Suspense fallback={<SkeletonLoader />}>
+       <RouterProvider router={router} />
+       <ToastContainer position="top-right" autoClose={2000} />
+     </Suspense>
+   );
+ }

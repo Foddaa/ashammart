@@ -1,6 +1,7 @@
 package com.example.furniture.repository;
 
 import com.example.furniture.model.Product;
+import org.hibernate.annotations.SQLUpdate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,35 +14,41 @@ import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product,Long> {
 
-    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images LEFT JOIN FETCH p.ratings")
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images LEFT JOIN FETCH p.ratings WHERE p.status != 'DELETED'")
     List<Product> findAllWithImagesAndRatings();
 
-    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.category.id = :categoryId")
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.category.id = :categoryId AND p.status != 'DELETED'")
     List<Product> findByCategoryIdWithImages(@Param("categoryId") Long categoryId);
 
     @Query("SELECT DISTINCT p FROM Product p " +
             "LEFT JOIN FETCH p.images " + // Optional: fetch images if needed
-            "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
-            "   OR LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%'))")
+            "WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+            "   OR LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%')))" +
+            "   AND p.status != 'DELETED'")
     List<Product> searchProductsByNameOrDescription(@Param("search") String search);
 
-    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images ORDER BY p.quantitySailed DESC LIMIT 8")
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.status != 'DELETED' ORDER BY p.quantitySailed DESC LIMIT 8")
     List<Product> findTop8ByQuantitySailed();
 
-    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.fastDelivery = true")
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.fastDelivery = true AND p.status != 'DELETED'")
     List<Product> findFastDelivery();
 
     @Query("""
         SELECT  p FROM Product p
         LEFT JOIN FETCH p.images
         WHERE p.id = :productId
+        AND p.status != 'DELETED'
     """)
     Optional<Product> findByIdWithImages(@Param("productId") Long productId);
 
     Product findByCode(String code);
 
     @Modifying
-    @Query("UPDATE Product p SET p.price = ROUND(p.price + (p.price * :percentage / 100), 1) , p.canceledPrice = ROUND(p.canceledPrice + (p.canceledPrice * :percentage / 100), 1)")
+    @Query("""
+            UPDATE Product p 
+            SET p.price = ROUND(p.price + (p.price * :percentage / 100), 1) ,
+             p.canceledPrice = ROUND(p.canceledPrice + (p.canceledPrice * :percentage / 100), 1)
+             """)
     int updatePricesByPercentage(@Param("percentage") double percentage);
 
     @Modifying
@@ -62,5 +69,7 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
             , 1)
         """)
     int updatePricesByFixed(@Param("amount") double amount);
-
+    @Modifying
+    @Query("UPDATE Product p SET p.status = :status WHERE p.id = :id")
+    int updateStatus(@Param("id") Long id, @Param("status") String status);
 }

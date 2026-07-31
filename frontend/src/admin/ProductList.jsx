@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import api from "@/api/axiosInstance";   // ✅ your configured instance
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -10,7 +8,8 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/product/all`);
+      // ✅ public endpoint – but using api for consistency
+      const res = await api.get("/api/product/all");
       setProducts(res.data);
     } catch (error) {
       console.error("خطأ في جلب المنتجات:", error);
@@ -24,7 +23,8 @@ const ProductList = () => {
     if (!confirmed) return;
 
     try {
-      await axios.delete(`${BASE_URL}/api/product/delete?id=${id}`);
+      // ✅ api.delete – token injected automatically (admin required)
+      await api.delete(`/api/admin/product/delete?id=${id}`);
       fetchProducts(); // تحديث القائمة
     } catch (error) {
       console.error("خطأ في حذف المنتج:", error);
@@ -107,21 +107,21 @@ const ProductList = () => {
                       {p.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link
-                      to={`edit/${p.id}`}
-                      className="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition shadow-sm ml-2"
-                    >
-                      <i className="fas fa-edit ml-1"></i>
-                      تعديل
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      className="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition shadow-sm"
-                    >
-                      <i className="fas fa-trash ml-1"></i>
-                      حذف
-                    </button>
-                  </td>
+                      <Link
+                        to={`edit/${p.id}`}
+                        className="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition shadow-sm ml-2"
+                      >
+                        <i className="fas fa-edit ml-1"></i>
+                        تعديل
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(p.id)}
+                        className="inline-flex items-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition shadow-sm"
+                      >
+                        <i className="fas fa-trash ml-1"></i>
+                        حذف
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
@@ -149,7 +149,6 @@ const ProductList = () => {
             عرض <span className="font-semibold text-gray-800">{filteredProducts.length}</span> من{" "}
             <span className="font-semibold text-gray-800">{products.length}</span> منتج
           </div>
-          
         </div>
       </div>
     </div>

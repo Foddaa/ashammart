@@ -1,10 +1,10 @@
 import ReactDOM from 'react-dom/client';
 import './index.css'
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { Provider } from "react-redux";
 import AppRouter from "./routers/AppRouter";
 import { store } from "./store";
-import UserContextProvider, { UserContext } from "@/Context/AuthContext";
+import { AuthProvider, UserContext } from "@/Context/AuthContext";
 
 function Root() {
   const { ready } = useContext(UserContext);
@@ -16,8 +16,8 @@ function Root() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <Provider store={store}>
-    <UserContextProvider>
+    <AuthProvider>
       <Root />
-    </UserContextProvider>
+    </AuthProvider>
   </Provider>
 );

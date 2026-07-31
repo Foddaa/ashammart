@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/api/axiosInstance";   // ✅ your configured instance
+import { toast } from "react-toastify";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL; // still needed for image URLs
 
 const RealLifePhotoList = () => {
   const [photos, setPhotos] = useState([]);
@@ -10,10 +11,12 @@ const RealLifePhotoList = () => {
 
   const fetchPhotos = async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/api/product/realLife`);
+      // ✅ using api – no manual token
+      const res = await api.get("/api/product/realLife");
       setPhotos(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Error fetching real-life photos:", error);
+      toast.error("فشل تحميل الصور");
     }
   };
 
@@ -22,14 +25,13 @@ const RealLifePhotoList = () => {
     if (!confirmed) return;
     try {
       setDeletingId(id);
-      const token = localStorage.getItem("token");
-      await axios.delete(`${BASE_URL}/api/admin/real-life-photos/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // ✅ api.delete – token injected automatically
+      await api.delete(`/api/admin/real-life-photos/${id}`);
       setPhotos((prev) => prev.filter((p) => p.id !== id));
+      toast.success("✅ تم حذف الصورة بنجاح");
     } catch (error) {
       console.error("Error deleting photo:", error);
-      alert("فشل في حذف الصورة.");
+      toast.error("فشل في حذف الصورة");
     } finally {
       setDeletingId(null);
     }

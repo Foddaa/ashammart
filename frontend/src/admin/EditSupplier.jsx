@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "@/api/axiosInstance";   // ✅ your configured instance
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const EditSupplier = () => {
   const { id } = useParams();
@@ -13,17 +11,12 @@ const EditSupplier = () => {
   const [code, setCode] = useState("");
   const [address, setAddress] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchSupplier = async () => {
       try {
-        const res = await axios.get(
-          `${BASE_URL}/api/admin/supplier/byId?id=${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        // ✅ relative path – no manual headers
+        const res = await api.get(`/api/admin/supplier/byId?id=${id}`);
         setName(res.data.name);
         setCode(res.data.code);
         setAddress(res.data.address);
@@ -48,16 +41,8 @@ const EditSupplier = () => {
     }
 
     try {
-      await axios.patch(
-        `${BASE_URL}/api/admin/supplier/${id}/update`,
-        { name, code, address },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // ✅ api.patch – token injected automatically
+      await api.patch(`/api/admin/supplier/${id}/update`, { name, code, address });
       toast.success("✅ تم تحديث بيانات المورد بنجاح");
       setTimeout(() => navigate("/admin/suppliers"), 1500);
     } catch (err) {
