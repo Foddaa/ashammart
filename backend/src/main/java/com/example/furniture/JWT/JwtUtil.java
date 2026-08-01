@@ -24,7 +24,7 @@ public class JwtUtil {
                 .setExpiration(new Date(System.currentTimeMillis() + 3 * 60 * 1000)) // 3 min
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
-    
+    }
 
     public String generateRefreshToken(String email) {
         return Jwts.builder()
