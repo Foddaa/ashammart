@@ -29,7 +29,8 @@ public class ProductDTO {
     private boolean fastDelivery;
     private List<Image> images = new ArrayList<>();
     private double averageRating;
-    private List<ReviewDTO> ratings; // <-- use DTO not entity
+    private List<ReviewDTO> ratings;
+    private int quantitySailed;
     public ProductDTO(Product product) {
         this.id = product.getId();
         this.name = product.getName();
@@ -42,7 +43,8 @@ public class ProductDTO {
         this.freeDelivery = product.isFreeDelivery();
         this.fastDelivery = product.isFastDelivery();
         this.images = product.getImages();
-        this.averageRating = product.getAverageRating(); // use method from Option 1
+        this.averageRating = product.getAverageRating();
+        this.quantitySailed = product.getQuantitySailed();
     }
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private SupplierRepository supplierRepository;
@@ -67,6 +69,7 @@ public class ProductDTO {
         dto.setFreeDelivery(product.isFreeDelivery());
         dto.setFastDelivery(product.isFastDelivery());
         dto.setImages(product.getImages());
+        dto.setQuantitySailed(product.getQuantitySailed());
         return dto;
     }
     public static ProductDTO withRatings(Product product) {
@@ -83,6 +86,7 @@ public class ProductDTO {
         dto.fastDelivery = product.isFastDelivery();
         dto.images = product.getImages();
         dto.averageRating = product.getAverageRating();
+        dto.quantitySailed = product.getQuantitySailed();
         List<ReviewDTO> ratingDTOs = product.getRatings()
                 .stream()
                 .map(ReviewDTO::new)

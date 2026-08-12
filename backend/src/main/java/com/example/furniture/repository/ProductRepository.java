@@ -2,23 +2,55 @@ package com.example.furniture.repository;
 
 import com.example.furniture.model.Product;
 import org.hibernate.annotations.SQLUpdate;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.security.core.parameters.P;
 
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product,Long> {
 
-    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images LEFT JOIN FETCH p.ratings WHERE p.status != 'DELETED'")
-    List<Product> findAllWithImagesAndRatings();
+        @Query(
+                value = "SELECT p.id FROM Product p " +
+                        "WHERE p.status != 'DELETED' " +
+                        "AND (:search IS NULL OR :search = '' " +
+                        "     OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                        "     OR LOWER(p.code) LIKE LOWER(CONCAT('%', :search, '%')))",
+                countQuery = "SELECT COUNT(p) FROM Product p " +
+                        "WHERE p.status != 'DELETED' " +
+                        "AND (:search IS NULL OR :search = '' " +
+                        "     OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                        "     OR LOWER(p.code) LIKE LOWER(CONCAT('%', :search, '%')))"
+        )
+        Page<Long> findProductIds(@Param("search") String search, Pageable pageable);
 
-    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.category.id = :categoryId AND p.status != 'DELETED'")
-    List<Product> findByCategoryIdWithImages(@Param("categoryId") Long categoryId);
+        // Step 2: fetch full details only for this page's IDs.
+        @Query("SELECT DISTINCT p FROM Product p " +
+                "LEFT JOIN FETCH p.images " +
+                "LEFT JOIN FETCH p.ratings " +
+                "WHERE p.id IN :ids")
+        List<Product> findByIdsWithImagesAndRatings(@Param("ids") List<Long> ids);
+
+
+    @Query(
+            value = "SELECT p.id FROM Product p " +
+                    "WHERE p.status != 'DELETED' " +
+                    "AND p.category.id = :categoryId " +
+                    "AND (:search IS NULL OR :search = '' " +
+                    "     OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                    "     OR LOWER(p.code) LIKE LOWER(CONCAT('%', :search, '%')))",
+            countQuery = "SELECT COUNT(p) FROM Product p " +
+                    "WHERE p.status != 'DELETED' " +
+                    "AND p.category.id = :categoryId " +
+                    "AND (:search IS NULL OR :search = '' " +
+                    "     OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) " +
+                    "     OR LOWER(p.code) LIKE LOWER(CONCAT('%', :search, '%')))"
+    )
+    Page<Long> findProductByCategoryIds(@Param("categoryId") Long categoryId,@Param("search") String search, Pageable pageable);
 
     @Query("SELECT DISTINCT p FROM Product p " +
             "LEFT JOIN FETCH p.images " + // Optional: fetch images if needed

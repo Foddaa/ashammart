@@ -1,5 +1,6 @@
 package com.example.furniture.service;
 import com.example.furniture.inputDTO.UpdatePricesRequest;
+import com.example.furniture.inputDTO.response.PagedResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.furniture.inputDTO.ProductDTO;
@@ -7,7 +8,7 @@ import com.example.furniture.model.Image;
 import com.example.furniture.model.Product;
 import com.example.furniture.model.Rating;
 import com.example.furniture.repository.*;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
@@ -16,12 +17,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -57,14 +61,30 @@ public class ProductService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    @Transactional
-    public List<ProductDTO> getAllProducts() {
-        logger.info("Fetching all products with images and ratings");
-        List<Product> products = productRepository.findAllWithImagesAndRatings();
-        logger.debug("Fetched {} products", products.size());
-        List<ProductDTO> result = products.stream().map(ProductDTO::new).toList();
-        logger.info("Returning {} product DTOs", result.size());
-        return result;
+    @Transactional(readOnly = true)
+    public PagedResponse<ProductDTO> getAllProducts(int page, int limit, String search) {
+        logger.info("Fetching products page={} limit={} search={}", page, limit, search);
+
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+        Page<Long> idPage = productRepository.findProductIds(search, pageable);
+
+        List<Long> ids = idPage.getContent();
+        List<Product> products = ids.isEmpty()
+                ? List.of()
+                : productRepository.findByIdsWithImagesAndRatings(ids);
+
+        Map<Long, Product> byId = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        List<ProductDTO> result = ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(ProductDTO::new)
+                .toList();
+
+        logger.debug("Returning {} of {} total products (page {} of {})",
+                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
+
+        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
     }
 
     public void save(Product product) {
@@ -72,7 +92,6 @@ public class ProductService {
         productRepository.save(product);
         logger.info("Product saved successfully: {}", product.getName());
     }
-
 
     public ResponseEntity<?> addProduct(Product product, MultipartFile[] files) {
         try {
@@ -163,22 +182,28 @@ public class ProductService {
     }
 
     @Transactional
-    public ResponseEntity<?> getByCategoryId(Long id) {
-        logger.info("Fetching products by category ID: {}", id);
-        if (categoryRepository.existsById(id)) {
-            List<Product> products = productRepository.findByCategoryIdWithImages(id);
-            logger.debug("Found {} products in category {}", products.size(), id);
-            for (Product p : products) {
-                Set<Rating> ratings = ratingRepository.findByProductId(p.getId());
-                p.getRatings().addAll(ratings);
-            }
-            List<ProductDTO> result = products.stream().map(ProductDTO::new).toList();
-            logger.info("Returning {} products for category {}", result.size(), id);
-            return ResponseEntity.ok(result);
-        } else {
-            logger.warn("Category not found with ID: {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
-        }
+    public PagedResponse<ProductDTO> getByCategoryId(Long categoryId, int page, int limit, String search) {
+        logger.info("Fetching products by category ID: {}", categoryId);
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+        Page<Long> idPage = productRepository.findProductByCategoryIds(categoryId ,search, pageable);
+
+        List<Long> ids = idPage.getContent();
+        List<Product> products = ids.isEmpty()
+                ? List.of()
+                : productRepository.findByIdsWithImagesAndRatings(ids);
+
+        Map<Long, Product> byId = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        List<ProductDTO> result = ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(ProductDTO::new)
+                .toList();
+
+        logger.debug("Returning {} of {} total products (page {} of {})",
+                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
+
+        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
     }
 
     @Transactional

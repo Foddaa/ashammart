@@ -1,6 +1,7 @@
 package com.example.furniture.controller;
 
 import com.example.furniture.inputDTO.ProductDTO;
+import com.example.furniture.inputDTO.response.PagedResponse;
 import com.example.furniture.model.Product;
 import com.example.furniture.repository.CategoryRepository;
 import com.example.furniture.repository.SupplierRepository;
@@ -31,13 +32,20 @@ public class ProductController {
     SupplierRepository supplierRepository;
 
     @GetMapping("/all")
-    public List<ProductDTO> getAllProducts() {
-        return productService.getAllProducts();
+    public PagedResponse<ProductDTO> getAllProducts(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) String search) {
+        return productService.getAllProducts(page, limit, search);
     }
 
     @GetMapping("/byCategory")
-        public ResponseEntity<?> getByCategory(@RequestParam Long categoryId){
-        return productService.getByCategoryId(categoryId);
+        public PagedResponse<ProductDTO> getByCategory(
+                @RequestParam Long categoryId,
+                @RequestParam(defaultValue = "1") int page,
+                @RequestParam(defaultValue = "10") int limit,
+                @RequestParam(required = false) String search) {
+        return productService.getByCategoryId(categoryId, page, limit, search);
     }
     @GetMapping(value = "/feed/facebook", produces = "application/xml")
     public String getFacebookFeed() {
