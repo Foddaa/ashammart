@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "@/api/axiosInstance";           // ✅ your configured instance
+import api from "@/api/axiosInstance";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
@@ -12,27 +12,25 @@ const AddCategory = () => {
     e.preventDefault();
 
     if (!name.trim()) {
-      toast.error("❌ يجب إدخال اسم التصنيف");
+      toast.error("❌ Category name cannot be empty");
       return;
     }
 
     try {
-      // ✅ api.post – no manual headers or token
       await api.post("/api/admin/category/add", { name });
 
-      toast.success("✅ تم إضافة التصنيف بنجاح!");
+      toast.success("✅ Category added successfully!");
       setName("");
     } catch (error) {
-      // The interceptor handles token refresh; if it fails, we get a 401.
       if (error.response?.status === 401) {
-        toast.error("⚠️ انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى");
+        toast.error("⚠️ Session expired, please log in again");
         navigate("/login");
         return;
       }
       const apiMessage =
         error.response?.data?.message ||
         error.response?.data ||
-        "❌ فشل في إضافة التصنيف";
+        "❌ Failed to add category";
 
       toast.error(apiMessage);
       console.error("Error adding category:", error);
@@ -40,19 +38,32 @@ const AddCategory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 flex items-center justify-center" dir="rtl">
+    <div dir="ltr" className=" bg-neutral-50 p-4 md:p-8 flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 md:p-8 transition-all duration-300"
+        className="bg-white border border-neutral-200 w-full max-w-md p-6 md:p-8 transition-all duration-300"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-blue-700">➕ إضافة تصنيف جديد</h2>
-          <p className="text-gray-500 mt-1">أدخل اسم التصنيف</p>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-6 mb-8">
+          <div>
+            <h2 className="text-xl font-light tracking-wide text-neutral-900">
+              Add New Category
+            </h2>
+            <p className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1">
+              Enter a category name
+            </p>
+          </div>
+          <div className="flex items-center gap-2 mt-3 sm:mt-0 text-neutral-400">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
         </div>
 
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">
-            اسم التصنيف <span className="text-red-500">*</span>
+        {/* Form Input */}
+        <div className="flex flex-col gap-1.5 mb-6">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+            Category Name <span className="text-neutral-400">*</span>
           </label>
           <input
             type="text"
@@ -60,15 +71,16 @@ const AddCategory = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
           />
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
+          className="w-full bg-neutral-900 text-white py-3.5 hover:bg-neutral-800 transition-colors duration-200 border border-neutral-900 text-sm tracking-wide"
         >
-          إضافة التصنيف
+          Add Category
         </button>
       </form>
 
@@ -78,7 +90,6 @@ const AddCategory = () => {
         hideProgressBar={false}
         newestOnTop
         closeOnClick
-        rtl
         pauseOnFocusLoss
         draggable
         pauseOnHover

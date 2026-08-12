@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import api from "@/api/axiosInstance";           // ✅ your configured instance
+import api from "@/api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -27,11 +27,8 @@ const AddProduct = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        // ✅ api.get – relative path, no manual headers
         const response = await api.get("/api/category/all");
-        const categoriesData = Array.isArray(response.data)
-          ? response.data
-          : [];
+        const categoriesData = Array.isArray(response.data) ? response.data : [];
         setCategories(categoriesData);
       } catch (err) {
         console.error("Error fetching categories:", err);
@@ -44,9 +41,7 @@ const AddProduct = () => {
     const fetchSuppliers = async () => {
       try {
         const response = await api.get("/api/supplier/all");
-        const suppliersData = Array.isArray(response.data)
-          ? response.data
-          : [];
+        const suppliersData = Array.isArray(response.data) ? response.data : [];
         setSuppliers(suppliersData);
       } catch (err) {
         console.error("Error fetching suppliers:", err);
@@ -77,16 +72,15 @@ const AddProduct = () => {
     const files = Array.from(e.target.files);
 
     if (files.some((file) => file.size > MAX_FILE_SIZE)) {
-      toast.error("⚠️ كل ملف يجب أن يكون أصغر من 2 ميجا.");
+      toast.error("⚠️ Each file must be smaller than 2MB.");
       fileInputRef.current.value = "";
       return;
     }
 
-    const totalSize =
-      [...images, ...files].reduce((sum, file) => sum + file.size, 0);
+    const totalSize = [...images, ...files].reduce((sum, file) => sum + file.size, 0);
 
     if (totalSize > MAX_TOTAL_SIZE) {
-      toast.error("⚠️ إجمالي حجم الملفات يجب أن يكون أقل من 10 ميجا.");
+      toast.error("⚠️ Total file size must be less than 10MB.");
       fileInputRef.current.value = "";
       return;
     }
@@ -120,12 +114,10 @@ const AddProduct = () => {
     }
 
     try {
-      // ✅ api.post – no manual headers, token injected by interceptor
       await api.post("/api/admin/product/add", data);
 
-      toast.success("✅ تم إضافة المنتج بنجاح!");
+      toast.success("✅ Product added successfully!");
 
-      // Reset form
       setFormData({
         name: "",
         code: "",
@@ -144,7 +136,7 @@ const AddProduct = () => {
       console.error(error);
 
       if (error.response?.status === 401) {
-        toast.error("⚠️ انتهت صلاحية الجلسة");
+        toast.error("⚠️ Session expired");
         navigate("/login");
         return;
       }
@@ -152,80 +144,113 @@ const AddProduct = () => {
       toast.error(
         error.response?.data?.message ||
           error.response?.data ||
-          "❌ فشل اضافة المنتج"
+          "❌ Failed to add product"
       );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 flex items-center justify-center" dir="rtl">
+    <div className="min-h-screen bg-neutral-50 p-4 md:p-8 flex items-center justify-center" dir="ltr">
       <form
         onSubmit={handleSubmit}
         encType="multipart/form-data"
-        className="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6 md:p-8 transition-all duration-300"
+        className="bg-white border border-neutral-200 w-full max-w-4xl p-6 md:p-10 transition-all duration-300"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-blue-700">➕ إضافة منتج جديد</h2>
-          <p className="text-gray-500 mt-1">أدخل بيانات المنتج والصورة</p>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-6 mb-8">
+          <div>
+            <h2 className="text-xl font-light tracking-wide text-neutral-900">
+              Add New Product
+            </h2>
+            <p className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1">
+              Enter product details and images
+            </p>
+          </div>
+          <div className="flex items-center gap-2 mt-3 sm:mt-0 text-neutral-400">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+              <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+          </div>
         </div>
 
-        {/* Two‑column grid for basic fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {[
-            { name: "name", label: "اسم المنتج", type: "text", placeholder: "مثل: كرسي مكتبي" },
-            { name: "code", label: "كود المنتج", type: "text", placeholder: "مثل: PROD-001" },
-          ].map(({ name, label, type, placeholder }) => (
-            <div key={name} className="mb-2">
-              <label className="block text-gray-700 font-semibold mb-2">
-                {label} <span className="text-red-500">*</span>
-              </label>
-              <input
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                required
-                placeholder={placeholder}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-              />
-            </div>
-          ))}
+        {/* Basic Fields Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Product Name <span className="text-neutral-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              placeholder="e.g. Office Chair"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+            />
+          </div>
 
-          {[
-            { name: "price", label: "السعر (ج.م)", type: "number", placeholder: "0.00" },
-            { name: "canceledPrice", label: "السعر قبل الخصم (ج.م)", type: "number", placeholder: "0.00" },
-          ].map(({ name, label, type, placeholder }) => (
-            <div key={name} className="mb-2">
-              <label className="block text-gray-700 font-semibold mb-2">
-                {label} {name === "price" && <span className="text-red-500">*</span>}
-              </label>
-              <input
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                required={name === "price"}
-                placeholder={placeholder}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-              />
-            </div>
-          ))}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Product Code <span className="text-neutral-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="code"
+              value={formData.code}
+              onChange={handleInputChange}
+              required
+              placeholder="e.g. PROD-001"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Price (EGP) <span className="text-neutral-400">*</span>
+            </label>
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleInputChange}
+              required
+              placeholder="0.00"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Old Price (EGP)
+            </label>
+            <input
+              type="number"
+              name="canceledPrice"
+              value={formData.canceledPrice}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+            />
+          </div>
         </div>
 
-        {/* Category & Supplier – also two columns */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-3">
-          <div className="mb-2">
-            <label className="block text-gray-700 font-semibold mb-2">
-              الفئة <span className="text-red-500">*</span>
+        {/* Category & Supplier Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 mt-6">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Category <span className="text-neutral-400">*</span>
             </label>
             <select
               name="category"
               value={formData.category}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 bg-white"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm"
             >
-              <option value="">اختر الفئة</option>
+              <option value="">Select category</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -234,18 +259,18 @@ const AddProduct = () => {
             </select>
           </div>
 
-          <div className="mb-2">
-            <label className="block text-gray-700 font-semibold mb-2">
-              المورد <span className="text-red-500">*</span>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Supplier <span className="text-neutral-400">*</span>
             </label>
             <select
               name="supplierCode"
               value={formData.supplierCode}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 bg-white"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm"
             >
-              <option value="">اختر المورد</option>
+              <option value="">Select supplier</option>
               {suppliers.map((sup) => (
                 <option key={sup.id} value={sup.code}>
                   {sup.name}
@@ -256,9 +281,9 @@ const AddProduct = () => {
         </div>
 
         {/* Description */}
-        <div className="mb-5 mt-2">
-          <label className="block text-gray-700 font-semibold mb-2">
-            وصف المنتج <span className="text-red-500">*</span>
+        <div className="flex flex-col gap-1.5 mt-6">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+            Description <span className="text-neutral-400">*</span>
           </label>
           <textarea
             name="description"
@@ -266,67 +291,79 @@ const AddProduct = () => {
             onChange={handleInputChange}
             required
             rows="4"
-            placeholder="اكتب وصفاً مفصلاً للمنتج..."
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 resize-y"
+            placeholder="Provide a detailed description..."
+            className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400 resize-y"
           />
         </div>
 
-        {/* Delivery Toggles - With Icons */}
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-3">خيارات التوصيل</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
-              formData.freeDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
-            }`}>
-              <div className="flex items-center gap-3">
-                <span className="text-gray-700 font-medium">توصيل مجاني</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="freeDelivery"
-                  checked={formData.freeDelivery}
-                  onChange={handleToggle}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
+        {/* Delivery Options - Minimal Checkboxes */}
+        <div className="mt-6">
+          <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-3">
+            Delivery Options
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* Free Delivery Checkbox */}
+            <label className="relative flex items-center cursor-pointer border border-neutral-200 p-4 hover:border-neutral-900 transition-colors bg-white">
+              <input
+                type="checkbox"
+                name="freeDelivery"
+                checked={formData.freeDelivery}
+                onChange={handleToggle}
+                className="peer h-4 w-4 cursor-pointer border border-neutral-300 bg-white checked:bg-neutral-900 checked:border-neutral-900 appearance-none"
+              />
+              <svg 
+                className="absolute left-[11px] top-[19px] opacity-0 peer-checked:opacity-100 pointer-events-none w-3 h-3 text-white" 
+                fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span className="ml-3 text-sm font-light tracking-wide text-neutral-700">
+                Free Delivery
+              </span>
+            </label>
 
-            <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
-              formData.fastDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
-            }`}>
-              <div className="flex items-center gap-3">
-                <span className="text-gray-700 font-medium">توصيل سريع</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="fastDelivery"
-                  checked={formData.fastDelivery}
-                  onChange={handleToggle}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
+            {/* Fast Delivery Checkbox */}
+            <label className="relative flex items-center cursor-pointer border border-neutral-200 p-4 hover:border-neutral-900 transition-colors bg-white">
+              <input
+                type="checkbox"
+                name="fastDelivery"
+                checked={formData.fastDelivery}
+                onChange={handleToggle}
+                className="peer h-4 w-4 cursor-pointer border border-neutral-300 bg-white checked:bg-neutral-900 checked:border-neutral-900 appearance-none"
+              />
+              <svg 
+                className="absolute left-[11px] top-[19px] opacity-0 peer-checked:opacity-100 pointer-events-none w-3 h-3 text-white" 
+                fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span className="ml-3 text-sm font-light tracking-wide text-neutral-700">
+                Fast Delivery
+              </span>
+            </label>
+
           </div>
         </div>
 
         {/* Images section */}
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">
-            صور المنتج <span className="text-red-500">*</span>
+        <div className="flex flex-col gap-1.5 mt-6">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+            Product Images <span className="text-neutral-400">*</span>
           </label>
 
           <div className="flex items-center justify-center w-full">
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+            <label className="flex flex-col items-center justify-center w-full h-32 border border-neutral-200 cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <svg className="w-8 h-8 mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                <svg className="w-6 h-6 mb-2 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">انقر للرفع</span> أو اسحب الصور</p>
-                <p className="text-xs text-gray-500">PNG, JPG, WEBP (حد أقصى 2 ميجا لكل صورة)</p>
+                <p className="text-xs text-neutral-500 tracking-wide">
+                  Drag & drop or <span className="underline cursor-pointer">browse</span>
+                </p>
+                <p className="text-[10px] text-neutral-400 mt-1">PNG, JPG, WEBP (Max 2MB per file)</p>
               </div>
               <input
                 type="file"
@@ -341,21 +378,21 @@ const AddProduct = () => {
 
           {images.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm text-gray-600 mb-2">
-                الصور المختارة ({images.length} / الحد الأقصى للإجمالي 10 ميجا)
+              <p className="text-[10px] uppercase tracking-wider text-neutral-400 mb-3">
+                Selected images ({images.length})
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {images.map((file, idx) => (
-                  <div key={idx} className="relative group">
+                  <div key={idx} className="relative group border border-neutral-200 bg-neutral-50">
                     <img
                       src={URL.createObjectURL(file)}
                       alt={`preview-${idx}`}
-                      className="w-full h-28 object-cover rounded-lg border shadow-sm"
+                      className="w-full h-24 object-cover"
                     />
                     <button
                       type="button"
                       onClick={() => removeImage(idx)}
-                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-700 transition shadow-md"
+                      className="absolute -top-1 -right-1 bg-neutral-900 text-white w-5 h-5 flex items-center justify-center hover:bg-neutral-700 transition-colors text-[10px]"
                     >
                       ✕
                     </button>
@@ -366,11 +403,12 @@ const AddProduct = () => {
           )}
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
+          className="w-full bg-neutral-900 text-white py-3.5 mt-8 hover:bg-neutral-800 transition-colors duration-200 border border-neutral-900 text-sm tracking-wide"
         >
-          إضافة المنتج
+          Add Product
         </button>
       </form>
 
@@ -380,7 +418,6 @@ const AddProduct = () => {
         hideProgressBar={false}
         newestOnTop
         closeOnClick
-        rtl
         pauseOnFocusLoss
         draggable
         pauseOnHover

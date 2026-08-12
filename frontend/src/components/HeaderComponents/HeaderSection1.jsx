@@ -1,17 +1,19 @@
 import { useState, useEffect, useContext } from "react";
-import CartWidget from './CartWidget';
+import { useCategorySidebar } from "@/context/CategorySidebarContext";
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import searchIcon from "@/assets/images/logos/search.ico";
-import menuIcon from "@/assets/images/logos/menu.ico";
-import { UserContext } from "@/Context/AuthContext";
+import { UserContext } from "@/context/AuthContext";
+import { getCartItemCount } from "@/components/shared/cartService";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function HeaderSection1() {
-  const navigate = useNavigate();
+  const { toggleSidebar } = useCategorySidebar();  const navigate = useNavigate();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [logoUrl, setLogoUrl] = useState(null);
+
+  // 🛒 Native Cart State
+  const [itemCount, setItemCount] = useState(0);
 
   // Get authentication state
   const { Token, role, logout } = useContext(UserContext);
@@ -43,6 +45,24 @@ export default function HeaderSection1() {
     };
   }, []);
 
+  // 🛒 Cart Count Logic (Moved into Header)
+  const updateCartCount = () => {
+    const count = getCartItemCount();
+    setItemCount(count);
+  };
+
+  useEffect(() => {
+    updateCartCount();
+    const handleCartUpdate = () => updateCartCount();
+    window.addEventListener('cartUpdated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cartUpdated', handleCartUpdate);
+    };
+  }, []);
+
+  const navigateToCart = () => navigate('/Cart');
+
   const submitSearch = () => {
     if (searchTerm.trim()) {
       navigate(`/shop?search=${encodeURIComponent(searchTerm.trim())}`);
@@ -54,24 +74,8 @@ export default function HeaderSection1() {
   };
 
   // Function to toggle sidebar when on shop page
-  const handleCategoriesClick = () => {
-    if (location.pathname === '/shop') {
-      // If already on shop page, toggle sidebar via state
-      navigate('/shop', { 
-        state: { 
-          toggleSidebar: true,
-          prevPath: location.pathname,
-          prevSearch: location.search
-        } 
-      });
-    } else {
-      // If not on shop page, navigate to shop with sidebar open
-      navigate('/shop', { 
-        state: { 
-          openSidebar: true 
-        } 
-      });
-    }
+   const handleCategoriesClick = () => {
+    toggleSidebar(); // ✅ Just toggle it! No navigate needed!
   };
 
   // Handle logout
@@ -80,85 +84,176 @@ export default function HeaderSection1() {
     navigate('/');
   };
 
-  // If admin/executive, render simplified header (logo + logout)
+  // If admin/executive, render simplified header (white bg, black content)
   if (isAdminOrExecutive) {
     return (
-      <header className="container mx-auto bg-white px-2">
-        <div className="flex items-center justify-between h-[80px]">
+      <header className="w-full bg-white border-b border-black/10 text-black">
+        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between h-[80px]">
           {/* Logo */}
-          <Link to="/">
+          <Link to="/" className="flex items-center shrink-0">
             <img
-              src={logoUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='none' stroke='gray' stroke-width='2'%3E%3Crect x='2' y='2' width='20' height='20'/%3E%3C/svg%3E"}
+              src={logoUrl || "/dodo-logo.png"}
               alt="Logo"
-              className="w-[80px] h-[80px] object-cover"
+              className="h-6 md:h-8 w-auto object-contain"
             />
           </Link>
 
           {/* Logout button */}
           <button
             onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            className="px-4 py-2 border border-black/20 hover:bg-black/5 transition-colors rounded text-sm"
           >
-            تسجيل خروج
+            Logout
           </button>
         </div>
       </header>
     );
   }
 
-  // Default header for non‑admin users
+  // Default header for non‑admin users (white bg, black content)
   return (
-    <header className="container mx-auto bg-white px-2">
-      <div className="flex items-center justify-between h-[80px]">
+    <header className="w-full bg-white border-b border-black/10 text-black" dir="ltr">
+      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between h-[80px]">
 
-        {/* Logo */}
-        <Link to="/">
-          <img
-            src={logoUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='none' stroke='gray' stroke-width='2'%3E%3Crect x='2' y='2' width='20' height='20'/%3E%3C/svg%3E"}
-            alt="Logo"
-            className="w-[80px] h-[80px] object-cover"
-          />
-        </Link>
+        {/* Left Group: Hamburger Menu + Logo */}
+        <div className="flex items-center gap-4 md:gap-6">
 
-        {/* Search (Desktop) */}
-        <div className="flex-1 mx-1 relative">
-          <img
-            src={searchIcon}
-            alt="Search"
-            onClick={submitSearch}
-            className="absolute left-1 top-1/2 -translate-y-1/2 
-              w-5 h-5 bg-gray-100 rounded-full 
-              cursor-pointer opacity-70 hover:opacity-100"
-          />
-          <input
-            type="text"
-            placeholder="بتدور علي ايه ؟"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="w-full p-2 pl-8 border rounded-lg text-right placeholder:text-xs"
-          />
-        </div>
-
-        {/* Right actions */}
-        <div className="flex items-center gap-3">
-          {/* Cart */}
-          <CartWidget />
-          {/* Categories button */}
+          {/* Hamburger */}
           <button
             onClick={handleCategoriesClick}
-            className="flex items-center gap-1 px-1 py-1.5 
-                      bg-blue-600 text-white
-                      rounded-md text-sm
-                      hover:bg-blue-700 transition"
+            className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200 rounded-none"
+            aria-label="Open Menu"
           >
-            <span>الأقسام</span>
-            <img
-              src={menuIcon}
-              alt="Menu"
-              className="w-3 h-3"
-            />
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
           </button>
+
+          {/* Logo — cropped tight to the wordmark, so height-based sizing centers correctly */}
+          <Link to="/" className="flex items-center shrink-0">
+            <img
+              src={logoUrl || "/dodo-logo.png"}
+              alt="DODO"
+              className="h-6 xs:h-7 sm:h-8 md:h-9 lg:h-10 xl:h-11 w-auto object-contain"
+            />
+          </Link>
+        </div>
+
+        {/* Right: Action Icons */}
+        <div className="flex items-center gap-2 md:gap-4">
+
+          {/* 1. User Account */}
+          <Link
+            to={Token ? "/profile" : "/login"}
+            state={Token ? {} : { from: location.pathname }}
+            className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200"
+            aria-label={Token ? "Profile" : "Sign In"}
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M15.5 6a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0z"></path>
+              <path d="M3 20s1.5-6 9-6 9 6 9 6"></path>
+            </svg>
+          </Link>
+
+          {/* 2. Search */}
+          <button
+            onClick={submitSearch}
+            className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200"
+            aria-label="Search"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+
+          {/* 3. Favorites (Heart) with Badge - 🎯 Conditionally routed */}
+          <div className="relative">
+            <Link
+              to={Token ? "/favorites" : "/login"}
+              state={Token ? {} : { from: location.pathname }}
+              className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200"
+              aria-label={Token ? "Favorites" : "Sign in to view favorites"}
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </Link>
+            {/* Badge number - border matches white background so it cuts out cleanly */}
+            <span className="absolute -top-0.5 -right-0.5 bg-[#d56532] text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white">
+              1
+            </span>
+          </div>
+
+          {/* 4. Cart Widget (Native Icon, Not using CartWidget component SVG) */}
+          <div className="relative">
+            <button
+              onClick={navigateToCart}
+              className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200"
+              aria-label="Shopping Cart"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+            </button>
+            
+            {/* Cart Badge - styling matches Favorites badge */}
+            {itemCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-[#d56532] text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white">
+                {itemCount > 99 ? '99+' : itemCount}
+              </span>
+            )}
+          </div>
+
         </div>
       </div>
     </header>

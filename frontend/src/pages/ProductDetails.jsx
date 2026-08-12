@@ -5,20 +5,21 @@ import { useEffect, useState, useRef, useContext } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Rating from "@mui/material/Rating";
-import { UserContext } from "@/Context/AuthContext";
-import AddToCartButtons from "@/components/ProductDetails/AddToCartButtons";
+import { UserContext } from "@/context/AuthContext";
 import ImageGallery from "@/components/ProductDetails/ImageGallery";
 import QuantityControls from "@/components/ProductDetails/QuantityControls";
 import RelatedProductsSlider from "@/components/ProductDetails/RelatedProductsSlider";
 import { addToCart } from "@/components/shared/cartService";
+import {
+  getDiscountPercentage,
+} from "@/utils/productDisplay";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// Helper: format date to Arabic
 const formatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return date.toLocaleDateString("ar-EG", {
+  return date.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -40,6 +41,17 @@ export default function ProductDetails() {
   const { Token: contextToken, setToken } = useContext(UserContext);
   const { id } = useParams();
   const passedProductId = id || null;
+
+
+  // --- Mock Data for Colors and Sizes (To match screenshot) ---
+  const mockColors = [
+    { name: "Royal Brown", hex: "#6b4c3b" },
+    { name: "Stone", hex: "#d4cfc5" },
+    { name: "Navy", hex: "#1a2a42" },
+    { name: "Black", hex: "#2d2d2d" },
+  ];
+  const mockSizes = [6, 8, 10, 12, 14, 18, 20];
+  const mockBrand = "Brand Name"; // Replace with actual product brand if available
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -65,6 +77,8 @@ export default function ProductDetails() {
   const [comment, setComment] = useState(location.state?.comment || "");
   const [loading, setLoading] = useState(true);
   const hasAddedToCart = useRef(false);
+  const discount = getDiscountPercentage(product);
+
 
   // Fetch product
   useEffect(() => {
@@ -83,8 +97,8 @@ export default function ProductDetails() {
           setProduct(data);
         })
         .catch((err) => {
-          console.error("خطأ في تحميل المنتج:", err);
-          toast.error("حدث خطأ أثناء تحميل المنتج");
+          console.error("Error loading product:", err);
+          toast.error("Error loading product");
         })
         .finally(() => setLoading(false));
     }
@@ -99,7 +113,7 @@ export default function ProductDetails() {
     }
   }, [product]);
 
-  // Auto add to cart if from specific state
+  // Auto add to cart & Fetch related
   useEffect(() => {
     if (location.state?.autoAddToCart && !hasAddedToCart.current) {
       hasAddedToCart.current = true;
@@ -109,12 +123,13 @@ export default function ProductDetails() {
       });
     }
 
-    // Fetch related products
     if (product?.categoryId) {
-      fetch(`${BASE_URL}/api/product/byCategory?categoryId=${product.categoryId}`)
+      fetch(
+        `${BASE_URL}/api/product/byCategory?categoryId=${product.categoryId}&page=1&limit=8`
+      )
         .then((res) => res.json())
         .then((data) => {
-          const related = data.filter((p) => p.id !== product.id);
+          const related = (data.products || []).filter((p) => p.id !== product.id);
           setRelatedProducts(related);
         })
         .catch((err) => console.error("Failed to load related", err));
@@ -124,24 +139,23 @@ export default function ProductDetails() {
   const handleAddToCart = () => {
     if (!product) return;
     addToCart(product, quantityToAdd);
-    toast.success("تمت إضافة المنتج إلى السلة 🛒");
+    toast.success("Product added to cart 🛒");
   };
 
   const handleBuyNow = () => {
     if (!product) return;
 
-  const orderItem = {
-    id: product.id,
-    name: product.name || product.title,
-    price: product.price,
-    code: product.code,
-    canceledPrice: product.canceledPrice,
-    images: product.images,
-    quantity: quantityToAdd,
-    comment: comment,
-    freeDelivery: product.freeDelivery, // <-- add this
-  };
-
+    const orderItem = {
+      id: product.id,
+      name: product.name || product.title,
+      price: product.price,
+      code: product.code,
+      canceledPrice: product.canceledPrice,
+      images: product.images,
+      quantity: quantityToAdd,
+      comment: comment,
+      freeDelivery: product.freeDelivery,
+    };
 
     navigate("/review-order", {
       state: {
@@ -153,31 +167,25 @@ export default function ProductDetails() {
       },
     });
 
-    toast.success("جاري التوجيه إلى صفحة الدفع...");
-  };
-
-  const handleClose = () => {
-    if (background) navigate(background);
-    else navigate(-1);
+    toast.success("Redirecting to checkout...");
   };
 
   // Loading skeleton
   if (loading)
     return (
-      <div className="w-full min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 md:p-10">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 animate-pulse">
-          <div className="bg-white rounded-2xl shadow-lg aspect-square" />
-          <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
-            <div className="h-10 bg-gray-200 rounded w-3/4" />
-            <div className="h-6 bg-gray-200 rounded w-1/2" />
-            <div className="h-8 bg-gray-200 rounded w-1/3" />
+      <div className="w-full min-h-screen bg-white p-8 md:p-12" dir="ltr">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 animate-pulse">
+          <div className="h-[600px] bg-neutral-100" />
+          <div className="space-y-6">
+            <div className="h-10 bg-neutral-100 w-3/4" />
+            <div className="h-6 bg-neutral-100 w-1/2" />
+            <div className="h-8 bg-neutral-100 w-1/3" />
             <div className="space-y-3">
-              <div className="h-4 bg-gray-200 rounded" />
-              <div className="h-4 bg-gray-200 rounded w-5/6" />
-              <div className="h-4 bg-gray-200 rounded w-4/5" />
+              <div className="h-4 bg-neutral-100" />
+              <div className="h-4 bg-neutral-100 w-5/6" />
             </div>
-            <div className="h-12 bg-gray-200 rounded" />
-            <div className="h-12 bg-gray-200 rounded" />
+            <div className="h-12 bg-neutral-100" />
+            <div className="h-12 bg-neutral-100 border border-neutral-100" />
           </div>
         </div>
       </div>
@@ -185,154 +193,185 @@ export default function ProductDetails() {
 
   if (!product)
     return (
-      <div className="text-center py-20 text-red-500 text-xl">
-        لم نتمكن من العثور على المنتج
+      <div className="text-center py-20 text-neutral-600 text-xl" dir="ltr">
+        Product not found
       </div>
     );
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-blue-50/30 to-gray-100/50">
-      <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+    <div className="w-full min-h-screen bg-white text-neutral-800" dir="ltr">
+      <div className="max-w-7xl mx-auto px-4 py-10 md:py-16">
         {/* Main product card */}
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-            {/* Left: Gallery */}
-            <div className="bg-gray-50/50 p-6 md:p-8 lg:sticky lg:top-24 self-start">
-              <ImageGallery
-                images={product.images}
-                mainImage={mainImage}
-                setMainImage={setMainImage}
-                title={product.name}
-              />
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+          {/* Left: Gallery */}
+          <div className="p-3 md:p-0 lg:sticky lg:top-5 self-start">
+            <ImageGallery
+              images={product.images}
+              mainImage={mainImage}
+              setMainImage={setMainImage}
+              title={product.name}
+            />
+          </div>
 
-            {/* Right: Product info */}
-            <div className="p-6 md:p-8 lg:p-10 space-y-6 text-right">
-              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+          {/* Right: Product info - Upgraded to match Screenshot */}
+          <div className="flex flex-col space-y-6 text-left">
+            
+            {/* Brand & Title */}
+            <div>
+              <p className="text-xs uppercase tracking-widest text-neutral-500 mb-1">
+                {product.supplierCode}
+              </p>
+              <h1 className="text-3xl md:text-4xl font-normal tracking-tight leading-tight text-neutral-900">
                 {product.title || product.name}
               </h1>
+            </div>
 
-              <div className="flex flex-wrap items-center justify-end gap-3">
-                <div className="flex items-center gap-2">
-                  <Rating
-                    name="read-only"
-                    value={product.averageRating || 0}
-                    readOnly
-                    precision={0.5}
-                    size="medium"
-                    className="text-yellow-500"
-                  />
-                  <span className="text-sm text-gray-500">
-                    ({product.averageRating?.toFixed(1) || "0.0"})
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {product.freeDelivery && (
-                    <span className="flex items-center gap-1.5 bg-green-50 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full border border-green-200 shadow-sm">
-                      ⚡ توصيل مجاني
-                    </span>
-                  )}
-                  {product.fastDelivery && (
-                    <span className="flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full border border-blue-200 shadow-sm">
-                      🚚 توصيل سريع
-                    </span>
-                  )}
-                </div>
-              </div>
-                <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold">
-                  خصم
+            {/* Ratings & Sold Count */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1">
+                <Rating
+                  name="read-only"
+                  value={product.averageRating || 0}
+                  readOnly
+                  precision={0.5}
+                  size="small"
+                  className="text-neutral-800"
+                />
+                <span className="text-sm font-normal text-neutral-700">
+                  {product.averageRating?.toFixed(1) || "0.0"}
                 </span>
-              <div className="flex items-baseline justify-end gap-3 bg-blue-50/30 p-4 rounded-2xl">
-                <p className="text-2xl  text-blue-700">
-                  ج.م
-                </p>
-                <span className="text-4xl font-bold text-blue-700">
-                  {product.price} 
+              </div>
+              <span className="text-neutral-300 text-sm">|</span>
+              {/* Mocked Sold Count */}
+              <span className="text-sm text-neutral-500">{product.quantitySailed} Sold</span>
+            </div>
+
+            {/* Price */}
+            <div className="flex items-baseline gap-3">
+              <span className="text-3xl font-normal text-neutral-900 tracking-tight">
+                ${product.price}
+              </span>
+              {product.canceledPrice && (
+                <span className="text-sm text-neutral-400 line-through">
+                  {product.price == product.canceledPrice || product.canceledPrice.toFixed(2)}
                 </span>
-                <span className="text-gray-400 line-through text-lg">
-                  {product.canceledPrice
-                    ? product.canceledPrice.toFixed(2)
-                    : (product.price * 1.12).toFixed(2)}{" "}
+              )}
+              {product.price != product.canceledPrice && (
+                <span className="text-[#d32f2f] text-sm font-semibold ">
+                  -{discount}%
                 </span>
+              )}
+            </div>
 
-              </div>
-
-              <div className="border-t border-gray-100 pt-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  الوصف
-                </h3>
-                <div className="text-gray-600 whitespace-pre-wrap leading-relaxed">
-                  {product.description || "لا يوجد وصف لهذا المنتج."}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <div className="flex items-center justify-end gap-4">
-                    <QuantityControls
-                      value={quantityToAdd}
-                      onChange={(value) => setQuantityToAdd(value)}
-                    />
-                    <label className="text-gray-700 font-medium">الكمية</label>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
-                    تعليق (اختياري)
-                  </label>
-                  <textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    rows="2"
-                    className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition bg-gray-50/50"
-                    placeholder="أضف أي ملاحظات إضافية..."
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 space-y-3">
-                <AddToCartButtons handleAddToCart={handleAddToCart} />
-                <button
-                  onClick={handleBuyNow}
-                  className="w-full py-4 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-700 to-blue-800 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                    />
-                  </svg>
-                  اشتر الآن
-                </button>
+            {/* Description */}
+            <div className="pt-2 border-t border-neutral-100">
+              <h3 className="text-sm uppercase tracking-widest text-neutral-800 mb-2 font-medium">
+                Description
+              </h3>
+              <div className="text-neutral-600 whitespace-pre-wrap leading-relaxed font-light text-[15px]">
+                {product.description || "No description available."}
               </div>
             </div>
+
+            {/* --- NEW SECTION: Color Selector (Mock) --- */}
+            <div className="flex flex-col gap-2 pt-1">
+              <span className="text-sm text-neutral-800 font-medium">
+                Color: <span className="font-normal text-neutral-600">Royal Brown</span>
+              </span>
+              <div className="flex gap-3">
+                {mockColors.map((c) => (
+                  <button
+                    key={c.name}
+                    className="w-8 h-8 rounded-[4px] border border-neutral-300 hover:border-black transition-colors flex items-center justify-center"
+                    style={{ backgroundColor: c.hex }}
+                  >
+                    {/* For the "selected" brown color, simulate the tick or outline if needed */}
+                    {c.name === "Royal Brown" && (
+                      <span className="w-full h-full border-[2px] border-black rounded-[2px] bg-transparent"></span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* --- NEW SECTION: Size Selector (Mock) --- */}
+            <div className="flex flex-col gap-3 pt-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-800 font-medium">
+                  Size: <span className="font-normal text-neutral-600">8</span>
+                </span>
+                <a href="#" className="text-xs text-neutral-600 underline hover:text-black transition-colors">
+                  View Size Chart
+                </a>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {mockSizes.map((s) => (
+                  <button
+                    key={s}
+                    className={`w-12 h-10 border ${
+                      s === 8 ? "border-black bg-neutral-50" : "border-neutral-300"
+                    } flex items-center justify-center text-sm text-neutral-700 hover:border-black transition-colors`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Quantity Controls */}
+            <div className="flex flex-col gap-3 pt-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-neutral-800 font-medium">
+                  Quantity
+                </span>
+              </div>
+                <div className="flex flex-wrap gap-2">
+                  <QuantityControls
+                    value={quantityToAdd}
+                    onChange={(value) => setQuantityToAdd(value)}
+                  />
+              </div>
+            </div>
+
+
+            {/* Actions - Side-by-side buttons matching the image's style */}
+            <div className="flex flex-row gap-4 pt-2">
+              {/* Add To Cart - Solid Black */}
+                    <button
+                      onClick={handleAddToCart}
+                      className="flex-1 py-4 bg-black text-white hover:bg-neutral-900 transition-colors duration-200 flex items-center justify-center gap-2 text-[15px] font-normal"
+                    >
+                      Add To Cart
+                    </button>
+              
+              {/* Buy Now / Checkout - White with Black Border */}
+              <button
+                onClick={handleBuyNow}
+                className="flex-1 py-4 bg-white text-black border border-black hover:bg-neutral-50 transition-colors duration-200 flex items-center justify-center gap-2 text-[15px] font-normal"
+              >
+                Checkout Now
+              </button>
+            </div>
+
           </div>
         </div>
 
         {/* Customer Reviews Section */}
-        <div className="mt-16">
-          <div className="flex items-center justify-between gap-4 mb-8">
-                        <button
+        <div className="mt-20">
+          <div className="flex items-center justify-between gap-4 mb-10 border-b border-neutral-200 pb-6">
+            <h2 className="text-2xl font-light tracking-wide text-neutral-900">
+              Customer Reviews
+            </h2>
+            <button
               onClick={() =>
                 navigate(`/addReview/${product.id}`, {
                   state: { productTitle: product.title || product.name },
                 })
               }
-              className="shrink-0 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-xl font-semibold text-md hover:from-green-600 hover:to-green-700 transition shadow-md flex items-center gap-3"
+              className="bg-transparent text-neutral-900 border border-neutral-900 px-6 py-3 hover:bg-neutral-900 hover:text-white transition-colors"
             >
-              ✍️ أضف تقييمك
+              Add a Review
             </button>
-            <h2 className="text-2xl font-bold text-gray-800 shrink-0">
-              تقييمات العملاء
-            </h2>
-
           </div>
 
           <div className="space-y-6">
@@ -340,18 +379,18 @@ export default function ProductDetails() {
               product.ratings.map((rating, index) => (
                 <div
                   key={index}
-                  className="bg-white rounded-2xl p-6 shadow-md hover:shadow-lg transition border border-gray-100"
+                  className="bg-white border border-neutral-200 p-8"
                 >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-3 text-right">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                        {rating.clientName?.charAt(0) || "م"}
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-4 text-left">
+                      <div className="w-10 h-10 bg-neutral-200 flex items-center justify-center text-neutral-900 font-bold text-sm">
+                        {rating.clientName?.charAt(0) || "U"}
                       </div>
                       <div>
-                        <span className="font-semibold text-gray-900 text-lg">
+                        <span className="font-medium text-neutral-900 text-lg">
                           {rating.clientName}
                         </span>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-neutral-400">
                           {formatDate(rating.createdAt)}
                         </p>
                       </div>
@@ -365,19 +404,19 @@ export default function ProductDetails() {
                       />
                     </div>
                   </div>
-                  <p className="text-gray-700 whitespace-pre-wrap pr-3 border-r-2 border-blue-200 pl-4">
-                    {rating.comment || "لا يوجد تعليق."}
+                  <p className="text-neutral-600 leading-relaxed pr-4 border-l-2 border-neutral-300 pl-4">
+                    {rating.comment || "No comment provided."}
                   </p>
                   {rating.imageUrls?.length > 0 && (
-                    <div className="flex flex-wrap gap-3 mt-4 justify-end">
+                    <div className="flex flex-wrap gap-3 mt-4 justify-start">
                       {rating.imageUrls.map((url, i) => (
                         <img
                           key={i}
                           src={`${BASE_URL}/api${
                             url.startsWith("/") ? url : "/" + url
                           }`}
-                          alt={`صورة التقييم ${i + 1}`}
-                          className="w-20 h-20 object-cover rounded-lg border border-gray-200 cursor-pointer transition hover:scale-105 hover:shadow-md"
+                          alt={`Review image ${i + 1}`}
+                          className="w-20 h-20 object-cover border border-neutral-200 cursor-pointer transition hover:opacity-80"
                           onClick={() =>
                             setSelectedImage(
                               `${BASE_URL}/api${
@@ -392,10 +431,10 @@ export default function ProductDetails() {
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
-                <span className="text-5xl text-gray-300">⭐</span>
-                <p className="text-gray-500 mt-3">
-                  لا توجد تقييمات بعد. كن أول من يقيم هذا المنتج!
+              <div className="text-center py-16 border border-neutral-200 bg-neutral-50">
+                <span className="text-4xl text-neutral-300">✦</span>
+                <p className="text-neutral-500 mt-3 font-light">
+                  No reviews yet. Be the first to review this product!
                 </p>
               </div>
             )}
@@ -404,34 +443,36 @@ export default function ProductDetails() {
 
         {/* Related Products Section */}
         {relatedProducts.length > 0 && (
-          <div className="mt-16">
-            <div className="flex items-center gap-3 mb-8">
-              <h2 className="text-2xl font-bold text-gray-800">
-                قد يعجبك أيضاً
+          <div className="mt-20">
+            <div className="flex items-center justify-between gap-4 mb-10 border-b border-neutral-200 pb-6">
+              <h2 className="text-2xl font-light tracking-wide text-neutral-900">
+                  You May Be Interested In
               </h2>
-              <div className="flex-1 h-0.5 bg-gradient-to-l from-blue-200 to-transparent" />
             </div>
-            <RelatedProductsSlider relatedProducts={relatedProducts} />
+            <div >
+              <RelatedProductsSlider relatedProducts={relatedProducts} />
+            </div>
           </div>
+
         )}
       </div>
 
       {/* Lightbox Modal */}
       {selectedImage && (
         <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 cursor-pointer backdrop-blur-sm transition-all"
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 cursor-pointer backdrop-blur-md transition-all"
           onClick={() => setSelectedImage(null)}
         >
           <img
             src={selectedImage}
-            alt="صورة مكبرة"
-            className="max-w-[90vw] max-h-[90vh] rounded-2xl shadow-2xl object-contain"
+            alt="Enlarged image"
+            className="max-w-[90vw] max-h-[90vh] object-contain"
           />
           <button
-            className="absolute top-6 right-6 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition"
+            className="absolute top-6 right-6 text-white bg-transparent border border-white/30 px-4 py-2 hover:bg-white hover:text-black transition"
             onClick={() => setSelectedImage(null)}
           >
-            ✕
+            Close
           </button>
         </div>
       )}

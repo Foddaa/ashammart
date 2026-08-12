@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { UserContext } from "@/Context/AuthContext";
+import { UserContext } from "@/context/AuthContext";
 import { Button, TextField } from "@mui/material";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ;

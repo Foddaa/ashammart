@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import axios from "axios";
+import api from "@/api/axiosInstance"; // ✅ centralized API client
 import PaymentMethod from "./PaymentMethod";
 import { clearCart } from "@/components/shared/cartService";
 
@@ -38,7 +38,7 @@ export default function OrderReview() {
   };
 
   const [paymentMethod, setPaymentMethod] = useState("CASH_ON_DELEVER");
-  const [city, setCity] = useState("القاهرة");
+  const [city, setCity] = useState("Cairo");
   const [description, setDescription] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -62,11 +62,11 @@ export default function OrderReview() {
   useEffect(() => {
     const fetchDeliveryPrices = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/public/assets/delivery/prices`);
+        const response = await api.get("/api/public/assets/delivery/prices");
         setDeliveryPrices(response.data);
       } catch (err) {
         console.error("Failed to fetch delivery prices:", err);
-        toast.warn("تعذر تحميل أسعار التوصيل، سيتم استخدام الأسعار الافتراضية");
+        toast.warn("Failed to load delivery prices, using default rates.");
         setDeliveryPrices([
           { id: 1, city: "cairoAndGiza", price: 350 },
           { id: 2, city: "restOfCities", price: 500 },
@@ -90,7 +90,7 @@ export default function OrderReview() {
     const cairoGizaPrice = deliveryPrices.find(item => item.city === "cairoAndGiza")?.price;
     const restPrice = deliveryPrices.find(item => item.city === "restOfCities")?.price;
     
-    if (city === "القاهرة" || city === "الجيزة") {
+    if (city === "Cairo" || city === "Giza") {
       setDeliveryCost(cairoGizaPrice ?? 350);
     } else {
       setDeliveryCost(restPrice ?? 500);
@@ -99,13 +99,13 @@ export default function OrderReview() {
 
   const handleConfirmOrder = async () => {
     if (!firstName.trim() || !lastName.trim() || !phone.trim() || !paymentMethod || !city || !description.trim()) {
-      toast.error("يرجى إدخال جميع البيانات المطلوبة");
+      toast.error("Please fill in all required fields");
       return;
     }
 
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/client/confirmOrder`,
+      const res = await api.post(
+        "/api/client/confirmOrder",
         {
           firstName,
           lastName,
@@ -125,232 +125,297 @@ export default function OrderReview() {
       );
 
       if (res.data === "تم تأكيد الطلب بنجاح" || res.data === "success") {
-        toast.success("تم تأكيد الطلب بنجاح!");
+        toast.success("Order confirmed successfully!");
         if (!buyNow || clearCartAfterOrder) {
           clearCart();
         }
         navigate("/");
       } else {
-        toast.error(res.data || "فشل في تأكيد الطلب.");
+        toast.error(res.data || "Failed to confirm order.");
       }
     } catch (err) {
       console.error("Confirm order error:", err);
       if (err.response && err.response.data) {
         toast.error(err.response.data);
       } else {
-        toast.error("حدث خطأ أثناء تأكيد الطلب.");
+        toast.error("An error occurred while confirming the order.");
       }
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4" dir="rtl">
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        {buyNow ? "مراجعة الطلب - شراء فوري" : "مراجعة الطلب"}
-      </h2>
-
-      {/* Products */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">المنتجات</h3>
-          <button
-            onClick={() => setShowProducts(!showProducts)}
-            className="text-blue-600 text-sm hover:underline"
-          >
-            {showProducts ? "إخفاء" : "عرض"}
-          </button>
-        </div>
-
-        {showProducts && (
-          <div className="divide-y">
-            {items.map((item) => {
-              const imageUrl = item.images?.[0] 
-                ? getImageUrl(item.images[0])
-                : "/default-image.jpg";
-              
-              return (
-                <div key={item.id} className="py-3 flex justify-between items-center">
-                  <img
-                    src={imageUrl}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded border"
-                    onError={(e) => { e.target.src = "/default-image.jpg"; }}
-                  />
-                  <div className="flex-1 px-3 text-right">
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm">الكمية: {item.quantity}</p>
-                    {buyNow && <p className="text-xs text-blue-600">شراء فوري</p>}
-                    {item.freeDelivery && (
-                      <span className="text-xs text-green-600 font-semibold">🚚 توصيل مجاني</span>
-                    )}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm">السعر: {item.price} جنيه</p>
-                    <p className="text-sm font-semibold">
-                      الإجمالي: {item.price * item.quantity} جنيه
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+    <div className="min-h-screen bg-neutral-50 py-8 md:py-12 px-4 md:px-6" dir="ltr">
+      <div className="max-w-4xl mx-auto">
         
-        {buyNow && comment && (
-          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">
-              <span className="font-semibold">ملاحظات:</span> {comment}
+        {/* Minimal Luxury Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-6 mb-8 gap-2">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-light tracking-wide text-neutral-900">
+              {buyNow ? "Instant Purchase Review" : "Order Review"}
+            </h2>
+            <p className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1">
+              {buyNow ? "Review your selected item" : "Review your items & shipping details"}
             </p>
           </div>
-        )}
-      </div>
-
-      {/* Summary */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <h3 className="text-lg font-semibold mb-2">الملخص</h3>
-        <p>
-          الإجمالي بدون شحن: <strong>{totalAmount} جنيه</strong>
-        </p>
-        <p>
-          تكلفة التوصيل:{" "}
-          <strong>
-            {loadingPrices ? "جاري التحميل..." : 
-              allFreeDelivery ? "0 جنيه (🎉 توصيل مجاني)" : `${deliveryCost} جنيه`}
-          </strong>
-        </p>
-        <p className="text-xl mt-2">
-          الإجمالي الكلي:{" "}
-          <strong>
-            {loadingPrices ? "---" : `${totalAmount + deliveryCost} جنيه`}
-          </strong>
-        </p>
-        {allFreeDelivery && (
-          <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-            ✅ جميع المنتجات مشمولة بالتوصيل المجاني!
-          </div>
-        )}
-        {!allFreeDelivery && items.some(item => item.freeDelivery === true) && (
-          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm">
-            ⚠️ يوجد منتجات غير مشمولة بالتوصيل المجاني، سيتم تطبيق رسوم التوصيل المعتادة.
-          </div>
-        )}
-      </div>
-
-      {/* Customer Info */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <h3 className="text-lg font-semibold mb-2">معلومات العميل</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block mb-1 font-medium">الاسم الأول</label>
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className="w-full border rounded-lg p-2"
-              required
-            />
-          </div>
-          <div>
-            <label className="block mb-1 font-medium">الاسم الثاني</label>
-            <input
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className="w-full border rounded-lg p-2"
-              required
-            />
-          </div>
-          <div>
-            <label className="block mb-1 font-medium">البريد الإلكتروني (اختياري)</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border rounded-lg p-2"
-            />
-          </div>
-          <div>
-            <label className="block mb-1 font-medium">رقم الهاتف</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full border rounded-lg p-2"
-              required
-            />
+          <div className="flex items-center gap-2 mt-1 sm:mt-0 text-neutral-400">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
           </div>
         </div>
-      </div>
 
-      {/* Address Fields */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <h3 className="text-lg font-semibold mb-2">معلومات التوصيل</h3>
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">المدينة</label>
-          <select
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className="w-full border rounded-lg p-2"
-          >
-            <option value="القاهرة">القاهرة</option>
-            <option value="الجيزة">الجيزة</option>
-            <option value="الإسكندرية">الإسكندرية</option>
-            <option value="الدقهلية">الدقهلية</option>
-            <option value="البحر الأحمر">البحر الأحمر</option>
-            <option value="البحيرة">البحيرة</option>
-            <option value="الفيوم">الفيوم</option>
-            <option value="الغربية">الغربية</option>
-            <option value="الإسماعيلية">الإسماعيلية</option>
-            <option value="المنوفية">المنوفية</option>
-            <option value="المنيا">المنيا</option>
-            <option value="القليوبية">القليوبية</option>
-            <option value="الوادي الجديد">الوادي الجديد</option>
-            <option value="السويس">السويس</option>
-            <option value="اسوان">أسوان</option>
-            <option value="اسيوط">أسيوط</option>
-            <option value="بني سويف">بني سويف</option>
-            <option value="بورسعيد">بورسعيد</option>
-            <option value="دمياط">دمياط</option>
-            <option value="الشرقية">الشرقية</option>
-            <option value="جنوب سيناء">جنوب سيناء</option>
-            <option value="كفر الشيخ">كفر الشيخ</option>
-            <option value="مطروح">مطروح</option>
-            <option value="الأقصر">الأقصر</option>
-            <option value="قنا">قنا</option>
-            <option value="شمال سيناء">شمال سيناء</option>
-            <option value="سوهاج">سوهاج</option>
-          </select>
+        {/* Products Section */}
+        <div className="bg-white border border-neutral-200 p-4 sm:p-6 mb-6">
+          <div className="flex justify-between items-center border-b border-neutral-200 pb-3 mb-3">
+            <h3 className="text-sm font-medium tracking-wide text-neutral-800">Products</h3>
+            <button
+              onClick={() => setShowProducts(!showProducts)}
+              className="border border-neutral-300 px-3 py-1 text-[10px] uppercase tracking-wider text-neutral-600 hover:border-black transition-colors"
+            >
+              {showProducts ? "Hide" : "Show"}
+            </button>
+          </div>
+
+          {showProducts && (
+            <div className="divide-y divide-neutral-100">
+              {items.map((item) => {
+                const imageUrl = item.images?.[0] 
+                  ? getImageUrl(item.images[0])
+                  : "/default-image.jpg";
+                
+                return (
+                  <div key={item.id} className="py-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <img
+                      src={imageUrl}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover border border-neutral-200 bg-neutral-50 shrink-0"
+                      onError={(e) => { e.target.src = "/default-image.jpg"; }}
+                    />
+                    <div className="flex-1 flex flex-col sm:flex-row sm:items-start justify-between w-full gap-2 sm:gap-4 text-left">
+                      <div>
+                        <p className="font-medium text-neutral-900">{item.name}</p>
+                        <p className="text-[10px] text-neutral-400 uppercase tracking-wider mt-0.5">
+                          Qty: {item.quantity}
+                          {buyNow && <span className="ml-2 border border-neutral-200 px-1.5 py-0.5 text-[9px]">Instant</span>}
+                        </p>
+                        {/* Mobile Free Delivery Badge */}
+                        {item.freeDelivery && (
+                          <div className="sm:hidden mt-1 flex items-center gap-1 text-[10px] text-neutral-600 uppercase tracking-wider">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="1" y="3" width="15" height="13"></rect>
+                              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                            Free Delivery
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-left sm:text-right shrink-0">
+                        <p className="text-sm text-neutral-600">
+                          {item.price.toLocaleString()} EGP
+                        </p>
+                        <p className="text-sm font-medium text-neutral-900">
+                          Total: {(item.price * item.quantity).toLocaleString()} EGP
+                        </p>
+                        {/* Desktop Free Delivery Badge */}
+                        {item.freeDelivery && (
+                          <div className="hidden sm:flex mt-1 items-center justify-end gap-1 text-[10px] text-neutral-600 uppercase tracking-wider">
+                            <span>Free Delivery</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="1" y="3" width="15" height="13"></rect>
+                              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          
+          {buyNow && comment && (
+            <div className="mt-4 pt-3 border-t border-neutral-200">
+              <p className="text-sm text-neutral-600 flex gap-2">
+                <span className="font-medium text-neutral-700">Notes:</span>
+                <span>{comment}</span>
+              </p>
+            </div>
+          )}
         </div>
-        <div>
-          <label className="block mb-1 font-medium">الوصف التفصيلي</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full border rounded-lg p-2"
-            rows="3"
-            placeholder="مثال: شارع التحرير، بجوار محطة المترو..."
-          />
+
+        {/* Summary Section */}
+        <div className="bg-white border border-neutral-200 p-4 sm:p-6 mb-6">
+          <h3 className="text-sm font-medium tracking-wide text-neutral-800 border-b border-neutral-200 pb-3 mb-3">Summary</h3>
+          <div className="space-y-2 text-sm text-neutral-600">
+            <p className="flex justify-between">
+              <span>Subtotal</span>
+              <span className="font-medium text-neutral-900">{totalAmount.toLocaleString()} EGP</span>
+            </p>
+            <p className="flex justify-between items-center gap-2">
+              <span>Delivery Cost</span>
+              <span className="font-medium text-neutral-900">
+                {loadingPrices ? "Loading..." : 
+                  allFreeDelivery ? "0 EGP" : `${deliveryCost.toLocaleString()} EGP`}
+              </span>
+            </p>
+            <div className="pt-3 border-t border-neutral-200 mt-2">
+              <p className="flex justify-between text-base">
+                <span className="font-light text-neutral-900">Total Amount</span>
+                <span className="font-medium text-neutral-900">
+                  {loadingPrices ? "---" : `${(totalAmount + deliveryCost).toLocaleString()} EGP`}
+                </span>
+              </p>
+            </div>
+          </div>
+          
+          {/* Free Delivery Info Box */}
+          {allFreeDelivery && (
+            <div className="mt-4 p-3 border border-neutral-200 bg-neutral-50 flex items-start gap-3 text-sm text-neutral-700">
+              <svg className="w-4 h-4 shrink-0 mt-0.5 text-neutral-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <p>All items include free delivery!</p>
+            </div>
+          )}
+          {!allFreeDelivery && items.some(item => item.freeDelivery === true) && (
+            <div className="mt-4 p-3 border border-neutral-200 bg-neutral-50 flex items-start gap-3 text-sm text-neutral-700">
+              <svg className="w-4 h-4 shrink-0 mt-0.5 text-neutral-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+              <p>Some items are not eligible for free delivery. Standard fees apply.</p>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Payment Method */}
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <PaymentMethod payment={paymentMethod} setPayment={setPaymentMethod} />
-      </div>
+        {/* Customer Information */}
+        <div className="bg-white border border-neutral-200 p-4 sm:p-6 mb-6">
+          <h3 className="text-sm font-medium tracking-wide text-neutral-800 border-b border-neutral-200 pb-3 mb-3">Customer Information</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">First Name *</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black bg-transparent text-sm w-full"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Last Name *</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black bg-transparent text-sm w-full"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Email (Optional)</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black bg-transparent text-sm w-full"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Phone Number *</label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black bg-transparent text-sm w-full"
+                required
+              />
+            </div>
+          </div>
+        </div>
 
-      <button
-        onClick={handleConfirmOrder}
-        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg w-full"
-      >
-        {buyNow ? "تأكيد الشراء الفوري" : "تأكيد الطلب"}
-      </button>
-      
-      <button
-        onClick={() => navigate(-1)}
-        className="mt-3 text-gray-600 hover:text-gray-800 text-sm w-full text-center"
-      >
-        العودة للخلف
-      </button>
+        {/* Delivery Information */}
+        <div className="bg-white border border-neutral-200 p-4 sm:p-6 mb-6">
+          <h3 className="text-sm font-medium tracking-wide text-neutral-800 border-b border-neutral-200 pb-3 mb-3">Delivery Information</h3>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">City *</label>
+              <select
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black bg-white text-sm w-full"
+              >
+                <option value="Cairo">Cairo</option>
+                <option value="Giza">Giza</option>
+                <option value="Alexandria">Alexandria</option>
+                <option value="Dakahlia">Dakahlia</option>
+                <option value="Red Sea">Red Sea</option>
+                <option value="Beheira">Beheira</option>
+                <option value="Faiyum">Faiyum</option>
+                <option value="Gharbia">Gharbia</option>
+                <option value="Ismailia">Ismailia</option>
+                <option value="Menoufia">Menoufia</option>
+                <option value="Minya">Minya</option>
+                <option value="Qalyubia">Qalyubia</option>
+                <option value="New Valley">New Valley</option>
+                <option value="Suez">Suez</option>
+                <option value="Aswan">Aswan</option>
+                <option value="Asyut">Asyut</option>
+                <option value="Beni Suef">Beni Suef</option>
+                <option value="Port Said">Port Said</option>
+                <option value="Damietta">Damietta</option>
+                <option value="Sharqia">Sharqia</option>
+                <option value="South Sinai">South Sinai</option>
+                <option value="Kafr El Sheikh">Kafr El Sheikh</option>
+                <option value="Matrouh">Matrouh</option>
+                <option value="Luxor">Luxor</option>
+                <option value="Qena">Qena</option>
+                <option value="North Sinai">North Sinai</option>
+                <option value="Sohag">Sohag</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Detailed Address *</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black bg-transparent text-sm w-full resize-y"
+                rows="3"
+                placeholder="e.g., Tahrir Street, next to the metro station..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Method Section */}
+        <div className="bg-white border border-neutral-200 p-4 sm:p-6 mb-8">
+          <h3 className="text-sm font-medium tracking-wide text-neutral-800 border-b border-neutral-200 pb-3 mb-3">Payment Method</h3>
+          <PaymentMethod payment={paymentMethod} setPayment={setPaymentMethod} />
+        </div>
+
+        {/* Action Buttons */}
+        <button
+          onClick={handleConfirmOrder}
+          className="w-full bg-neutral-900 text-white py-3.5 hover:bg-neutral-800 transition-colors duration-200 border border-neutral-900 text-sm tracking-wide uppercase"
+        >
+          {buyNow ? "Confirm Instant Purchase" : "Confirm Order"}
+        </button>
+        
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-4 w-full text-neutral-400 hover:text-neutral-800 transition-colors duration-200 text-[10px] uppercase tracking-wider text-center"
+        >
+          Go Back
+        </button>
+      </div>
     </div>
   );
 }

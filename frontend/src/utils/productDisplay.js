@@ -30,3 +30,11 @@ export function getTruncatedDescription(description, maxLength = 30) {
     ? `${description.substring(0, maxLength)}...`
     : description;
 }
+
+export const getDiscountPercentage = (product) => {
+  if (!product) return 0;
+  const { price, canceledPrice } = product;
+  if (!canceledPrice || canceledPrice <= price) return 0;
+  const discount = (canceledPrice - price) / canceledPrice;
+  return Math.round(discount * 100);
+};

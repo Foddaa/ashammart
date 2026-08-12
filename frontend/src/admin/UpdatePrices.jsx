@@ -1,4 +1,3 @@
-// src/pages/admin/UpdatePrices.jsx
 import React, { useState, useEffect } from "react";
 import api from "@/api/axiosInstance";           // ✅ your configured instance
 import { toast, ToastContainer } from "react-toastify";
@@ -23,14 +22,11 @@ const UpdatePrices = () => {
   useEffect(() => {
     const fetchDeliveryPrices = async () => {
       try {
-        // ✅ using api – no manual token
         const response = await api.get("/api/admin/delivery/prices");
-        // Expecting an array like:
-        // [{ id: 1, city: "cairoAndGiza", price: 350 }, { id: 2, city: "restOfCities", price: 500 }]
         setDeliveryPrices(response.data);
       } catch (err) {
         console.error("Failed to fetch delivery prices", err);
-        toast.error("❌ فشل تحميل أسعار التوصيل الحالية");
+        toast.error("❌ Failed to load current delivery prices");
       } finally {
         setFetchingDelivery(false);
       }
@@ -44,24 +40,23 @@ const UpdatePrices = () => {
     e.preventDefault();
 
     if (!value || isNaN(value)) {
-      toast.error("❌ أدخل قيمة صحيحة");
+      toast.error("❌ Please enter a valid number");
       return;
     }
 
     if (Number(value) === 0) {
-      toast.error("❌ لا يمكن أن تكون القيمة صفر");
+      toast.error("❌ Value cannot be zero");
       return;
     }
 
     if (!confirm) {
-      toast.error("⚠️ يجب تأكيد العملية");
+      toast.error("⚠️ Please confirm the action");
       return;
     }
 
     try {
       setLoading(true);
 
-      // ✅ api.put – no manual headers
       const res = await api.put("/api/admin/products/updatePrices", {
         updatePricesType: type,
         value: Number(value),
@@ -72,7 +67,7 @@ const UpdatePrices = () => {
       setTimeout(() => navigate("/admin"), 1500);
     } catch (err) {
       console.error(err);
-      toast.error("❌ فشل تحديث الأسعار");
+      toast.error("❌ Failed to update prices");
     } finally {
       setLoading(false);
     }
@@ -91,23 +86,21 @@ const UpdatePrices = () => {
   const handleDeliverySubmit = async (e) => {
     e.preventDefault();
 
-    // Validate all prices are non-negative numbers
     const invalid = deliveryPrices.some(
       (item) => isNaN(item.price) || item.price < 0
     );
     if (invalid) {
-      toast.error("❌ يرجى إدخال أرقام صحيحة (غير سالبة) لجميع الأسعار");
+      toast.error("❌ Please enter valid non-negative numbers for all prices");
       return;
     }
 
     try {
       setDeliveryLoading(true);
-      // ✅ api.put – no manual headers
       await api.put("/api/admin/delivery/prices/update", deliveryPrices);
-      toast.success("✅ تم تحديث أسعار التوصيل بنجاح");
+      toast.success("✅ Delivery prices updated successfully");
     } catch (err) {
       console.error(err);
-      toast.error("❌ فشل تحديث أسعار التوصيل");
+      toast.error("❌ Failed to update delivery prices");
     } finally {
       setDeliveryLoading(false);
     }
@@ -116,116 +109,154 @@ const UpdatePrices = () => {
   // Helper to get user‑friendly city label
   const getCityLabel = (cityKey) => {
     const labels = {
-      cairoAndGiza: "محافظتي القاهرة والجيزة",
-      restOfCities: "باقي المحافظات",
-      // Add more mappings if your API returns other city keys
+      cairoAndGiza: "Cairo & Giza Governorates",
+      restOfCities: "Other Governorates",
     };
     return labels[cityKey] || cityKey;
   };
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div dir="ltr" className="min-h-screen bg-neutral-50 p-4 md:p-8">
+      <div className="max-w-3xl mx-auto space-y-6">
+        
         {/* Product Price Update Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 transition-all duration-300">
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-bold text-blue-700">💰 تعديل أسعار المنتجات</h2>
-            <p className="text-gray-500 text-sm mt-1">تعديل جماعي لجميع المنتجات</p>
+        <div className="bg-white border border-neutral-200 p-6 md:p-8 transition-all duration-300">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-6 mb-8">
+            <div>
+              <h2 className="text-xl font-light tracking-wide text-neutral-900">
+                Update Product Prices
+              </h2>
+              <p className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1">
+                Bulk update for all products
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-3 sm:mt-0 text-neutral-400">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="2" x2="12" y2="22"></line>
+                <path d="M17 7.5C17 5 14.5 4 12 4S7 5 7 7.5C7 9.5 9.5 10 12 11s5 1.5 5 3.5c0 3-3.5 4-5 4s-5-1-5-4"></path>
+              </svg>
+            </div>
           </div>
 
           <form onSubmit={handleProductSubmit}>
             {/* Type Selection */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">نوع التعديل</label>
+            <div className="flex flex-col gap-1.5 mb-4">
+              <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+                Update Type
+              </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent bg-white transition"
+                className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm"
               >
-                <option value="PERCENTAGE">نسبة مئوية (%)</option>
-                <option value="FIXED">قيمة ثابتة</option>
+                <option value="PERCENTAGE">Percentage (%)</option>
+                <option value="FIXED">Fixed Amount</option>
               </select>
             </div>
 
             {/* Value */}
-            <div className="mb-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                القيمة (يمكن أن تكون سالبة)
+            <div className="flex flex-col gap-1.5 mb-4">
+              <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+                Value (can be negative)
               </label>
               <input
                 type="number"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="مثال: 10 أو -20"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                placeholder="e.g., 10 or -20"
+                className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
               />
             </div>
 
             {/* Warning */}
-            <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl">
-              ⚠️ هذا الإجراء سيؤثر على جميع المنتجات ولا يمكن التراجع عنه
+            <div className="mb-4 border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              ⚠️ This action will affect all products and cannot be undone.
             </div>
 
-            {/* Confirmation */}
-            <div className="mb-6 flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="confirmCheckbox"
-                checked={confirm}
-                onChange={(e) => setConfirm(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <label htmlFor="confirmCheckbox" className="text-gray-700 font-medium">
-                أؤكد أنني أريد تنفيذ هذا التعديل
+            {/* Confirmation - Minimal Checkbox */}
+            <div className="mb-6 flex items-center gap-3">
+              <label className="relative flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="confirmCheckbox"
+                  checked={confirm}
+                  onChange={(e) => setConfirm(e.target.checked)}
+                  className="peer h-4 w-4 cursor-pointer border border-neutral-300 bg-white checked:bg-neutral-900 checked:border-neutral-900 appearance-none"
+                />
+                <svg 
+                  className="absolute left-[1px] top-[1px] opacity-0 peer-checked:opacity-100 pointer-events-none w-3.5 h-3.5 text-white" 
+                  fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </label>
+              <label htmlFor="confirmCheckbox" className="text-sm text-neutral-700 cursor-pointer font-light tracking-wide">
+                I confirm I want to perform this update.
               </label>
             </div>
 
-            {/* Buttons */}
-            <div className="flex gap-4">
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-neutral-900 text-white py-3.5 hover:bg-neutral-800 transition-colors duration-200 border border-neutral-900 text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "جاري التنفيذ..." : "تنفيذ التعديل"}
+                {loading ? "Processing..." : "Apply Update"}
               </button>
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
+                className="flex-1 bg-transparent text-neutral-500 border border-neutral-200 py-3.5 hover:text-black hover:border-black transition-colors duration-200 text-sm tracking-wide"
               >
-                إلغاء
+                Cancel
               </button>
             </div>
           </form>
         </div>
 
         {/* Delivery Price Update Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 transition-all duration-300">
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-bold text-green-700">🚚 تعديل أسعار التوصيل</h2>
-            <p className="text-gray-500 text-sm mt-1">تحديد سعر التوصيل حسب المنطقة</p>
+        <div className="bg-white border border-neutral-200 p-6 md:p-8 transition-all duration-300">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-6 mb-8">
+            <div>
+              <h2 className="text-xl font-light tracking-wide text-neutral-900">
+                Update Delivery Prices
+              </h2>
+              <p className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1">
+                Set delivery prices by region
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-3 sm:mt-0 text-neutral-400">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+            </div>
           </div>
 
           {fetchingDelivery ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              <div className="w-6 h-6 border border-neutral-300 border-t-neutral-900 rounded-full animate-spin"></div>
             </div>
           ) : (
             <form onSubmit={handleDeliverySubmit}>
               {deliveryPrices.map((item) => (
-                <div key={item.id} className="mb-4">
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    سعر التوصيل لـ {getCityLabel(item.city)}
+                <div key={item.id} className="flex flex-col gap-1.5 mb-4">
+                  <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+                    Delivery price for {getCityLabel(item.city)}
                   </label>
-                  <div className="relative">
-                    <span className="absolute right-3 top-2.5 text-gray-500">ج.م</span>
+                  <div className="relative flex items-center border border-neutral-200 focus-within:border-black bg-transparent transition-colors">
+                    <span className="absolute left-3 text-sm text-neutral-500 font-light tracking-wider">EGP</span>
                     <input
                       type="number"
                       value={item.price}
                       onChange={(e) => handlePriceChange(item.id, e.target.value)}
-                      className="w-full px-4 py-2.5 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-400 focus:border-transparent transition"
-                      placeholder="مثال: 35"
+                      className="w-full px-4 py-2.5 pl-12 focus:outline-none bg-transparent text-sm placeholder:text-neutral-400"
+                      placeholder="0.00"
                       step="0.5"
                       min="0"
                       required
@@ -234,32 +265,31 @@ const UpdatePrices = () => {
                 </div>
               ))}
 
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 mt-6">
                 <button
                   type="submit"
                   disabled={deliveryLoading}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-neutral-900 text-white py-3.5 hover:bg-neutral-800 transition-colors duration-200 border border-neutral-900 text-sm tracking-wide disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {deliveryLoading ? "جاري التحديث..." : "تحديث أسعار التوصيل"}
+                  {deliveryLoading ? "Updating..." : "Update Delivery Prices"}
                 </button>
                 <button
                   type="button"
                   onClick={async () => {
-                    // Re-fetch current prices to reset form – using api
                     try {
                       setFetchingDelivery(true);
                       const response = await api.get("/api/admin/delivery/prices");
                       setDeliveryPrices(response.data);
-                      toast.info("🔄 تم استعادة الأسعار الحالية");
+                      toast.info("🔄 Prices restored");
                     } catch (err) {
-                      toast.error("❌ فشل استعادة الأسعار");
+                      toast.error("❌ Failed to restore prices");
                     } finally {
                       setFetchingDelivery(false);
                     }
                   }}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
+                  className="flex-1 bg-transparent text-neutral-500 border border-neutral-200 py-3.5 hover:text-black hover:border-black transition-colors duration-200 text-sm tracking-wide"
                 >
-                  إلغاء / استعادة
+                  Reset
                 </button>
               </div>
             </form>
@@ -273,7 +303,6 @@ const UpdatePrices = () => {
         hideProgressBar={false}
         newestOnTop
         closeOnClick
-        rtl
         pauseOnFocusLoss
         draggable
         pauseOnHover

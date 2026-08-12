@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { Provider } from "react-redux";
 import AppRouter from "./routers/AppRouter";
 import { store } from "./store";
-import { AuthProvider, UserContext } from "@/Context/AuthContext";
+import { AuthProvider, UserContext } from "@/context/AuthContext";
 
 function Root() {
   const { ready } = useContext(UserContext);

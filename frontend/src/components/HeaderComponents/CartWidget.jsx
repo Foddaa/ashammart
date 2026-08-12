@@ -1,4 +1,4 @@
-import { UserContext } from "@/Context/AuthContext";
+import { UserContext } from "@/context/AuthContext";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCartItemCount } from "@/components/shared/cartService";

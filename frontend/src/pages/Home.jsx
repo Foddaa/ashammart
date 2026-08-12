@@ -7,16 +7,25 @@ import MostRated from "@/components/HomeComponents/BestSeller/MostRated";
 
 export default function Home() {
   return (
-    <section className="my-5" dir="rtl">
+    <section className="w-full bg-white py-4 md:py-6" dir="ltr">
       <WrapperMargin>
-        <HeroSection />
-        <div className="text-right">
+        {/* Hero Section */}
+        <div className="w-full text-left">
+          <HeroSection />
+        </div>
+
+        {/* Categories Section */}
+        <div className="w-full text-left mt-12">
           <HomeCategory />
         </div>
-        <div className="text-right">
+
+        {/* Best Sellers Section */}
+        <div className="w-full text-left mt-12">
           <BestSellers />
         </div>
-        <div className="text-right">
+
+        {/* Most Rated Section */}
+        <div className="w-full text-left mt-12">
           <MostRated />
         </div>
       </WrapperMargin>

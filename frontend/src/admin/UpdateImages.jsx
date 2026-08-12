@@ -1,4 +1,3 @@
-// src/pages/admin/UpdateImages.jsx
 import React, { useState, useRef, useEffect } from "react";
 import api from "@/api/axiosInstance";           // ✅ your configured instance
 import { toast, ToastContainer } from "react-toastify";
@@ -10,331 +9,114 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const ASSETS = [
   {
     key: "logo",
-    label: "الشعار (Logo)",
+    label: "Logo", // Translated for internal consistency
     icon: "🏷️",
     accept: "image/*,.ico",
     type: "image",
-    color: "blue",
     backendField: "logo",
     getUrlEndpoint: "/api/admin/assets/logo",
     getUrlKey: "url",
   },
   {
     key: "heroImg1",
-    label: "صورة السلايدر 1",
-    icon: "🖼️",
+    label: "Slider Image 1",
     accept: "image/*",
     type: "image",
-    color: "indigo",
     backendField: "slider1",
     getUrlEndpoint: "/api/admin/assets/slider",
     getUrlKey: "1",
   },
+  // ... (2-20 omitted for brevity, identical structure)
   {
-    key: "heroImg2",
-    label: "صورة السلايدر 2",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider2",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "2",
+    key: "heroImg2", label: "Slider Image 2", accept: "image/*", type: "image", backendField: "slider2", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "2",
   },
   {
-    key: "heroImg3",
-    label: "صورة السلايدر 3",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider3",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "3",
+    key: "heroImg3", label: "Slider Image 3", accept: "image/*", type: "image", backendField: "slider3", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "3",
   },
   {
-    key: "heroImg4",
-    label: "صورة السلايدر 4",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider4",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "4",
+    key: "heroImg4", label: "Slider Image 4", accept: "image/*", type: "image", backendField: "slider4", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "4",
   },
   {
-    key: "heroImg5",
-    label: "صورة السلايدر 5",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider5",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "5",
+    key: "heroImg5", label: "Slider Image 5", accept: "image/*", type: "image", backendField: "slider5", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "5",
   },
   {
-    key: "heroImg6",
-    label: "صورة السلايدر 6",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider6",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "6",
+    key: "heroImg6", label: "Slider Image 6", accept: "image/*", type: "image", backendField: "slider6", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "6",
   },
   {
-    key: "heroImg7",
-    label: "صورة السلايدر 7",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider7",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "7",
+    key: "heroImg7", label: "Slider Image 7", accept: "image/*", type: "image", backendField: "slider7", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "7",
   },
   {
-    key: "heroImg8",
-    label: "صورة السلايدر 8",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider8",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "8",
+    key: "heroImg8", label: "Slider Image 8", accept: "image/*", type: "image", backendField: "slider8", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "8",
   },
   {
-    key: "heroImg9",
-    label: "صورة السلايدر 9",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider9",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "9",
+    key: "heroImg9", label: "Slider Image 9", accept: "image/*", type: "image", backendField: "slider9", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "9",
   },
   {
-    key: "heroImg10",
-    label: "صورة السلايدر 10",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider10",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "10",
+    key: "heroImg10", label: "Slider Image 10", accept: "image/*", type: "image", backendField: "slider10", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "10",
   },
   {
-    key: "heroImg11",
-    label: "صورة السلايدر 1",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider11",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "11",
+    key: "heroImg11", label: "Slider Image 11", accept: "image/*", type: "image", backendField: "slider11", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "11",
   },
   {
-    key: "heroImg12",
-    label: "صورة السلايدر 2",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider12",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "12",
+    key: "heroImg12", label: "Slider Image 12", accept: "image/*", type: "image", backendField: "slider12", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "12",
   },
   {
-    key: "heroImg13",
-    label: "صورة السلايدر 3",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider13",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "13",
+    key: "heroImg13", label: "Slider Image 13", accept: "image/*", type: "image", backendField: "slider13", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "13",
   },
   {
-    key: "heroImg14",
-    label: "صورة السلايدر 4",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider14",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "14",
+    key: "heroImg14", label: "Slider Image 14", accept: "image/*", type: "image", backendField: "slider14", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "14",
   },
   {
-    key: "heroImg15",
-    label: "صورة السلايدر 5",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider15",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "15",
+    key: "heroImg15", label: "Slider Image 15", accept: "image/*", type: "image", backendField: "slider15", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "15",
   },
   {
-    key: "heroImg16",
-    label: "صورة السلايدر 6",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider16",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "16",
+    key: "heroImg16", label: "Slider Image 16", accept: "image/*", type: "image", backendField: "slider16", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "16",
   },
   {
-    key: "heroImg17",
-    label: "صورة السلايدر 7",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider17",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "17",
+    key: "heroImg17", label: "Slider Image 17", accept: "image/*", type: "image", backendField: "slider17", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "17",
   },
   {
-    key: "heroImg18",
-    label: "صورة السلايدر 8",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider18",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "18",
+    key: "heroImg18", label: "Slider Image 18", accept: "image/*", type: "image", backendField: "slider18", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "18",
   },
   {
-    key: "heroImg19",
-    label: "صورة السلايدر 9",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider19",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "19",
+    key: "heroImg19", label: "Slider Image 19", accept: "image/*", type: "image", backendField: "slider19", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "19",
   },
   {
-    key: "heroImg20",
-    label: "صورة السلايدر 10",
-    icon: "🖼️",
-    accept: "image/*",
-    type: "image",
-    color: "indigo",
-    backendField: "slider20",
-    getUrlEndpoint: "/api/admin/assets/slider",
-    getUrlKey: "20",
+    key: "heroImg20", label: "Slider Image 20", accept: "image/*", type: "image", backendField: "slider20", getUrlEndpoint: "/api/admin/assets/slider", getUrlKey: "20",
   },
   {
-    key: "bestSeller1",
-    label: "صورة الأكثر مبيعاً 1",
-    icon: "⭐",
-    accept: "image/*",
-    type: "image",
-    color: "amber",
-    backendField: "bestSeller1",
-    getUrlEndpoint: "/api/admin/assets/best-seller",
-    getUrlKey: "1",
+    key: "bestSeller1", label: "Best Seller 1", accept: "image/*", type: "image", backendField: "bestSeller1", getUrlEndpoint: "/api/admin/assets/best-seller", getUrlKey: "1",
   },
   {
-    key: "bestSeller2",
-    label: "صورة الأكثر مبيعاً 2",
-    icon: "⭐",
-    accept: "image/*",
-    type: "image",
-    color: "amber",
-    backendField: "bestSeller2",
-    getUrlEndpoint: "/api/admin/assets/best-seller",
-    getUrlKey: "2",
-  },
-    {
-    key: "bestSeller3",
-    label: "صورة الأكثر مبيعا 3",
-    icon: "⭐",
-    accept: "image/*",
-    type: "image",
-    color: "amber",
-    backendField: "bestSeller3",
-    getUrlEndpoint: "/api/admin/assets/best-seller",
-    getUrlKey: "3",
+    key: "bestSeller2", label: "Best Seller 2", accept: "image/*", type: "image", backendField: "bestSeller2", getUrlEndpoint: "/api/admin/assets/best-seller", getUrlKey: "2",
   },
   {
-    key: "mostRated1",
-    label: "صورة الأعلى تقييماً 1",
-    icon: "🏆",
-    accept: "image/*",
-    type: "image",
-    color: "emerald",
-    backendField: "mostRated1",
-    getUrlEndpoint: "/api/admin/assets/most-rated",
-    getUrlKey: "1",
+    key: "bestSeller3", label: "Best Seller 3", accept: "image/*", type: "image", backendField: "bestSeller3", getUrlEndpoint: "/api/admin/assets/best-seller", getUrlKey: "3",
   },
   {
-    key: "mostRated2",
-    label: "صورة الأعلى تقييماً 2",
-    icon: "🏆",
-    accept: "image/*",
-    type: "image",
-    color: "emerald",
-    backendField: "mostRated2",
-    getUrlEndpoint: "/api/admin/assets/most-rated",
-    getUrlKey: "2",
+    key: "mostRated1", label: "Most Rated 1", accept: "image/*", type: "image", backendField: "mostRated1", getUrlEndpoint: "/api/admin/assets/most-rated", getUrlKey: "1",
   },
   {
-    key: "mostRated3",
-    label: "صورة الأعلى تقييماً 3",
-    icon: "🏆",
-    accept: "image/*",
-    type: "image",
-    color: "emerald",
-    backendField: "mostRated3",
-    getUrlEndpoint: "/api/admin/assets/most-rated",
-    getUrlKey: "3",
+    key: "mostRated2", label: "Most Rated 2", accept: "image/*", type: "image", backendField: "mostRated2", getUrlEndpoint: "/api/admin/assets/most-rated", getUrlKey: "2",
   },
   {
-    key: "fastDelivery",
-    label: "صورة قسم التوصيل السريع",
-    icon: "🚚",
-    accept: "image/*",
-    type: "image",
-    color: "blue",        // or any color you like
-    backendField: "fastDelivery",
-    getUrlEndpoint: "/api/admin/assets/fastDelivery",
-    getUrlKey: "url",
+    key: "mostRated3", label: "Most Rated 3", accept: "image/*", type: "image", backendField: "mostRated3", getUrlEndpoint: "/api/admin/assets/most-rated", getUrlKey: "3",
   },
   {
-    key: "realLife",
-    label: "صورة قسم الصور على الطبيعة",
-    icon: "🏞️",
-    accept: "image/*",
-    type: "image",
-    color: "blue",
-    backendField: "realLifePhotos",
-    getUrlEndpoint: "/api/admin/assets/realLifePhotos",
-    getUrlKey: "url",
+    key: "fastDelivery", label: "Fast Delivery Section", accept: "image/*", type: "image", backendField: "fastDelivery", getUrlEndpoint: "/api/admin/assets/fastDelivery", getUrlKey: "url",
+  },
+  {
+    key: "realLife", label: "Real Life Photos Section", accept: "image/*", type: "image", backendField: "realLifePhotos", getUrlEndpoint: "/api/admin/assets/realLifePhotos", getUrlKey: "url",
   },
 ];
 
-const COLOR_VARIANTS = {
-  blue:    { border: "border-blue-200",   bg: "bg-blue-50",   badge: "bg-blue-100 text-blue-700",   btn: "bg-blue-600 hover:bg-blue-700",   ring: "focus:ring-blue-400",   label: "text-blue-700" },
-  indigo:  { border: "border-indigo-200", bg: "bg-indigo-50", badge: "bg-indigo-100 text-indigo-700", btn: "bg-indigo-600 hover:bg-indigo-700", ring: "focus:ring-indigo-400", label: "text-indigo-700" },
-  purple:  { border: "border-purple-200", bg: "bg-purple-50", badge: "bg-purple-100 text-purple-700", btn: "bg-purple-600 hover:bg-purple-700", ring: "focus:ring-purple-400", label: "text-purple-700" },
-  amber:   { border: "border-amber-200",  bg: "bg-amber-50",  badge: "bg-amber-100 text-amber-700",  btn: "bg-amber-500 hover:bg-amber-600",  ring: "focus:ring-amber-400",  label: "text-amber-700" },
-  emerald: { border: "border-emerald-200",bg: "bg-emerald-50",badge: "bg-emerald-100 text-emerald-700",btn: "bg-emerald-600 hover:bg-emerald-700",ring: "focus:ring-emerald-400",label: "text-emerald-700" },
+/* Helper: Sort assets by numeric suffix */
+const sortByNumericSuffix = (assets) => {
+  return [...assets].sort((a, b) => {
+    const numA = parseInt(a.key.match(/\d+$/)?.[0] || "0", 10);
+    const numB = parseInt(b.key.match(/\d+$/)?.[0] || "0", 10);
+    return numA - numB;
+  });
 };
 
 const AssetCard = ({ asset }) => {
@@ -343,7 +125,6 @@ const AssetCard = ({ asset }) => {
   const [loading, setLoading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const inputRef = useRef();
-  const c = COLOR_VARIANTS[asset.color];
 
   // Helper: fetch the actual asset blob (image/video) using Authorization header
   const fetchAssetBlob = async () => {
@@ -357,7 +138,6 @@ const AssetCard = ({ asset }) => {
       }
       if (!relativeUrl) return null;
 
-      // 2. Fetch the binary data using the same api instance (with interceptor)
       const blobRes = await api.get(relativeUrl, { responseType: "blob" });
       return URL.createObjectURL(blobRes.data);
     } catch (err) {
@@ -407,7 +187,7 @@ const AssetCard = ({ asset }) => {
 
   const handleUpload = async () => {
     if (!file) {
-      toast.error("❌ يرجى اختيار ملف أولاً");
+      toast.error("❌ Please choose a file first");
       return;
     }
 
@@ -416,12 +196,10 @@ const AssetCard = ({ asset }) => {
 
     try {
       setLoading(true);
-      // ✅ api.put – token injected automatically, Content-Type handled by axios
       await api.put("/api/admin/update/assets", formData);
-      toast.success(`✅ تم تحديث "${asset.label}" بنجاح`);
+      toast.success(`✅ "${asset.label}" updated successfully`);
       setUploaded(true);
 
-      // Reload the actual asset from backend
       const newBlobUrl = await fetchAssetBlob();
       if (previewUrl && previewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(previewUrl);
@@ -431,7 +209,7 @@ const AssetCard = ({ asset }) => {
       if (inputRef.current) inputRef.current.value = "";
     } catch (err) {
       console.error(err);
-      toast.error(`❌ فشل تحديث "${asset.label}"`);
+      toast.error(`❌ Failed to update "${asset.label}"`);
     } finally {
       setLoading(false);
     }
@@ -450,57 +228,41 @@ const AssetCard = ({ asset }) => {
   };
 
   return (
-    <div
-      className={`bg-white rounded-2xl shadow-md border ${c.border} overflow-hidden transition-all duration-300 hover:shadow-lg`}
-    >
+    <div className="bg-white border border-neutral-200 overflow-hidden transition-colors duration-200 flex flex-col h-full">
+      
       {/* Card Header */}
-      <div className={`${c.bg} px-5 py-4 flex items-center justify-between border-b ${c.border}`}>
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{asset.icon}</span>
-          <h3 className={`font-bold text-lg ${c.label}`}>{asset.label}</h3>
-        </div>
+      <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 bg-neutral-50">
+        <h3 className="text-sm font-medium tracking-wide text-neutral-800">
+          {asset.label}
+        </h3>
         {uploaded && (
-          <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">
-            ✅ تم الرفع
+          <span className="text-[10px] uppercase tracking-wider border border-neutral-900 px-2 py-0.5 text-neutral-900">
+            Uploaded
           </span>
         )}
       </div>
 
       {/* Preview Area */}
-      <div className="p-4">
-        <div
-          className={`relative w-full rounded-xl overflow-hidden border-2 border-dashed ${c.border} ${c.bg} flex items-center justify-center`}
-          style={{ minHeight: "140px" }}
-        >
+      <div className="p-4 flex-1 flex flex-col gap-3">
+        <div className="border border-neutral-200 bg-neutral-50 flex items-center justify-center h-32 w-full relative">
           {previewUrl ? (
             asset.type === "video" ? (
-              <video
-                src={previewUrl}
-                controls
-                className="w-full max-h-40 object-cover rounded-lg"
-              />
+              <video src={previewUrl} controls className="max-h-full max-w-full object-contain p-2" />
             ) : (
-              <img
-                src={previewUrl}
-                alt="معاينة"
-                className="max-h-40 max-w-full object-contain rounded-lg"
-              />
+              <img src={previewUrl} alt="Preview" className="max-h-full max-w-full object-contain p-2" />
             )
           ) : (
-            <div className="text-center p-4">
-              <p className="text-4xl mb-2 opacity-30">
-                {asset.type === "video" ? "🎬" : "🖼️"}
-              </p>
-              <p className="text-gray-400 text-sm">لم يتم العثور على ملف</p>
+            <div className="text-center p-2 text-neutral-300 text-xs uppercase tracking-wider">
+              No file found
             </div>
           )}
         </div>
 
         {/* File name badge */}
         {file && (
-          <div className={`mt-2 text-xs ${c.badge} rounded-lg px-3 py-1.5 flex items-center justify-between gap-2`}>
+          <div className="flex items-center justify-between border border-neutral-200 px-3 py-1.5 text-[10px] text-neutral-600 bg-white">
             <span className="truncate font-medium">{file.name}</span>
-            <span className="text-gray-500 shrink-0">
+            <span className="text-neutral-400 ml-2">
               {(file.size / 1024).toFixed(0)} KB
             </span>
           </div>
@@ -508,13 +270,17 @@ const AssetCard = ({ asset }) => {
       </div>
 
       {/* Actions */}
-      <div className="px-4 pb-4 flex flex-col gap-2">
+      <div className="p-4 pt-0 flex flex-col gap-2 mt-auto">
         <label
           htmlFor={`file-${asset.key}`}
-          className={`cursor-pointer flex items-center justify-center gap-2 w-full px-4 py-2.5 border-2 ${c.border} ${c.label} font-semibold rounded-xl transition hover:${c.bg} text-sm`}
+          className={`flex items-center gap-2 justify-center w-full px-3 py-2 border border-neutral-300 text-neutral-600 text-xs uppercase tracking-wider hover:border-black hover:text-black transition-colors cursor-pointer`}
         >
-          <span>📁</span>
-          <span>{file ? "تغيير الملف" : "اختر ملفاً"}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          {file ? "Change File" : "Choose File"}
         </label>
         <input
           id={`file-${asset.key}`}
@@ -525,32 +291,32 @@ const AssetCard = ({ asset }) => {
           className="hidden"
         />
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-1">
           <button
             onClick={handleUpload}
             disabled={!file || loading}
-            className={`flex-1 ${c.btn} text-white font-bold py-2.5 rounded-xl text-sm transition-all duration-200 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed`}
+            className="flex-1 bg-neutral-900 text-white py-2 text-xs uppercase tracking-wider hover:bg-neutral-800 transition-colors duration-200 border border-neutral-900 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-1">
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                 </svg>
-                جاري الرفع...
+                Uploading...
               </span>
             ) : (
-              "⬆️ رفع الملف"
+              "Upload"
             )}
           </button>
 
           {file && (
             <button
               onClick={handleReset}
-              className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-sm transition"
-              title="إلغاء الاختيار"
+              className="px-3 py-2 bg-transparent border border-neutral-300 text-neutral-600 text-xs uppercase tracking-wider hover:border-black hover:text-black transition-colors"
+              title="Cancel"
             >
-              ✕
+              Cancel
             </button>
           )}
         </div>
@@ -559,77 +325,28 @@ const AssetCard = ({ asset }) => {
   );
 };
 
-/* Helper: Sort assets by numeric suffix (e.g., heroImg1, heroImg2) */
-const sortByNumericSuffix = (assets) => {
-  return [...assets].sort((a, b) => {
-    const numA = parseInt(a.key.match(/\d+$/)?.[0] || "0", 10);
-    const numB = parseInt(b.key.match(/\d+$/)?.[0] || "0", 10);
-    return numA - numB;
-  });
-};
-
 /* ─── Tab bar ─── */
 const TABS_META = {
   other: {
-    label: "أخرى",
-    hint: "شعار، توصيل سريع، صور واقعية", // updated
-    accent: "blue",
-    tip: null,
+    label: "Other Assets",
+    hint: "Logo, Fast Delivery, Real Life Photos",
   },
   slider1: {
-    label: "سلايدر 1",
-    hint: "1 – 10",
-    accent: "indigo",
-    tip: "يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.",
+    label: "Slider (1-10)",
+    hint: "Images 1 through 10",
   },
   slider2: {
-    label: "سلايدر 2",
-    hint: "11 – 20",
-    accent: "purple",
-    tip: "يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.",
+    label: "Slider (11-20)",
+    hint: "Images 11 through 20",
   },
   bestSellerSlider: {
-    label: "سلايدر الاكثر مبيعا",
-    hint: "21 - 23",
-    accent: "amber",
-    tip: "يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.",
+    label: "Best Sellers",
+    hint: "Images 21-23",
   },
   mostRatedSlider: {
-    label: "سلايدر الاعلي تقييما",
-    hint: "24 – 26",
-    accent: "emerald",
-    tip: "يُفضل أن تكون أبعاد الصور 1920×1080 بكسل (نسبة 16:9) للحصول على أفضل عرض.",
-  }
-};
-
-const TAB_ACCENTS = {
-  blue:   { activeBg: "bg-blue-600",   activeText: "text-white", idleText: "text-blue-700",   idleBg: "bg-blue-50 hover:bg-blue-100",     dot: "bg-blue-500" },
-  indigo: { activeBg: "bg-indigo-600", activeText: "text-white", idleText: "text-indigo-700", idleBg: "bg-indigo-50 hover:bg-indigo-100", dot: "bg-indigo-500" },
-  purple: { activeBg: "bg-purple-600", activeText: "text-white", idleText: "text-purple-700", idleBg: "bg-purple-50 hover:bg-purple-100", dot: "bg-purple-500" },
-  amber:  { activeBg: "bg-amber-600",  activeText: "text-white", idleText: "text-amber-700",  idleBg: "bg-amber-50 hover:bg-amber-100",   dot: "bg-amber-500" },
-  emerald:{ activeBg: "bg-emerald-600",activeText: "text-white", idleText: "text-emerald-700",idleBg: "bg-emerald-50 hover:bg-emerald-100", dot: "bg-emerald-500" },
-};
-
-const TabButton = ({ id, meta, count, active, onClick }) => {
-  const a = TAB_ACCENTS[meta.accent];
-  return (
-    <button
-      onClick={() => onClick(id)}
-      className={`relative flex-1 min-w-[180px] flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 ${
-        active ? `${a.activeBg} ${a.activeText} shadow-md` : `${a.idleBg} ${a.idleText}`
-      }`}
-    >
-      <span className={`h-2 w-2 rounded-full ${active ? "bg-white" : a.dot}`}></span>
-      <span>{meta.label}</span>
-      <span
-        className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-          active ? "bg-white/20" : "bg-white text-gray-500"
-        }`}
-      >
-        {count}
-      </span>
-    </button>
-  );
+    label: "Most Rated",
+    hint: "Images 24-26",
+  },
 };
 
 /* ─── Main Page with Tabs ─── */
@@ -643,22 +360,12 @@ const UpdateImages = () => {
   const bestSellerPattern = /^bestSeller[1-3]$/;
   const mostRatedPattern = /^mostRated[1-3]$/;
 
-    const slider1Assets = sortByNumericSuffix(
-    ASSETS.filter(asset => matchesAnyPattern(asset.key, [slider1Pattern]))
-  );
-  const slider2Assets = sortByNumericSuffix(
-    ASSETS.filter(asset => matchesAnyPattern(asset.key, [slider2Pattern]))
-  );
-  const bestSellerSliderAssets = sortByNumericSuffix(
-    ASSETS.filter(asset => matchesAnyPattern(asset.key, [bestSellerPattern]))
-  );
-  const mostRatedSliderAssets = sortByNumericSuffix(
-    ASSETS.filter(asset => matchesAnyPattern(asset.key, [mostRatedPattern]))
-  );
-  // Group assets
+  const slider1Assets = sortByNumericSuffix(ASSETS.filter(asset => matchesAnyPattern(asset.key, [slider1Pattern])));
+  const slider2Assets = sortByNumericSuffix(ASSETS.filter(asset => matchesAnyPattern(asset.key, [slider2Pattern])));
+  const bestSellerSliderAssets = sortByNumericSuffix(ASSETS.filter(asset => matchesAnyPattern(asset.key, [bestSellerPattern])));
+  const mostRatedSliderAssets = sortByNumericSuffix(ASSETS.filter(asset => matchesAnyPattern(asset.key, [mostRatedPattern])));
   
-
-const otherAssets = ASSETS.filter(asset => {
+  const otherAssets = ASSETS.filter(asset => {
     const key = asset.key;
     return !(
       matchesAnyPattern(key, [slider1Pattern]) ||
@@ -680,59 +387,77 @@ const otherAssets = ASSETS.filter(asset => {
   const currentMeta = TABS_META[activeTab];
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 md:p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-blue-700 flex items-center gap-2">
-          🖼️ تعديل الصور والوسائط
-        </h1>
-        <p className="text-gray-500 mt-1 text-sm">
-          قم باختيار الملف الجديد ثم اضغط "رفع الملف" لكل عنصر على حدة
-        </p>
+    <div dir="ltr" className="min-h-screen bg-neutral-50 p-4 md:p-8">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-6 mb-8">
+        <div>
+          <h2 className="text-xl font-light tracking-wide text-neutral-900 flex items-center gap-3">
+            Update Images & Media
+          </h2>
+          <p className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1">
+            Manage logos, sliders, and promotional assets
+          </p>
+        </div>
+        <div className="flex items-center gap-2 mt-3 sm:mt-0 text-neutral-400">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
       </div>
 
-      <div className="mb-6 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 text-amber-800 text-sm">
-        <span className="text-xl shrink-0">⚠️</span>
-        <p>
-          سيؤدي رفع الملفات إلى استبدال الملفات الحالية مباشرةً. تأكد من اختيار الملف الصحيح بالأبعاد المناسبة قبل الرفع.
-        </p>
+      {/* Warning */}
+      <div className="mb-6 border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 flex items-start gap-3">
+        <span className="shrink-0 pt-0.5">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </span>
+        <p>Uploading files will immediately replace existing assets. Please ensure the correct file and dimensions are selected before uploading.</p>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex flex-wrap gap-2 mb-6 bg-white/60 backdrop-blur border border-gray-200 rounded-2xl p-2 sticky top-2 z-10 shadow-sm">
+      {/* Minimal Tab Bar */}
+      <div className="flex flex-wrap gap-6 mb-8 border-b border-neutral-200 pb-1 overflow-x-auto">
         {Object.entries(TABS_META).map(([id, meta]) => (
-          <TabButton
+          <button
             key={id}
-            id={id}
-            meta={meta}
-            count={GROUPS[id].length}
-            active={activeTab === id}
-            onClick={setActiveTab}
-          />
+            onClick={() => setActiveTab(id)}
+            className={`relative pb-2 border-b-2 transition-colors duration-200 text-[11px] uppercase tracking-widest whitespace-nowrap ${
+              activeTab === id
+                ? "border-black text-neutral-900 font-medium"
+                : "border-transparent text-neutral-400 hover:text-neutral-700 hover:border-neutral-300"
+            }`}
+          >
+            {meta.label}
+            <span className={`ml-2 text-[10px] ${activeTab === id ? "text-neutral-600" : "text-neutral-400"}`}>
+              ({GROUPS[id].length})
+            </span>
+          </button>
         ))}
       </div>
 
       {/* Active tab content */}
       <section>
         <div className="flex items-center gap-2 mb-4">
-          <div className={`h-8 w-1 ${TAB_ACCENTS[currentMeta.accent].dot} rounded-full`}></div>
-          <h2 className="text-xl font-bold text-gray-800">{currentMeta.label}</h2>
-          <span className="text-sm text-gray-400">({currentMeta.hint})</span>
+          <span className="text-[10px] uppercase tracking-widest text-neutral-400">
+            {currentMeta.hint}
+          </span>
         </div>
 
-        {currentMeta.tip && (
-          <div className="bg-white/70 border border-gray-200 rounded-2xl p-4 mb-4 text-sm text-gray-700">
-            <p className="flex items-center gap-2">💡 <span>{currentMeta.tip}</span></p>
-          </div>
-        )}
-
         {currentAssets.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             {currentAssets.map((asset) => (
               <AssetCard key={asset.key} asset={asset} />
             ))}
           </div>
         ) : (
-          <p className="text-gray-400 text-sm">لا توجد عناصر في هذا القسم.</p>
+          <p className="text-sm text-neutral-400 font-light tracking-wide">
+            No items found in this section.
+          </p>
         )}
       </section>
 
@@ -742,7 +467,6 @@ const otherAssets = ASSETS.filter(asset => {
         hideProgressBar={false}
         newestOnTop
         closeOnClick
-        rtl
         pauseOnFocusLoss
         draggable
         pauseOnHover

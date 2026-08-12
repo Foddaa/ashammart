@@ -3,7 +3,7 @@ import CartItems from "@/components/CartComponents/CartItems";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getCart, saveCart } from "@/components/shared/cartService";
-import axios from "axios";
+import api from "@/api/axiosInstance";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -33,11 +33,7 @@ export default function Cart() {
       }
 
       const productIds = localCart.map((item) => item.id);
-      const response = await axios.post(
-        `${BASE_URL}/api/product/by-ids`,
-        productIds,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const response = await api.post("/api/product/by-ids", productIds);
 
       const products = response.data;
 
@@ -56,7 +52,7 @@ export default function Cart() {
             canceledPrice: product.canceledPrice,
             images: product.images,
             quantity: item.quantity,
-            freeDelivery: product.freeDelivery, // ✅ include free delivery flag
+            freeDelivery: product.freeDelivery,
           };
         })
         .filter((item) => item !== null);
@@ -69,7 +65,7 @@ export default function Cart() {
       }
     } catch (error) {
       console.error("Error loading cart:", error);
-      toast.error("حدث خطأ أثناء تحميل المنتجات");
+      toast.error("Error loading products");
     } finally {
       setLoading(false);
     }
@@ -96,40 +92,54 @@ export default function Cart() {
         },
       });
     } else {
-      toast.warn("سلة المشتريات فارغة. أضف منتجات قبل إتمام الطلب.");
+      toast.warn("Your cart is empty. Add products before checking out.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 py-8 px-4" dir="rtl">
+    <div className="min-h-screen bg-neutral-50 py-8 px-4 md:py-12 md:px-6" dir="ltr">
       <div className="container mx-auto max-w-6xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-            {isBuyNow ? "🛍️ مراجعة الطلب" : "🛒 سلة المشتريات"}
-          </h1>
-          <p className="text-gray-500 mt-2">
-            {isBuyNow 
-              ? "مراجعة المنتج المحدد قبل إتمام الشراء" 
-              : "مراجعة المنتجات المضافة قبل إتمام الطلب"}
-          </p>
+        
+        {/* Minimal Luxury Header - Responsive spacing */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-5 mb-8 gap-2">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-light tracking-wide text-neutral-900">
+              {isBuyNow ? "Order Review" : "Shopping Cart"}
+            </h1>
+            <p className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1">
+              {isBuyNow 
+                ? "Review your selected item before checkout" 
+                : "Review your items before checkout"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 mt-1 sm:mt-0 text-neutral-400">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+          </div>
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 text-lg">جاري تحميل سلة المشتريات...</p>
+          <div className="bg-white border border-neutral-200 p-10 md:p-12 text-center">
+            <div className="w-8 h-8 border border-neutral-300 border-t-neutral-900 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-neutral-500 text-xs uppercase tracking-wider">Loading cart...</p>
           </div>
         ) : cartItems.length > 0 ? (
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_0.5fr] gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200 text-gray-700 font-semibold">
-              <span className="text-right">المنتج</span>
-              <span className="text-center">السعر</span>
-              <span className="text-center">الكمية</span>
-              <span className="text-center">الإجمالي</span>
+          <div className="bg-white border border-neutral-200">
+            
+            {/* Table Header (Desktop) */}
+            <div className="hidden sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_0.5fr] bg-neutral-50 border-b border-neutral-200 px-6 py-4 text-[10px] uppercase tracking-wider text-neutral-400 font-medium">
+              <span className="text-left">Product</span>
+              <span className="text-center">Price</span>
+              <span className="text-center">Qty</span>
+              <span className="text-center">Total</span>
               <span className="text-center"></span>
             </div>
 
-            <div className="divide-y divide-gray-100">
+            {/* Cart Items - Wrapped in overflow-x-auto to ensure mobile safety */}
+            <div className="divide-y divide-neutral-100 overflow-x-auto w-full">
               <CartItems 
                 items={cartItems} 
                 onUpdate={fetchCartItems} 
@@ -137,36 +147,37 @@ export default function Cart() {
               />
             </div>
 
-            <div className="bg-gray-50 px-6 py-5 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div className="text-gray-600 text-sm">
-                إجمالي عدد المنتجات: <span className="font-bold text-gray-800">{cartItems.length}</span>
-              </div>
+            {/* Footer Summary - Perfectly stacks on mobile */}
+            <div className="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-6 py-5 border-t border-neutral-200 bg-white gap-4 sm:gap-0">
+              <span className="text-sm text-neutral-500 text-center sm:text-left">
+                Total items: <span className="font-medium text-neutral-900">{cartItems.length}</span>
+              </span>
               <button
                 onClick={handleCheckout}
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
+                className="w-full sm:w-auto bg-neutral-900 text-white px-6 sm:px-8 py-3 hover:bg-neutral-800 transition-colors text-xs sm:text-sm tracking-wider uppercase border border-neutral-900"
               >
-                {isBuyNow ? "إتمام الشراء →" : "إتمام الشراء →"}
+                {isBuyNow ? "Checkout" : "Checkout"}
               </button>
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-xl p-12 text-center">
-            <div className="flex flex-col items-center justify-center text-gray-400">
-              <svg className="w-24 h-24 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6M17 13l1.5 6M9 21h6M12 15v6"
-                />
-              </svg>
-              <p className="text-2xl font-bold text-gray-600 mb-2">سلة المشتريات فارغة</p>
-              <p className="text-gray-500 mb-6">لم تقم بإضافة أي منتجات بعد</p>
+          // Empty State - Responsive padding and spacing
+          <div className="bg-white border border-neutral-200 p-10 md:p-16 text-center">
+            <div className="flex flex-col items-center justify-center text-neutral-400">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-neutral-200 rounded-full flex items-center justify-center mb-4 text-neutral-300">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+              </div>
+              <p className="text-lg font-light tracking-wide text-neutral-500">Cart is empty</p>
+              <p className="text-sm text-neutral-400 mt-1">You haven't added any products yet</p>
               <button
                 onClick={() => navigate("/")}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl transition shadow-md"
+                className="mt-6 px-6 py-2.5 bg-transparent border border-neutral-900 text-neutral-900 hover:bg-neutral-900 hover:text-white transition-colors text-[10px] sm:text-xs uppercase tracking-wider w-full sm:w-auto"
               >
-                تسوق الآن
+                Shop Now
               </button>
             </div>
           </div>

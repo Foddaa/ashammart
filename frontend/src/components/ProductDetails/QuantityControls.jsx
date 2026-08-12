@@ -14,7 +14,7 @@ export default function QuantityControls({
   };
 
   return (
-    <div className="bg-[#F3F5F9] flex justify-between items-center gap-4 py-2 px-5 rounded w-full">
+    <div className="flex justify-between items-center gap-4 py-2 px-5 border border-black">
       <button
         onClick={handleDecrement}
         className="p-2.5 cursor-pointer"

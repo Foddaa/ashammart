@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import api from "@/api/axiosInstance";  // ✅ use the configured instance
+import api from "@/api/axiosInstance";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -22,8 +22,8 @@ const EditProduct = () => {
     canceledPrice: "",
     category: "",
     supplierCode: "",
-    freeDelivery: false,   // new
-    fastDelivery: false,   // new
+    freeDelivery: false,
+    fastDelivery: false,
   });
 
   const [newImages, setNewImages] = useState([]);
@@ -34,7 +34,7 @@ const EditProduct = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await api.get("/api/category/all");  // ✅ using api
+        const response = await api.get("/api/category/all");
         setCategories(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error("Error fetching categories:", err);
@@ -57,10 +57,10 @@ const EditProduct = () => {
   }, []);
 
   // Fetch product details
- useEffect(() => {
+  useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await api.get(`/api/product/byId?id=${id}`); // ✅ using api
+        const res = await api.get(`/api/product/byId?id=${id}`);
         const product = res.data;
 
         setFormData({
@@ -79,19 +79,18 @@ const EditProduct = () => {
           ...img,
           url: img.url.startsWith("http")
             ? img.url
-            : `${import.meta.env.VITE_API_BASE_URL}/api${img.url}`, // keep full URL if needed
+            : `${import.meta.env.VITE_API_BASE_URL}/api${img.url}`,
         }));
 
         setExistingImages(fixedImages);
       } catch (err) {
-        toast.error("فشل تحميل بيانات المنتج");
+        toast.error("Failed to load product data");
         console.error(err);
       }
     };
 
     fetchProduct();
   }, [id]);
-
 
   const handleInputChange = (e) => {
     setFormData((prev) => ({
@@ -147,87 +146,124 @@ const EditProduct = () => {
 
     try {
       await api.patch(`/api/admin/product/${id}/update`, data);
-      
-      toast.success("✅ تم تحديث المنتج بنجاح!");
+
+      toast.success("✅ Product updated successfully!");
       setTimeout(() => navigate("/admin/products"), 1500);
     } catch (err) {
-      toast.error("❌ فشل تحديث المنتج");
+      toast.error("❌ Failed to update product");
       console.error("Update error:", err);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 flex items-center justify-center" dir="rtl">
+    <div className="min-h-screen bg-neutral-50 p-4 md:p-8 flex items-center justify-center" dir="ltr">
       <form
         onSubmit={handleSubmit}
         encType="multipart/form-data"
-        className="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6 md:p-8 transition-all duration-300"
+        className="bg-white border border-neutral-200 w-full max-w-4xl p-6 md:p-10 transition-all duration-300"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-blue-700">✏️ تعديل المنتج</h2>
-          <p className="text-gray-500 mt-1">قم بتحديث بيانات المنتج والصور</p>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-6 mb-8">
+          <div>
+            <h2 className="text-xl font-light tracking-wide text-neutral-900">
+              Edit Product
+            </h2>
+            <p className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1">
+              Update product details and images
+            </p>
+          </div>
+          <div className="flex items-center gap-2 mt-3 sm:mt-0 text-neutral-400">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </div>
         </div>
 
-        {/* Two‑column grid for basic fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {[
-            { name: "name", label: "اسم المنتج", type: "text", placeholder: "مثل: كرسي مكتبي" },
-            { name: "code", label: "كود المنتج", type: "text", placeholder: "مثل: PROD-001" },
-          ].map(({ name, label, type, placeholder }) => (
-            <div key={name} className="mb-2">
-              <label className="block text-gray-700 font-semibold mb-2">
-                {label} <span className="text-red-500">*</span>
-              </label>
-              <input
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                required
-                placeholder={placeholder}
-                readOnly={name === "code"}
-                className={`w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition ${
-                  name === "code" ? "bg-gray-100 cursor-not-allowed" : ""
-                }`}
-              />
-            </div>
-          ))}
+        {/* Basic Fields Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Product Name <span className="text-neutral-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+              placeholder="e.g. Office Chair"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+            />
+          </div>
 
-          {[
-            { name: "price", label: "السعر (ج.م)", type: "number", placeholder: "0.00" },
-            { name: "canceledPrice", label: "السعر قبل الخصم (ج.م)", type: "number", placeholder: "0.00" },
-          ].map(({ name, label, type, placeholder }) => (
-            <div key={name} className="mb-2">
-              <label className="block text-gray-700 font-semibold mb-2">
-                {label} {name === "price" && <span className="text-red-500">*</span>}
-              </label>
-              <input
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleInputChange}
-                required={name === "price"}
-                placeholder={placeholder}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-              />
-            </div>
-          ))}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Product Code <span className="text-neutral-400">*</span>
+            </label>
+            <input
+              type="text"
+              name="code"
+              value={formData.code}
+              required
+              readOnly
+              className="w-full border border-neutral-200 px-4 py-2.5 bg-neutral-100 cursor-not-allowed text-sm text-neutral-500"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Price (EGP) <span className="text-neutral-400">*</span>
+            </label>
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleInputChange}
+              required
+              placeholder="0.00"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Old Price (EGP)
+            </label>
+            <input
+              type="number"
+              name="canceledPrice"
+              value={formData.canceledPrice}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+            />
+          </div>
         </div>
 
-        {/* Category & Supplier */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-3">
-          <div className="mb-2">
-            <label className="block text-gray-700 font-semibold mb-2">
-              الفئة <span className="text-red-500">*</span>
+        {/* Category & Supplier Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 mt-6">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Category <span className="text-neutral-400">*</span>
             </label>
             <select
               name="category"
               value={formData.category}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 bg-white"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm"
             >
-              <option value="">اختر الفئة</option>
+              <option value="">Select category</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
@@ -236,18 +272,18 @@ const EditProduct = () => {
             </select>
           </div>
 
-          <div className="mb-2">
-            <label className="block text-gray-700 font-semibold mb-2">
-              المورد <span className="text-red-500">*</span>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+              Supplier <span className="text-neutral-400">*</span>
             </label>
             <select
               name="supplierCode"
               value={formData.supplierCode}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 bg-white"
+              className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm"
             >
-              <option value="">اختر المورد</option>
+              <option value="">Select supplier</option>
               {suppliers.map((sup) => (
                 <option key={sup.id} value={sup.code}>
                   {sup.name}
@@ -258,9 +294,9 @@ const EditProduct = () => {
         </div>
 
         {/* Description */}
-        <div className="mb-5 mt-2">
-          <label className="block text-gray-700 font-semibold mb-2">
-            وصف المنتج <span className="text-red-500">*</span>
+        <div className="flex flex-col gap-1.5 mt-6">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+            Description <span className="text-neutral-400">*</span>
           </label>
           <textarea
             name="description"
@@ -268,70 +304,93 @@ const EditProduct = () => {
             onChange={handleInputChange}
             required
             rows="4"
-            placeholder="اكتب وصفاً مفصلاً للمنتج..."
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 resize-y"
+            placeholder="Provide a detailed description..."
+            className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400 resize-y"
           />
         </div>
 
-        {/* Delivery Toggles - With Icons (same as AddProduct) */}
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-3">خيارات التوصيل</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
-              formData.freeDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
-            }`}>
-              <div className="flex items-center gap-3">
-                <span className="text-xl">🚚</span>
-                <span className="text-gray-700 font-medium">توصيل مجاني</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="freeDelivery"
-                  checked={formData.freeDelivery}
-                  onChange={handleToggle}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
+        {/* Delivery Options - Minimal Checkboxes */}
+        <div className="mt-6">
+          <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-3">
+            Delivery Options
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Free Delivery Checkbox */}
+            <label className="relative flex items-center cursor-pointer border border-neutral-200 p-4 hover:border-neutral-900 transition-colors bg-white">
+              <input
+                type="checkbox"
+                name="freeDelivery"
+                checked={formData.freeDelivery}
+                onChange={handleToggle}
+                className="peer h-4 w-4 cursor-pointer border border-neutral-300 bg-white checked:bg-neutral-900 checked:border-neutral-900 appearance-none"
+              />
+              <svg
+                className="absolute left-[11px] top-[19px] opacity-0 peer-checked:opacity-100 pointer-events-none w-3 h-3 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                viewBox="0 0 24 24"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span className="ml-3 text-sm font-light tracking-wide text-neutral-700">
+                Free Delivery
+              </span>
+            </label>
 
-            <div className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all duration-200 ${
-              formData.fastDelivery ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'
-            }`}>
-              <div className="flex items-center gap-3">
-                <span className="text-xl">⚡</span>
-                <span className="text-gray-700 font-medium">توصيل سريع</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="fastDelivery"
-                  checked={formData.fastDelivery}
-                  onChange={handleToggle}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
+            {/* Fast Delivery Checkbox */}
+            <label className="relative flex items-center cursor-pointer border border-neutral-200 p-4 hover:border-neutral-900 transition-colors bg-white">
+              <input
+                type="checkbox"
+                name="fastDelivery"
+                checked={formData.fastDelivery}
+                onChange={handleToggle}
+                className="peer h-4 w-4 cursor-pointer border border-neutral-300 bg-white checked:bg-neutral-900 checked:border-neutral-900 appearance-none"
+              />
+              <svg
+                className="absolute left-[11px] top-[19px] opacity-0 peer-checked:opacity-100 pointer-events-none w-3 h-3 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                viewBox="0 0 24 24"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span className="ml-3 text-sm font-light tracking-wide text-neutral-700">
+                Fast Delivery
+              </span>
+            </label>
           </div>
         </div>
 
-        {/* Images section – existing + new */}
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">
-            صور المنتج
+        {/* Images section */}
+        <div className="flex flex-col gap-1.5 mt-6">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+            Product Images
           </label>
 
-          {/* Custom file input for new images */}
           <div className="flex items-center justify-center w-full">
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+            <label className="flex flex-col items-center justify-center w-full h-32 border border-neutral-200 cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <svg className="w-8 h-8 mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                <svg
+                  className="w-6 h-6 mb-2 text-neutral-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                <p className="mb-2 text-sm text-gray-500"><span className="font-semibold">انقر للرفع</span> أو اسحب الصور</p>
-                <p className="text-xs text-gray-500">أضف صوراً جديدة (PNG, JPG, WEBP)</p>
+                <p className="text-xs text-neutral-500 tracking-wide">
+                  Drag & drop or <span className="underline cursor-pointer">browse</span>
+                </p>
+                <p className="text-[10px] text-neutral-400 mt-1">
+                  Add new images (PNG, JPG, WEBP)
+                </p>
               </div>
               <input
                 type="file"
@@ -347,19 +406,21 @@ const EditProduct = () => {
           {/* Existing images grid */}
           {existingImages.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm text-gray-600 mb-2">الصور الحالية</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <p className="text-[10px] uppercase tracking-wider text-neutral-400 mb-3">
+                Current Images
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {existingImages.map((img, index) => (
-                  <div key={img.id} className="relative group">
+                  <div key={img.id} className="relative group border border-neutral-200 bg-neutral-50">
                     <img
                       src={img.url}
                       alt={`existing-${index}`}
-                      className="w-full h-28 object-cover rounded-lg border shadow-sm"
+                      className="w-full h-24 object-cover"
                     />
                     <button
                       type="button"
                       onClick={() => removeExistingImage(index)}
-                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-700 transition shadow-md"
+                      className="absolute -top-1 -right-1 bg-neutral-900 text-white w-5 h-5 flex items-center justify-center hover:bg-neutral-700 transition-colors text-[10px]"
                     >
                       ✕
                     </button>
@@ -372,19 +433,21 @@ const EditProduct = () => {
           {/* New images preview grid */}
           {newImages.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm text-gray-600 mb-2">الصور الجديدة</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <p className="text-[10px] uppercase tracking-wider text-neutral-400 mb-3">
+                New Images
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {newImages.map((file, index) => (
-                  <div key={index} className="relative group">
+                  <div key={index} className="relative group border border-neutral-200 bg-neutral-50">
                     <img
                       src={URL.createObjectURL(file)}
                       alt={`new-${index}`}
-                      className="w-full h-28 object-cover rounded-lg border shadow-sm"
+                      className="w-full h-24 object-cover"
                     />
                     <button
                       type="button"
                       onClick={() => removeNewImage(index)}
-                      className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-700 transition shadow-md"
+                      className="absolute -top-1 -right-1 bg-neutral-900 text-white w-5 h-5 flex items-center justify-center hover:bg-neutral-700 transition-colors text-[10px]"
                     >
                       ✕
                     </button>
@@ -396,19 +459,19 @@ const EditProduct = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 mt-6">
+        <div className="flex flex-col sm:flex-row gap-4 mt-8">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
+            className="flex-1 bg-neutral-900 text-white py-3.5 hover:bg-neutral-800 transition-colors duration-200 border border-neutral-900 text-sm tracking-wide"
           >
-            تحديث المنتج
+            Update Product
           </button>
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
+            className="flex-1 bg-transparent text-neutral-500 border border-neutral-200 py-3.5 hover:text-black hover:border-black transition-colors duration-200 text-sm tracking-wide"
           >
-            إلغاء
+            Cancel
           </button>
         </div>
       </form>
@@ -419,7 +482,6 @@ const EditProduct = () => {
         hideProgressBar={false}
         newestOnTop
         closeOnClick
-        rtl
         pauseOnFocusLoss
         draggable
         pauseOnHover

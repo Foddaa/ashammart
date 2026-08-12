@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "@/api/axiosInstance";   // ✅ your configured instance
+import api from "@/api/axiosInstance";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -15,15 +15,13 @@ const EditSupplier = () => {
   useEffect(() => {
     const fetchSupplier = async () => {
       try {
-        // ✅ relative path – no manual headers
         const res = await api.get(`/api/admin/supplier/byId?id=${id}`);
         setName(res.data.name);
         setCode(res.data.code);
         setAddress(res.data.address);
         setIsLoading(false);
       } catch (err) {
-        const backendMessage =
-          err.response?.data || "❌ فشل تحميل بيانات المورد";
+        const backendMessage = err.response?.data || "❌ Failed to load supplier data";
         toast.error(backendMessage);
         console.error(err);
         setIsLoading(false);
@@ -36,18 +34,16 @@ const EditSupplier = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim() || !code.trim()) {
-      toast.error("❌ جميع الحقول مطلوبة");
+      toast.error("❌ All fields are required");
       return;
     }
 
     try {
-      // ✅ api.patch – token injected automatically
       await api.patch(`/api/admin/supplier/${id}/update`, { name, code, address });
-      toast.success("✅ تم تحديث بيانات المورد بنجاح");
+      toast.success("✅ Supplier updated successfully!");
       setTimeout(() => navigate("/admin/suppliers"), 1500);
     } catch (err) {
-      const backendMessage =
-        err.response?.data || "❌ فشل تحديث بيانات المورد";
+      const backendMessage = err.response?.data || "❌ Failed to update supplier";
       toast.error(backendMessage);
       console.error(err);
     }
@@ -55,77 +51,95 @@ const EditSupplier = () => {
 
   if (isLoading) {
     return (
-      <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-xl font-semibold text-gray-600">جاري تحميل بيانات المورد...</div>
+      <div dir="ltr" className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="bg-white border border-neutral-200 p-10 text-center max-w-md w-full">
+          <div className="text-neutral-600 text-sm tracking-wider uppercase mb-2">Loading</div>
+          <div className="w-full h-px bg-neutral-200 mt-4 animate-pulse"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-4 flex items-center justify-center">
+    <div dir="ltr" className=" bg-neutral-50 p-4 md:p-8 flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 md:p-8 transition-all duration-300"
+        className="bg-white border border-neutral-200 w-full max-w-md p-6 md:p-8 transition-all duration-300"
       >
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-blue-700">✏️ تعديل بيانات المورد</h2>
-          <p className="text-gray-500 mt-1">قم بتحديث معلومات المورد</p>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-6 mb-8">
+          <div>
+            <h2 className="text-xl font-light tracking-wide text-neutral-900">
+              Edit Supplier
+            </h2>
+            <p className="text-[10px] uppercase tracking-widest text-neutral-400 mt-1">
+              Update supplier information
+            </p>
+          </div>
+          <div className="flex items-center gap-2 mt-3 sm:mt-0 text-neutral-400">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </div>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-semibold mb-2">
-            اسم المورد <span className="text-red-500">*</span>
+        {/* Name */}
+        <div className="flex flex-col gap-1.5 mb-4">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+            Supplier Name <span className="text-neutral-400">*</span>
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-gray-700 font-semibold mb-2">
-            كود المورد <span className="text-red-500">*</span>
+        {/* Code */}
+        <div className="flex flex-col gap-1.5 mb-4">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+            Supplier Code <span className="text-neutral-400">*</span>
           </label>
           <input
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             required
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
           />
         </div>
 
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">
-            عنوان المورد <span className="text-red-500">*</span>
+        {/* Address */}
+        <div className="flex flex-col gap-1.5 mb-6">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
+            Supplier Address <span className="text-neutral-400">*</span>
           </label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             required
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+            className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
           />
         </div>
 
-        <div className="flex gap-4 mt-6">
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
+            className="flex-1 bg-neutral-900 text-white py-3.5 hover:bg-neutral-800 transition-colors duration-200 border border-neutral-900 text-sm tracking-wide"
           >
-            حفظ التعديلات
+            Save Changes
           </button>
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md hover:shadow-lg text-lg"
+            className="flex-1 bg-transparent text-neutral-500 border border-neutral-200 py-3.5 hover:text-black hover:border-black transition-colors duration-200 text-sm tracking-wide"
           >
-            إلغاء
+            Cancel
           </button>
         </div>
       </form>
@@ -136,7 +150,6 @@ const EditSupplier = () => {
         hideProgressBar={false}
         newestOnTop
         closeOnClick
-        rtl
         pauseOnFocusLoss
         draggable
         pauseOnHover

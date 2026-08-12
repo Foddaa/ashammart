@@ -21,15 +21,46 @@
   --color-text-light-gray:rgba(155, 155, 180, 1);
   --color-btn-bg-blue:rgba(35, 58, 149, 1);
 
+}
 
-  /* Fonts */
-  --font-heading: "Inter", sans-serif;
-  --font-body: "Dosis", sans-serif;
+@font-face {
+  font-family: 'Helvetica Now Text';
+  src: url('/fonts/HelveticaNowText-Regular.woff2') format('woff2'),
+       url('/fonts/HelveticaNowText-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
+@font-face {
+  font-family: 'Helvetica Now Text';
+  src: url('/fonts/HelveticaNowText-Italic.woff2') format('woff2'),
+       url('/fonts/HelveticaNowText-Italic.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Helvetica Now Text';
+  src: url('/fonts/HelveticaNowText-Medium.woff2') format('woff2'),
+       url('/fonts/HelveticaNowText-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Helvetica Now Text';
+  src: url('/fonts/HelveticaNowText-Bold.woff2') format('woff2'),
+       url('/fonts/HelveticaNowText-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 .centering{
-  @apply  flex justify-center items-center;
+  @apply flex justify-center items-center;
 }
 
 .isActiveStyle {
@@ -40,14 +71,12 @@
   @apply hover:text-[var(--color-accent)];
 }
 
-/* Plain CSS*/
 .container {
   max-width: 1200px;
   margin: auto;
 }
 
-
-/* From Uiverse.io by SelfMadeSystem */
+/* Cart Animation */
 .containerCART {
   cursor: pointer;
 }
@@ -77,37 +106,52 @@
   stroke: rgb(34, 197, 94);
 }
 
-
-
 .about-header{
-    background-image: linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url(../src/assets/images/about.jpg);
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-
+  background-image: linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url(../src/assets/images/about.jpg);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
-.swiper-button-next,.swiper-button-prev {
-  background-color: white;
+/* ------------------------------------------------------------------ */
+/* SWIPER BUTTONS (Clean Minimal Style) */
+/* ------------------------------------------------------------------ */
+.swiper-button-next, .swiper-button-prev {
+  background: transparent !important;
+  box-shadow: none !important;
   width: 40px !important;
   height: 40px !important;
   border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
-.swiper-button-next::after,.swiper-button-prev::after {
+.swiper-button-next::after, .swiper-button-prev::after {
   font-size: 22px !important; 
-  color: #4b5563;
+  color: #f92121 !important;
   position: absolute;
   left: 15px !important;
   font-weight: 600 !important;
 }
+
+/* ------------------------------------------------------------------ */
+/* REACT MULTI CAROUSEL BUTTONS (Clean Minimal Style) */
+/* ------------------------------------------------------------------ */
+.carousel-container .react-multi-carousel-arrow {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.carousel-container .react-multi-carousel-arrow:hover {
+  background: rgba(205, 205, 205, 0.05) !important;
+  box-shadow: none !important;
+}
+
+/* ------------------------------------------------------------------ */
+
 .swiper{
   overflow: visible !important;
 }
-.related-item{
-    box-shadow: 0px 0px 6px 0px #4F5F781A !important;
-}
 
+.related-item{
+  box-shadow: 0px 0px 6px 0px #4F5F781A !important;
+}
 
 /* Animation classes for sidebar */
 .fade-in {
@@ -115,12 +159,8 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .slide-in-right {
@@ -128,15 +168,10 @@
 }
 
 @keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 
-/* Optional: Add some responsive padding */
 @media (max-width: 640px) {
   .container {
     padding-left: 0.75rem;

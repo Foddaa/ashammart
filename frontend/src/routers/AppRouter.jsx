@@ -3,7 +3,7 @@ import { RouterProvider, createBrowserRouter, useNavigate } from "react-router-d
 import { ToastContainer } from "react-toastify";
 import { Suspense } from "react";
 
-import { UserContext } from "@/Context/AuthContext";
+import { UserContext } from "@/context/AuthContext";
 import SkeletonLoader from "@/components/skeletonLoading/SkeletonLoader";
 import ScrollToTop from "@/components/ScrollToTop";
 import "react-toastify/dist/ReactToastify.css";

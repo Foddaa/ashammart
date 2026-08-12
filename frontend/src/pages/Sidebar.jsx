@@ -1,21 +1,23 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
+import api from "@/api/axiosInstance";
 
 export default function Sidebar({ selectedCategories, setSelectedCategories, onClose }) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/category/all`);
+        const response = await api.get("/api/category/all");
         const categoriesData = Array.isArray(response.data) ? response.data : [];
         setCategories(categoriesData);
       } catch (err) {
         console.error("Failed to fetch categories:", err);
-        setError("فشل تحميل التصنيفات. حاول مرة أخرى لاحقًا.");
+        setError("Failed to load categories. Try again later.");
       } finally {
         setLoading(false);
       }
@@ -29,6 +31,12 @@ export default function Sidebar({ selectedCategories, setSelectedCategories, onC
     } else {
       setSelectedCategories([value]);
     }
+
+    // Navigate to the shop page so the selection actually shows results
+    if (location.pathname !== "/shop") {
+      navigate("/shop");
+    }
+
     // Close sidebar on mobile after selection
     if (onClose && window.innerWidth < 1024) {
       onClose();
@@ -36,38 +44,42 @@ export default function Sidebar({ selectedCategories, setSelectedCategories, onC
   };
 
   return (
-    <div dir="rtl" className="bg-white rounded-2xl shadow-lg w-full text-right overflow-hidden">
-      {/* Header */}
-      <div className="px-5 py-4 border-b border-gray-100">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-800">تصنيفات المنتجات</h2>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="lg:hidden text-gray-400 hover:text-gray-600 text-2xl transition"
-            >
-              ×
-            </button>
-          )}
-        </div>
+    <div dir="ltr" className="bg-white border border-neutral-200 w-full">
+      
+      {/* Minimal Header */}
+      <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
+        <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-medium">
+          Product Categories
+        </span>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="lg:hidden text-neutral-400 hover:text-neutral-900 transition-colors p-1"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Content area */}
-      <div className="py-2">
+      <div className="py-1">
         {loading ? (
-          <div className="px-5 space-y-3">
+          <div className="px-5 space-y-4 py-4">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="h-5 bg-gray-200 rounded w-full"></div>
+                <div className="h-5 bg-neutral-100 border border-neutral-200 w-full"></div>
               </div>
             ))}
           </div>
         ) : error ? (
-          <p className="text-red-500 text-sm text-center p-5">{error}</p>
+          <p className="text-neutral-500 text-sm text-center p-5 tracking-wide">{error}</p>
         ) : (
           <>
             {(!Array.isArray(categories) || categories.length === 0) && (
-              <p className="text-gray-500 text-sm text-center p-5">لا توجد تصنيفات.</p>
+              <p className="text-neutral-400 text-xs tracking-wider text-center p-5 uppercase">No categories found.</p>
             )}
             {Array.isArray(categories) && categories.length > 0 && (
               <ul>
@@ -77,24 +89,26 @@ export default function Sidebar({ selectedCategories, setSelectedCategories, onC
                     <li key={category.id}>
                       <button
                         onClick={() => handleCategoryClick(category.id)}
-                        className={`w-full flex justify-between items-center px-5 py-3 transition hover:bg-gray-50 ${
-                          isSelected ? "bg-blue-50 text-blue-700" : "text-gray-700"
+                        className={`w-full flex items-center justify-between px-5 py-3 transition-colors duration-200 text-sm border-l-2 ${
+                          isSelected
+                            ? "border-neutral-900 bg-neutral-100 text-neutral-900 font-medium"
+                            : "border-transparent text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50"
                         }`}
                       >
-                        <span className="font-medium">{category.name}</span>
-                        {/* Arrow pointing left (chevron-left) */}
+                        <span>{category.name}</span>
+                        {/* Minimal LTR chevron arrow */}
                         <svg
-                          className="w-5 h-5 text-gray-400"
+                          className={`w-4 h-4 transition-colors duration-200 ${
+                            isSelected ? "text-neutral-900" : "text-neutral-300"
+                          }`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 19l-7-7 7-7"
-                          />
+                          <path d="M9 18l6-6-6-6" />
                         </svg>
                       </button>
                     </li>
