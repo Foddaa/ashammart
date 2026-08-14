@@ -2,8 +2,7 @@ import Footer from "@/components/shared/Footer";
 import { Outlet, useLocation } from "react-router-dom";
 import GlobalSidebar from "@/components/shared/GlobalSidebar";
 import ScrollToTop from "@/components/ScrollToTop"; 
-import HeaderSection from "@/components/HeaderComponents/HeaderSection1";
-import FloatingWhatsApp from "@/components/shared/FloatingWhatsApp";
+import HeaderSection from "@/components/HeaderComponents/HeaderSection";
 import { CategorySidebarProvider } from "@/context/CategorySidebarContext";
 
 export default function MainLayout() {
@@ -20,7 +19,7 @@ export default function MainLayout() {
         <GlobalSidebar />
         <section>
           <Outlet />
-          <FloatingWhatsApp />
+          {/* <FloatingWhatsApp /> */}
         </section>
         {!hideFooter && <Footer />}
       </main>

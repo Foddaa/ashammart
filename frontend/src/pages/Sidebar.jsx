@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import api from "@/api/axiosInstance";
+import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function Sidebar({ selectedCategories, setSelectedCategories, onClose }) {
   const [categories, setCategories] = useState([]);
@@ -8,11 +10,12 @@ export default function Sidebar({ selectedCategories, setSelectedCategories, onC
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const [, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await api.get("/api/category/all");
+        const response = await axios.get(`${BASE_URL}/api/category/all`);
         const categoriesData = Array.isArray(response.data) ? response.data : [];
         setCategories(categoriesData);
       } catch (err) {
@@ -31,6 +34,11 @@ export default function Sidebar({ selectedCategories, setSelectedCategories, onC
     } else {
       setSelectedCategories([value]);
     }
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.delete("search");
+      return params;
+    });
 
     // Navigate to the shop page so the selection actually shows results
     if (location.pathname !== "/shop") {

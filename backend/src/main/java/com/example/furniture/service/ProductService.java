@@ -311,13 +311,74 @@ public class ProductService {
     }
 
     @Transactional
-    public List<Product> getBestSellers() {
-        List<Product> products = productRepository.findTop8ByQuantitySailed();
-        for (Product p : products) {
-            Set<Rating> ratings = ratingRepository.findByProductId(p.getId());
-            p.getRatings().addAll(ratings);
-        }
-        return products;
+    public PagedResponse<ProductDTO> getBestSellers(int page, int limit) {
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+        Page<Long> idPage = productRepository.findBestSellersIds(pageable);
+        List<Long> ids = idPage.getContent();
+        List<Product> products = ids.isEmpty()
+                ? List.of()
+                : productRepository.findByIdsWithImagesAndRatings(ids);
+        Map<Long, Product> byId = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        List<ProductDTO> result = ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(ProductDTO::new)
+                .toList();
+
+        logger.debug("Returning {} of {} total products (page {} of {})",
+                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
+
+        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
+    }
+
+    @Transactional
+    public PagedResponse<ProductDTO> getNewArrivals(int page, int limit){
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+        Page<Long> idPage = productRepository.findNewArrivalIds(pageable);
+
+        List<Long> ids = idPage.getContent();
+        List<Product> products = ids.isEmpty()
+                ? List.of()
+                : productRepository.findByIdsWithImagesAndRatings(ids);
+
+        Map<Long, Product> byId = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        List<ProductDTO> result = ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(ProductDTO::new)
+                .toList();
+
+        logger.debug("Returning {} of {} total products (page {} of {})",
+                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
+
+        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
+    }
+
+    @Transactional
+    public PagedResponse<ProductDTO> getMostRated(int page, int limit) {
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+        Page<Long> idPage = productRepository.findMostRatedIds(pageable);
+
+        List<Long> ids = idPage.getContent();
+        List<Product> products = ids.isEmpty()
+                ? List.of()
+                : productRepository.findByIdsWithImagesAndRatings(ids);
+
+        Map<Long, Product> byId = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+
+        List<ProductDTO> result = ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(ProductDTO::new)
+                .toList();
+
+        logger.debug("Returning {} of {} total products (page {} of {})",
+                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
+
+        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
     }
 
     @Transactional
@@ -329,22 +390,7 @@ public class ProductService {
         }
         return products;
     }
-    @Transactional
-    public List<Product> getMostRated() {
-        Map<Long, Product> products = new HashMap<>();
-        List<Rating> ratings = ratingRepository.findAll();
-        Product product;
-        for (Rating r : ratings) {
-            if (products.containsKey(r.getProduct().getId())) {
-                product = products.get(r.getProduct().getId());
-            } else {
-                product = productRepository.findByIdWithImages(r.getProduct().getId()).get();
-            }
-            product.getRatings().add(r);
-            products.put(product.getId(), product);
-        }
-        return products.values().stream().toList();
-    }
+
     @Transactional
     public List<ProductDTO> findAllByIdList(List<Long> ids) {
         List<ProductDTO> products = new ArrayList<>();

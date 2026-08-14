@@ -28,34 +28,14 @@ public class ClientController {
         return "success";
     }
 
-
-    @PostMapping("/confirmOrder")
-    public ResponseEntity<?> confirmOrder(@RequestBody ConfirmOrderRequest request) {
-        try {
-            return orderService.confirmOrder(request);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @PostMapping("/addReview")
-    public ResponseEntity<?> addReview(@RequestParam("productId") Long productId,
-                                       @RequestParam("stars") int stars,
-                                       @RequestParam("comment") String comment,
-                                       @RequestParam(value = "images", required = false) List<MultipartFile> images,
-                                       @RequestParam(value = "name", required = true) String name,
-                                       @RequestParam(value = "phone", required = true) String phone,
-                                       @RequestParam(value = "email", required = false) String email
-    ) throws IOException {
-        return clientService.addReview(productId, stars, comment, images, name, phone, email);
-    }
-
     @GetMapping("/getProfile")
     public ResponseEntity<?> getProfile(@RequestHeader("Authorization") String authHeader) {
         String email = jwtUtil.extractEmail(authHeader.substring(7));
         ClientDTO client = clientService.getProfile(email);
         return ResponseEntity.ok(client);
     }
+
+
 
 //    @PutMapping("/updateClient")
 //    public ResponseEntity<?> updateClient(@RequestBody ClientDTO client, @RequestHeader("Authorization") String authHeader) {

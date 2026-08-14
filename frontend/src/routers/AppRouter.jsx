@@ -45,7 +45,7 @@ import UpdateImages from "@/admin/UpdateImages";
 import RealLifePhotos from "@/pages/RealLifePhotos";
 import AddRealLifePhoto from "@/admin/AddRealLifePhoto";
 import RealLifePhotoList from "@/admin/RealLifePhotoList";
-
+import Favorites from "@/pages/Favorites";
 
 const router = createBrowserRouter([
   {
@@ -73,6 +73,7 @@ const router = createBrowserRouter([
       { path:'/paymentMethods' ,element:<PaymentMethods/>},
       { path:"/profile" ,element:<UserProfilePage /> },
       { path:"/realLifePhotos" ,element:<RealLifePhotos /> },
+      { path:"/favorites" ,element:<Favorites /> },
 
 
 

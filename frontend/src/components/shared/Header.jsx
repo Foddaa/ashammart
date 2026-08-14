@@ -1,12 +1,10 @@
-import HeaderSection1 from '../HeaderComponents/HeaderSection1'
-import HeaderSection2 from '../HeaderComponents/HeaderSection2'
+import HeaderSection from '../HeaderComponents/HeaderSection'
 
 export default function Header() {
   return (
     <section >
       <div className='bg-white flex flex-col border-b border-[var(--color-border-gray)] max-length-[1200px] '>
-        <HeaderSection1 />
-        {/* <HeaderSection2 /> */}
+        <HeaderSection />
       </div>
     </section>
   )

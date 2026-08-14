@@ -1,19 +1,27 @@
 import { useState, useEffect, useContext } from "react";
 import { useCategorySidebar } from "@/context/CategorySidebarContext";
+import SearchOverlay from './SearchOverlay';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from "@/context/AuthContext";
 import { getCartItemCount } from "@/components/shared/cartService";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export default function HeaderSection1() {
-  const { toggleSidebar } = useCategorySidebar();  const navigate = useNavigate();
+export default function HeaderSection() {
+  const { toggleSidebar } = useCategorySidebar();
+  const navigate = useNavigate();
   const location = useLocation();
-  const [searchTerm, setSearchTerm] = useState("");
   const [logoUrl, setLogoUrl] = useState(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // 🛒 Native Cart State
   const [itemCount, setItemCount] = useState(0);
+
+  // Lock body scroll while the search overlay is open
+  useEffect(() => {
+    document.body.style.overflow = isSearchOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [isSearchOpen]);
 
   // Get authentication state
   const { Token, role, logout } = useContext(UserContext);
@@ -45,7 +53,7 @@ export default function HeaderSection1() {
     };
   }, []);
 
-  // 🛒 Cart Count Logic (Moved into Header)
+  // 🛒 Cart Count Logic
   const updateCartCount = () => {
     const count = getCartItemCount();
     setItemCount(count);
@@ -63,21 +71,6 @@ export default function HeaderSection1() {
 
   const navigateToCart = () => navigate('/Cart');
 
-  const submitSearch = () => {
-    if (searchTerm.trim()) {
-      navigate(`/shop?search=${encodeURIComponent(searchTerm.trim())}`);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") submitSearch();
-  };
-
-  // Function to toggle sidebar when on shop page
-   const handleCategoriesClick = () => {
-    toggleSidebar(); // ✅ Just toggle it! No navigate needed!
-  };
-
   // Handle logout
   const handleLogout = async () => {
     await logout();
@@ -87,7 +80,7 @@ export default function HeaderSection1() {
   // If admin/executive, render simplified header (white bg, black content)
   if (isAdminOrExecutive) {
     return (
-      <header className="w-full bg-white border-b border-black/10 text-black">
+      <header className="w-full bg-white border-b border-black/10 text-black sticky top-0 z-50">
         <div className="container mx-auto px-4 md:px-6 flex items-center justify-between h-[80px]">
           {/* Logo */}
           <Link to="/" className="flex items-center shrink-0">
@@ -112,15 +105,15 @@ export default function HeaderSection1() {
 
   // Default header for non‑admin users (white bg, black content)
   return (
-    <header className="w-full bg-white border-b border-black/10 text-black" dir="ltr">
+    <header className="w-full bg-white border-b border-black/10 text-black sticky top-0 z-50" dir="ltr">
       <div className="container mx-auto px-4 md:px-6 flex items-center justify-between h-[80px]">
 
         {/* Left Group: Hamburger Menu + Logo */}
         <div className="flex items-center gap-4 md:gap-6">
 
-          {/* Hamburger */}
+          {/* Hamburger - Uses toggleSidebar from Global Context */}
           <button
-            onClick={handleCategoriesClick}
+            onClick={toggleSidebar}
             className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200 rounded-none"
             aria-label="Open Menu"
           >
@@ -140,7 +133,7 @@ export default function HeaderSection1() {
             </svg>
           </button>
 
-          {/* Logo — cropped tight to the wordmark, so height-based sizing centers correctly */}
+          {/* Logo — cropped tight to the wordmark */}
           <Link to="/" className="flex items-center shrink-0">
             <img
               src={logoUrl || "/dodo-logo.png"}
@@ -175,9 +168,9 @@ export default function HeaderSection1() {
             </svg>
           </Link>
 
-          {/* 2. Search */}
+          {/* 2. Search - Opens SearchOverlay */}
           <button
-            onClick={submitSearch}
+            onClick={() => setIsSearchOpen(true)}
             className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200"
             aria-label="Search"
           >
@@ -196,7 +189,7 @@ export default function HeaderSection1() {
             </svg>
           </button>
 
-          {/* 3. Favorites (Heart) with Badge - 🎯 Conditionally routed */}
+          {/* 3. Favorites (Heart) with Badge */}
           <div className="relative">
             <Link
               to={Token ? "/favorites" : "/login"}
@@ -217,13 +210,12 @@ export default function HeaderSection1() {
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
               </svg>
             </Link>
-            {/* Badge number - border matches white background so it cuts out cleanly */}
             <span className="absolute -top-0.5 -right-0.5 bg-[#d56532] text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white">
               1
             </span>
           </div>
 
-          {/* 4. Cart Widget (Native Icon, Not using CartWidget component SVG) */}
+          {/* 4. Cart Widget (Native Icon) */}
           <div className="relative">
             <button
               onClick={navigateToCart}
@@ -246,7 +238,6 @@ export default function HeaderSection1() {
               </svg>
             </button>
             
-            {/* Cart Badge - styling matches Favorites badge */}
             {itemCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 bg-[#d56532] text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white">
                 {itemCount > 99 ? '99+' : itemCount}
@@ -256,6 +247,9 @@ export default function HeaderSection1() {
 
         </div>
       </div>
+
+      {/* Search Overlay - Rendered outside the header flex container */}
+      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }

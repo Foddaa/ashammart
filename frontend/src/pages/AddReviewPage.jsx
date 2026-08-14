@@ -54,7 +54,7 @@ export default function AddReviewPage() {
 
     try {
       // ✅ using api.post (form-data automatically handled by axios)
-      const res = await api.post("/api/client/addReview", formData);
+      const res = await api.post("/api/guest/addReview", formData);
 
       // Since api interceptors return actual data, we check if status is 200 or similar.
       // If successful, usually res.data returns a success string.

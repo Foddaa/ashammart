@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import Pagination from "@mui/material/Pagination";
 import ProductCard from "@/components/shared/ProductCard";
-import { useCategorySidebar } from "@/context/CategorySidebarContext"; // ✅ Import global context
+import { useCategorySidebar } from "@/context/CategorySidebarContext";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const ITEMS_PER_PAGE = 10;
@@ -13,9 +13,9 @@ export default function Shop() {
   const [searchParams] = useSearchParams();
   const isFastDelivery = categoryId === "fast-delivery";
   const searchTerm = (searchParams.get("search") || "").toLowerCase();
+  const section = searchParams.get("section") || null; // new-arrivals, most-rated, best-sellers
 
-  // ✅ Get the global selected categories
-  const { selectedCategories } = useCategorySidebar();
+  const { selectedCategories, setSelectedCategories } = useCategorySidebar();
 
   const [products, setProducts] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -23,17 +23,31 @@ export default function Shop() {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Handle categoryId from URL
-  useEffect(() => {
-    // No sidebar logic here anymore. 
-    // If you want URL `/shop/1` to pre-select a category, 
-    // you can call setSelectedCategories from the context here.
-  }, [categoryId]);
-
-  // Reset page on filter change
+  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, categoryId, selectedCategories]);
+  }, [searchTerm, categoryId, selectedCategories, section]);
+
+  // Clear categories when a section is active
+  useEffect(() => {
+    if (section && selectedCategories.length > 0) {
+      setSelectedCategories([]);
+    }
+  }, [section, selectedCategories, setSelectedCategories]);
+
+  // Clear search term when a section is active? Not necessary – search overrides section.
+
+  // Clear categories when search term is present
+  useEffect(() => {
+    if (searchTerm && selectedCategories.length > 0) {
+      setSelectedCategories([]);
+    }
+  }, [searchTerm, selectedCategories, setSelectedCategories]);
+
+  // Reset category selection on unmount
+  useEffect(() => {
+    return () => setSelectedCategories([]);
+  }, [setSelectedCategories]);
 
   // Fetch products
   useEffect(() => {
@@ -49,10 +63,18 @@ export default function Shop() {
         if (searchTerm) params.set("search", searchTerm);
 
         let url;
-        if (categoryId === "fast-delivery") {
+        if (searchTerm) {
+          url = `${BASE_URL}/api/product/all?${params.toString()}`;
+        } else if (section === "new-arrivals") {
+          url = `${BASE_URL}/api/product/newArrivals?${params.toString()}`;
+        } else if (section === "most-rated") {
+          url = `${BASE_URL}/api/product/mostRated?${params.toString()}`;
+        } else if (section === "best-sellers") {
+          url = `${BASE_URL}/api/product/bestSellers?${params.toString()}`;
+        } else if (categoryId === "fast-delivery") {
           url = `${BASE_URL}/api/product/fastDelivery?${params.toString()}`;
         } else if (selectedCategories.length > 0) {
-          params.set("categoryId", selectedCategories[0]); // backend expects a single Long, not a list
+          params.set("categoryId", selectedCategories[0]);
           url = `${BASE_URL}/api/product/byCategory?${params.toString()}`;
         } else {
           url = `${BASE_URL}/api/product/all?${params.toString()}`;
@@ -81,13 +103,11 @@ export default function Shop() {
     };
 
     fetchProducts();
-  }, [selectedCategories, categoryId, currentPage, searchTerm]);
+  }, [selectedCategories, categoryId, currentPage, searchTerm, section]);
 
   return (
     <div className="container mx-auto p-4" dir="ltr">
       <div className="flex flex-col lg:flex-row lg:gap-6">
-        {/* ✅ Sidebar removed completely from here. It's handled globally now! */}
-
         <div className="w-full">
           {loading ? (
             <p className="text-center text-neutral-500 text-sm tracking-wide uppercase py-10">Loading...</p>
@@ -110,13 +130,11 @@ export default function Shop() {
                   "<span className="text-neutral-900">{searchTerm}</span>"
                 </div>
               )}
-
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-
               <div className="flex justify-center mt-8">
                 <Pagination
                   count={totalPages}
@@ -131,10 +149,7 @@ export default function Shop() {
                     '& .MuiPaginationItem-root': {
                       color: '#333',
                       border: 'none',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                        color: '#555',
-                      },
+                      '&:hover': { backgroundColor: 'transparent', color: '#555' },
                     },
                     '& .MuiPaginationItem-root.Mui-selected': {
                       backgroundColor: 'transparent',
@@ -142,11 +157,7 @@ export default function Shop() {
                       borderRadius: '0',
                       color: '#1a1a1a',
                       fontWeight: 500,
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                        borderBottomColor: '#1a1a1a',
-                        color: '#1a1a1a',
-                      },
+                      '&:hover': { backgroundColor: 'transparent', borderBottomColor: '#1a1a1a', color: '#1a1a1a' },
                     },
                   }}
                 />

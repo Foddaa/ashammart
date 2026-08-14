@@ -58,6 +58,7 @@ export default function Register() {
             password: '',
             confirmPassword: '',
             phone: '',
+            role: "USER",
         },
         validationSchema,
         onSubmit: handleRegister,

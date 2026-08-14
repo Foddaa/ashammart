@@ -105,7 +105,7 @@ export default function OrderReview() {
 
     try {
       const res = await api.post(
-        "/api/client/confirmOrder",
+        "/api/guest/confirmOrder",
         {
           firstName,
           lastName,

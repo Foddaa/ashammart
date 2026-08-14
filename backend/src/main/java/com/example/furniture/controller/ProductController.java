@@ -5,6 +5,7 @@ import com.example.furniture.inputDTO.response.PagedResponse;
 import com.example.furniture.model.Product;
 import com.example.furniture.repository.CategoryRepository;
 import com.example.furniture.repository.SupplierRepository;
+import com.example.furniture.service.ClientService;
 import com.example.furniture.service.ProductService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -30,6 +32,9 @@ public class ProductController {
 
     @Autowired
     SupplierRepository supplierRepository;
+
+    @Autowired
+    ClientService clientService;
 
     @GetMapping("/all")
     public PagedResponse<ProductDTO> getAllProducts(
@@ -58,26 +63,34 @@ public class ProductController {
     public List<Product> searchProductsContaining(@RequestParam String search) {
         return productService.getProductsContaining(search);
     }
-    @GetMapping("/bestSellers")
-    public List<ProductDTO> getBestSellers(){
-        List<Product> products = productService.getBestSellers();
-        return products.stream().map(ProductDTO::toDto)
-                .collect(Collectors.toList());
-    }
 
     @GetMapping("/byId")
     public ResponseEntity<?> getById(@RequestParam Long id){
         ProductDTO product=productService.getProduct(id);
         return ResponseEntity.ok(product);
     }
+
+    @GetMapping("/bestSellers")
+    public PagedResponse<ProductDTO> getBestSellers(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ){
+        return productService.getBestSellers(page, limit);
+    }
     @GetMapping("/mostRated")
-    public List<ProductDTO> getMostRated(){
-        List<Product> products = productService.getMostRated();
-        List<ProductDTO> res=products.stream().map(ProductDTO::toDto)
-                .sorted(Comparator.comparingDouble(ProductDTO::getAverageRating).reversed())
-                .limit(8)
-                .collect(Collectors.toList());
-        return res;
+    public  PagedResponse<ProductDTO> getMostRated(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ){
+        return productService.getMostRated(page, limit);
+    }
+
+    @GetMapping("/newArrivals")
+    public PagedResponse<ProductDTO> getMostViewed(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit
+    ){
+        return productService.getNewArrivals(page, limit);
     }
     @PostMapping("/by-ids")
     public List<ProductDTO> getProductsByIds(@RequestBody List<Long> idList) {
@@ -91,8 +104,6 @@ public class ProductController {
         return products.stream().map(ProductDTO::toDto)
                 .collect(Collectors.toList());
     }
-
-
 
 }
 

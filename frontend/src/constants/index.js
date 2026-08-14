@@ -96,32 +96,6 @@ tablet: {
   },
 };
 
-export const VerticalBorder = [
-    {
-      name: "Beverages",
-    },
-    {
-      name: "Biscuits & Snacks",
-    },
-    {
-      name: "Breads & Bakery",
-    },
-    {
-      name: "Breakfast & Dairy",
-    },
-    {
-      name: "Frozen Foods",
-    },
-    {
-      name: "Grocery & Staples",
-    },
-    {
-      name: "Household Needs",
-    },
-    {
-      name: "Meats & Seafood",
-    },
-  ];
 
 
 // Footer section

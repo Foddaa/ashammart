@@ -59,8 +59,41 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
             "   AND p.status != 'DELETED'")
     List<Product> searchProductsByNameOrDescription(@Param("search") String search);
 
-    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.status != 'DELETED' ORDER BY p.quantitySailed DESC LIMIT 8")
-    List<Product> findTop8ByQuantitySailed();
+    @Query(
+            value = "SELECT p.id FROM Product p WHERE p.status != 'DELETED' ORDER BY p.quantitySailed DESC",
+            countQuery = "SELECT COUNT(p.id) FROM Product p WHERE p.status != 'DELETED'"
+    )
+    Page<Long> findBestSellersIds(Pageable pageable);
+
+    @Query(
+            value = """
+        SELECT p.id
+        FROM Product p
+        WHERE p.status <> 'DELETED'
+        ORDER BY p.id DESC
+        """,
+            countQuery = """
+        SELECT COUNT(p.id)
+        FROM Product p
+        WHERE p.status <> 'DELETED'
+        """
+    )
+    Page<Long> findNewArrivalIds(Pageable pageable);
+
+    @Query(
+            value = """
+        SELECT p.id FROM Product p
+        WHERE p.status != 'DELETED'
+          AND (SELECT AVG(r.stars) FROM Rating r WHERE r.product = p) IS NOT NULL
+        ORDER BY (SELECT AVG(r.stars) FROM Rating r WHERE r.product = p) DESC
+    """,
+            countQuery = """
+        SELECT COUNT(DISTINCT p.id) FROM Product p
+        WHERE p.status != 'DELETED'
+          AND (SELECT AVG(r.stars) FROM Rating r WHERE r.product = p) IS NOT NULL
+    """
+    )
+    Page<Long> findMostRatedIds(Pageable pageable);
 
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.fastDelivery = true AND p.status != 'DELETED'")
     List<Product> findFastDelivery();
@@ -104,4 +137,15 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     @Modifying
     @Query("UPDATE Product p SET p.status = :status WHERE p.id = :id")
     int updateStatus(@Param("id") Long id, @Param("status") String status);
+
+    @Query("""
+        SELECT DISTINCT p FROM Product p
+        LEFT JOIN FETCH p.images
+        WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))
+        OR LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%'))
+        ORDER BY
+            CASE WHEN LOWER(p.name) LIKE LOWER(CONCAT(:query, '%')) THEN 0 ELSE 1 END,
+            p.name ASC
+    """)
+    List<Product> searchByNameContaining(@Param("query") String query, Pageable pageable);
 }

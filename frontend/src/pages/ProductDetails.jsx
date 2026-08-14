@@ -10,6 +10,7 @@ import ImageGallery from "@/components/ProductDetails/ImageGallery";
 import QuantityControls from "@/components/ProductDetails/QuantityControls";
 import RelatedProductsSlider from "@/components/ProductDetails/RelatedProductsSlider";
 import { addToCart } from "@/components/shared/cartService";
+import { addFavorite, removeFavorite, checkFavorite } from "@/services/favoriteService";
 import {
   getDiscountPercentage,
 } from "@/utils/productDisplay";
@@ -41,7 +42,6 @@ export default function ProductDetails() {
   const { Token: contextToken, setToken } = useContext(UserContext);
   const { id } = useParams();
   const passedProductId = id || null;
-
 
   // --- Mock Data for Colors and Sizes (To match screenshot) ---
   const mockColors = [
@@ -79,6 +79,9 @@ export default function ProductDetails() {
   const hasAddedToCart = useRef(false);
   const discount = getDiscountPercentage(product);
 
+  // ✅ Favorite state
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavoriteSaving, setIsFavoriteSaving] = useState(false);
 
   // Fetch product
   useEffect(() => {
@@ -112,6 +115,28 @@ export default function ProductDetails() {
       setMainImage("");
     }
   }, [product]);
+
+  // ✅ Check favorite status once we have a product id and a token
+  useEffect(() => {
+    if (!product?.id || !contextToken) {
+      setIsFavorite(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    checkFavorite(product.id)
+      .then((res) => {
+        if (!cancelled) setIsFavorite(res.data);
+      })
+      .catch((err) => {
+        console.error("Failed to check favorite status:", err);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product?.id, contextToken]);
 
   // Auto add to cart & Fetch related
   useEffect(() => {
@@ -170,6 +195,41 @@ export default function ProductDetails() {
     toast.success("Redirecting to checkout...");
   };
 
+  // ✅ Toggle favorite
+  const handleToggleFavorite = async () => {
+    if (!contextToken) {
+      toast.info("Please log in to save favorites");
+      navigate("/login");
+      return;
+    }
+    if (!product || isFavoriteSaving) return;
+
+    const next = !isFavorite;
+    setIsFavorite(next); // optimistic
+    setIsFavoriteSaving(true);
+
+    try {
+      if (next) {
+        await addFavorite(product.id);
+        toast.success("Added to favorites");
+      } else {
+        await removeFavorite(product.id);
+        toast.success("Removed from favorites");
+      }
+    } catch (err) {
+      setIsFavorite(!next); // rollback
+      if (err.response?.status === 401) {
+        toast.info("Please log in to save favorites");
+        navigate("/login");
+      } else {
+        toast.error("Failed to update favorites");
+      }
+      console.error("Failed to toggle favorite:", err);
+    } finally {
+      setIsFavoriteSaving(false);
+    }
+  };
+
   // Loading skeleton
   if (loading)
     return (
@@ -215,15 +275,36 @@ export default function ProductDetails() {
 
           {/* Right: Product info - Upgraded to match Screenshot */}
           <div className="flex flex-col space-y-6 text-left">
-            
+
             {/* Brand & Title */}
-            <div>
-              <p className="text-xs uppercase tracking-widest text-neutral-500 mb-1">
-                {product.supplierCode}
-              </p>
-              <h1 className="text-3xl md:text-4xl font-normal tracking-tight leading-tight text-neutral-900">
-                {product.title || product.name}
-              </h1>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-neutral-500 mb-1">
+                  {product.supplierCode}
+                </p>
+                <h1 className="text-3xl md:text-4xl font-normal tracking-tight leading-tight text-neutral-900">
+                  {product.title || product.name}
+                </h1>
+              </div>
+
+              {/* ✅ Favorite Heart Button */}
+              <button
+                onClick={handleToggleFavorite}
+                disabled={isFavoriteSaving}
+                className="shrink-0 w-11 h-11 flex items-center justify-center border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50"
+                aria-label="Toggle favorite"
+                aria-pressed={isFavorite}
+              >
+                {isFavorite ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="#000000" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                ) : (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                )}
+              </button>
             </div>
 
             {/* Ratings & Sold Count */}
@@ -249,7 +330,7 @@ export default function ProductDetails() {
             {/* Price */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl font-normal text-neutral-900 tracking-tight">
-                ${product.price}
+                EGP {product.price}
               </span>
               {product.canceledPrice && (
                 <span className="text-sm text-neutral-400 line-through">
@@ -285,7 +366,6 @@ export default function ProductDetails() {
                     className="w-8 h-8 rounded-[4px] border border-neutral-300 hover:border-black transition-colors flex items-center justify-center"
                     style={{ backgroundColor: c.hex }}
                   >
-                    {/* For the "selected" brown color, simulate the tick or outline if needed */}
                     {c.name === "Royal Brown" && (
                       <span className="w-full h-full border-[2px] border-black rounded-[2px] bg-transparent"></span>
                     )}
@@ -333,18 +413,15 @@ export default function ProductDetails() {
               </div>
             </div>
 
-
             {/* Actions - Side-by-side buttons matching the image's style */}
             <div className="flex flex-row gap-4 pt-2">
-              {/* Add To Cart - Solid Black */}
-                    <button
-                      onClick={handleAddToCart}
-                      className="flex-1 py-4 bg-black text-white hover:bg-neutral-900 transition-colors duration-200 flex items-center justify-center gap-2 text-[15px] font-normal"
-                    >
-                      Add To Cart
-                    </button>
-              
-              {/* Buy Now / Checkout - White with Black Border */}
+              <button
+                onClick={handleAddToCart}
+                className="flex-1 py-4 bg-black text-white hover:bg-neutral-900 transition-colors duration-200 flex items-center justify-center gap-2 text-[15px] font-normal"
+              >
+                Add To Cart
+              </button>
+
               <button
                 onClick={handleBuyNow}
                 className="flex-1 py-4 bg-white text-black border border-black hover:bg-neutral-50 transition-colors duration-200 flex items-center justify-center gap-2 text-[15px] font-normal"
