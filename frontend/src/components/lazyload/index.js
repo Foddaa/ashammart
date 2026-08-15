@@ -7,9 +7,6 @@ export const Home = lazy(()=> import ('@pages/Home'));
 export const Shop = lazy(()=> import ('@pages/Shop'));
 
 
-export const  SearchResults = lazy(()=> import ('@pages/SearchResults'));
-
-
 export const Cart = lazy(()=> import ('@pages/Cart'));
 
 

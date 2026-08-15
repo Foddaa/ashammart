@@ -8,7 +8,7 @@ import SkeletonLoader from "@/components/skeletonLoading/SkeletonLoader";
 import ScrollToTop from "@/components/ScrollToTop";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  Home, Shop, SearchResults, Cart, Checkout, ProductDetails
+  Home, Shop, Cart, Checkout, ProductDetails
 } from "@components/lazyload/index";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 import AboutUs from "@/pages/AboutUs";
@@ -61,7 +61,6 @@ const router = createBrowserRouter([
       { path: 'shop', element: <Shop /> },
       { path: 'shop/:categoryId', element: <Shop /> },
       { path: 'product/:id', element: <ProductDetails /> },
-      { path: 'search', element: <SearchResults /> },
       { path: 'cart', element: <Cart /> },
       { path:'/review-order' ,element:<OrderReview />},
       { path:'/addReview/:id' ,element:<AddReviewPage />},
@@ -146,7 +145,15 @@ export default function AppRouter() {
    return (
      <Suspense fallback={<SkeletonLoader />}>
        <RouterProvider router={router} />
-       <ToastContainer position="top-right" autoClose={2000} />
+       <ToastContainer
+          className="custom-toast-container"
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar
+          closeOnClick
+          pauseOnHover
+          draggable
+        />
      </Suspense>
    );
  }

@@ -198,8 +198,7 @@ export default function ProductDetails() {
   // ✅ Toggle favorite
   const handleToggleFavorite = async () => {
     if (!contextToken) {
-      toast.info("Please log in to save favorites");
-      navigate("/login");
+      navigate("/login", { state: { from: `/product/${product.id}` } });
       return;
     }
     if (!product || isFavoriteSaving) return;
@@ -219,8 +218,7 @@ export default function ProductDetails() {
     } catch (err) {
       setIsFavorite(!next); // rollback
       if (err.response?.status === 401) {
-        toast.info("Please log in to save favorites");
-        navigate("/login");
+        navigate("/login", { state: { from: `/product/${product.id}` } });
       } else {
         toast.error("Failed to update favorites");
       }

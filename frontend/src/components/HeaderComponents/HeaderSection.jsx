@@ -149,7 +149,7 @@ export default function HeaderSection() {
           {/* 1. User Account */}
           <Link
             to={Token ? "/profile" : "/login"}
-            state={Token ? {} : { from: location.pathname }}
+            state={Token ? {} : { from: "/profile" }}
             className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200"
             aria-label={Token ? "Profile" : "Sign In"}
           >
@@ -193,7 +193,7 @@ export default function HeaderSection() {
           <div className="relative">
             <Link
               to={Token ? "/favorites" : "/login"}
-              state={Token ? {} : { from: location.pathname }}
+              state={Token ? {} : { from: "/favorites" }}
               className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200"
               aria-label={Token ? "Favorites" : "Sign in to view favorites"}
             >
@@ -210,9 +210,6 @@ export default function HeaderSection() {
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
               </svg>
             </Link>
-            <span className="absolute -top-0.5 -right-0.5 bg-[#d56532] text-white text-[9px] font-bold w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white">
-              1
-            </span>
           </div>
 
           {/* 4. Cart Widget (Native Icon) */}

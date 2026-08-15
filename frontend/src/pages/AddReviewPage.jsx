@@ -23,6 +23,7 @@ export default function AddReviewPage() {
   const [stars, setStars] = useState(0);
   const [images, setImages] = useState([]);
 
+
   const handleImageChange = (e) => {
     setImages(Array.from(e.target.files));
   };
@@ -175,7 +176,7 @@ export default function AddReviewPage() {
               Upload Images (Optional)
             </label>
             
-            <label className="cursor-pointer border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 transition-colors px-4 py-3 flex items-center justify-center gap-2 text-xs uppercase tracking-wider text-neutral-600 hover:border-neutral-900 hover:text-neutral-900">
+            <label htmlFor="file-upload" className="cursor-pointer border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 transition-colors px-4 py-3 flex items-center justify-center gap-2 text-xs uppercase tracking-wider text-neutral-600 hover:border-neutral-900 hover:text-neutral-900">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
@@ -189,6 +190,7 @@ export default function AddReviewPage() {
               multiple
               onChange={handleImageChange}
               className="hidden"
+              id="file-upload"          
             />
 
             {/* Image Previews */}
