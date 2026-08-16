@@ -63,9 +63,11 @@ function BestSellers() {
           <Carousel
             autoPlay
             responsive={responsive}
-            infinite={true}
+            infinite
             containerClass="carousel-container"
             itemClass="px-1"
+            showDots={false}
+            arrows={true}
           >
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />

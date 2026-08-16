@@ -1,5 +1,6 @@
 package com.example.furniture.controller;
 
+import com.example.furniture.ENUMS.SortOption;
 import com.example.furniture.inputDTO.ProductDTO;
 import com.example.furniture.inputDTO.response.PagedResponse;
 import com.example.furniture.model.Product;
@@ -105,5 +106,22 @@ public class ProductController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/unified")
+    public ResponseEntity<PagedResponse<ProductDTO>> searchProducts(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(defaultValue = "NEWEST") SortOption sort
+    ) {
+
+        return ResponseEntity.ok(productService.search(
+                page, limit, search, categoryIds, minPrice, maxPrice,
+                minRating, sort
+        ));
+    }
 }
 

@@ -1,4 +1,5 @@
 package com.example.furniture.service;
+import com.example.furniture.ENUMS.SortOption;
 import com.example.furniture.inputDTO.UpdatePricesRequest;
 import com.example.furniture.inputDTO.response.PagedResponse;
 import org.slf4j.Logger;
@@ -8,8 +9,9 @@ import com.example.furniture.model.Image;
 import com.example.furniture.model.Product;
 import com.example.furniture.model.Rating;
 import com.example.furniture.repository.*;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,69 +32,24 @@ import java.util.stream.Collectors;
 @Service
 public class ProductService {
 
-    @Autowired
-    ProductRepository productRepository;
-    @Autowired
-    CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final SupplierRepository supplierRepository;
+    private final ImageRepository imageRepository;
+    private final RatingRepository ratingRepository;
 
-    @Autowired
-    SupplierRepository supplierRepository;
-
-    @Autowired
-    ImageRepository imageRepository;
-    @Autowired
-    RatingRepository ratingRepository;
-    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
-
-    @Transactional
-    public ResponseEntity<?> deleteById(Long id) {
-        try {
-            logger.info("Deleting product with id: {}", id);
-            productRepository.updateStatus(id,"DELETED");
-            logger.info("Successfully deleted product with id: {}", id);
-            return ResponseEntity.ok("تم حذف المنتج");
-        } catch (Exception e) {
-            logger.error("Error while deleting product with id {}: {}", id, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "failed: " + e.getMessage()));
-        }
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, SupplierRepository supplierRepository, ImageRepository imageRepository, RatingRepository ratingRepository) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.supplierRepository = supplierRepository;
+        this.imageRepository = imageRepository;
+        this.ratingRepository = ratingRepository;
     }
-
+    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    @Transactional(readOnly = true)
-    public PagedResponse<ProductDTO> getAllProducts(int page, int limit, String search) {
-        logger.info("Fetching products page={} limit={} search={}", page, limit, search);
-
-        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
-        Page<Long> idPage = productRepository.findProductIds(search, pageable);
-
-        List<Long> ids = idPage.getContent();
-        List<Product> products = ids.isEmpty()
-                ? List.of()
-                : productRepository.findByIdsWithImagesAndRatings(ids);
-
-        Map<Long, Product> byId = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-        List<ProductDTO> result = ids.stream()
-                .map(byId::get)
-                .filter(Objects::nonNull)
-                .map(ProductDTO::new)
-                .toList();
-
-        logger.debug("Returning {} of {} total products (page {} of {})",
-                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
-
-        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
-    }
-
-    public void save(Product product) {
-        logger.info("Saving product: {}", product.getName());
-        productRepository.save(product);
-        logger.info("Product saved successfully: {}", product.getName());
-    }
-
+    // -------------------------<< admin CRUDs >>-------------------------
     public ResponseEntity<?> addProduct(Product product, MultipartFile[] files) {
         try {
             logger.info("Attempting to add new product: {}", product.getName());
@@ -181,47 +138,6 @@ public class ProductService {
         }
     }
 
-    @Transactional
-    public PagedResponse<ProductDTO> getByCategoryId(Long categoryId, int page, int limit, String search) {
-        logger.info("Fetching products by category ID: {}", categoryId);
-        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
-        Page<Long> idPage = productRepository.findProductByCategoryIds(categoryId ,search, pageable);
-
-        List<Long> ids = idPage.getContent();
-        List<Product> products = ids.isEmpty()
-                ? List.of()
-                : productRepository.findByIdsWithImagesAndRatings(ids);
-
-        Map<Long, Product> byId = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-        List<ProductDTO> result = ids.stream()
-                .map(byId::get)
-                .filter(Objects::nonNull)
-                .map(ProductDTO::new)
-                .toList();
-
-        logger.debug("Returning {} of {} total products (page {} of {})",
-                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
-
-        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
-    }
-
-    @Transactional
-    public ProductDTO getProduct(Long id) {
-        logger.info("Fetching product with ID: {}", id);
-        Optional<Product> optionalProduct = productRepository.findByIdWithImages(id);
-        if (optionalProduct.isEmpty()) {
-            logger.warn("Product not found with ID: {}", id);
-            return null;
-        }
-        Product product = optionalProduct.get();
-        logger.debug("Product fetched: {}", product.getName());
-        ProductDTO productDto = ProductDTO.withRatings(product);
-        logger.info("Returning product DTO for ID: {}", id);
-        return productDto;
-    }
-
-
     public ResponseEntity<?> updateProductById(Long id, String name, String code, String description,
                                                double price, double canceledPrice,
                                                Long categoryId, String supplierCode,
@@ -302,7 +218,119 @@ public class ProductService {
                     .body(Map.of("message", "حدث خطأ غير متوقع أثناء تحديث المنتج"));
         }
     }
+    @Transactional
+    public int updateAllPrices(UpdatePricesRequest request) {
+        logger.info("Starting bulk price update: type={}, value={}",
+                request.getUpdatePricesType(), request.getValue());
+        if (request.getValue() == 0) {
+            logger.warn("Bulk price update failed: value cannot be zero");
+            throw new IllegalArgumentException("value cannot be zero");
+        }
 
+        int updatedCount = switch (request.getUpdatePricesType()) {
+            case PERCENTAGE -> {
+                if (request.getValue()>100){
+                    logger.warn("Bulk price update failed: value cannot be greater than 100% and the passed value is {}",request.getValue());
+                    throw new IllegalArgumentException("value cannot be greater than 100%");
+                }
+                if (request.getValue()<-100){
+                    logger.warn("Bulk price update failed: discount cannot be less than -100% and the passed value is {}",request.getValue());
+                    throw new IllegalArgumentException("value cannot be less than 100%");
+                }
+                logger.debug("Applying percentage update: {}%", request.getValue());
+                yield productRepository.updatePricesByPercentage(request.getValue());
+            }
+            case FIXED -> {
+                logger.debug("Applying fixed update: {}", request.getValue());
+                yield productRepository.updatePricesByFixed(request.getValue());
+            }
+            default -> {
+                logger.error("Invalid update price type: {}", request.getUpdatePricesType());
+                throw new IllegalArgumentException("invalid change Prices Type");
+            }
+        };
+        logger.info("Bulk price update completed. Updated {} products", updatedCount);
+        return updatedCount;
+    }
+    @Transactional
+    public ResponseEntity<?> deleteById(Long id) {
+        try {
+            logger.info("Deleting product with id: {}", id);
+            productRepository.updateStatus(id,"DELETED");
+            logger.info("Successfully deleted product with id: {}", id);
+            return ResponseEntity.ok("تم حذف المنتج");
+        } catch (Exception e) {
+            logger.error("Error while deleting product with id {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "failed: " + e.getMessage()));
+        }
+    }
+
+    // ---------------------------<< General Queries >>---------------------------
+    @Transactional
+    public ProductDTO getProduct(Long id) {
+        logger.info("Fetching product with ID: {}", id);
+        Optional<Product> optionalProduct = productRepository.findByIdWithImages(id);
+        if (optionalProduct.isEmpty()) {
+            logger.warn("Product not found with ID: {}", id);
+            return null;
+        }
+        Product product = optionalProduct.get();
+        logger.debug("Product fetched: {}", product.getName());
+        ProductDTO productDto = ProductDTO.withRatings(product);
+        logger.info("Returning product DTO for ID: {}", id);
+        return productDto;
+    }
+    @Transactional(readOnly = true)
+    public PagedResponse<ProductDTO> getAllProducts(int page, int limit, String search) {
+        logger.info("Fetching products page={} limit={} search={}", page, limit, search);
+
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+        Page<Long> idPage = productRepository.findProductIds(search, pageable);
+
+        List<Long> ids = idPage.getContent();
+        List<Product> products = ids.isEmpty()
+                ? List.of()
+                : productRepository.findByIdsWithImagesAndRatings(ids);
+
+        Map<Long, Product> byId = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        List<ProductDTO> result = ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(ProductDTO::new)
+                .toList();
+
+        logger.debug("Returning {} of {} total products (page {} of {})",
+                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
+
+        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
+    }
+
+    @Transactional
+    public PagedResponse<ProductDTO> getByCategoryId(Long categoryId, int page, int limit, String search) {
+        logger.info("Fetching products by category ID: {}", categoryId);
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+        Page<Long> idPage = productRepository.findProductByCategoryIds(categoryId ,search, pageable);
+
+        List<Long> ids = idPage.getContent();
+        List<Product> products = ids.isEmpty()
+                ? List.of()
+                : productRepository.findByIdsWithImagesAndRatings(ids);
+
+        Map<Long, Product> byId = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+        List<ProductDTO> result = ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(ProductDTO::new)
+                .toList();
+
+        logger.debug("Returning {} of {} total products (page {} of {})",
+                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
+
+        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
+    }
 
     @Transactional
     public List<Product> getProductsContaining(String search) {
@@ -404,40 +432,63 @@ public class ProductService {
         return products;
     }
 
-    @Transactional
-    public int updateAllPrices(UpdatePricesRequest request) {
-        logger.info("Starting bulk price update: type={}, value={}",
-                request.getUpdatePricesType(), request.getValue());
-        if (request.getValue() == 0) {
-            logger.warn("Bulk price update failed: value cannot be zero");
-            throw new IllegalArgumentException("value cannot be zero");
+    // --------------------<< Unified Get List Query >>---------------------------------------------
+
+    public PagedResponse<ProductDTO> search(int page, int limit, String search,
+                                            List<Long> categoryIds, Double minPrice, Double maxPrice,
+                                            Double minRating, SortOption sortOption) {
+        logger.info("Searching for products: page={}, limit={}, search={}, categoryIds={}, minPrice={}, maxPrice={}, minRating={}, sortOption={}",
+                page, limit, search, categoryIds, minPrice, maxPrice, minRating, sortOption);
+
+        Specification<Product> spec = Specification
+                .where(ProductSpecifications.hasSearch(search))
+                .and(ProductSpecifications.inCategories(categoryIds))
+                .and(ProductSpecifications.priceBetween(minPrice, maxPrice))
+                .and(ProductSpecifications.minRating(minRating));
+
+        Page<Product> idPage;
+
+        if (sortOption == SortOption.MOST_RATED) {
+            // Handled by custom Criteria query that sorts by AVG(rating.stars) DESC
+            Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+            idPage = productRepository.findAllOrderByAverageRating(spec, pageable);
+        } else {
+            Sort sort = switch (sortOption) {
+                case PRICE_ASC     -> Sort.by("price").ascending();
+                case PRICE_DESC    -> Sort.by("price").descending();
+                case BEST_SELLERS  -> Sort.by("quantitySailed").descending();
+                case NEWEST        -> Sort.by("id").descending();
+                default            -> throw new IllegalStateException("Unexpected sort: " + sortOption);
+            };
+            Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit, sort);
+            idPage = productRepository.findAll(spec, pageable);
         }
 
-        int updatedCount = switch (request.getUpdatePricesType()) {
-            case PERCENTAGE -> {
-                if (request.getValue()>100){
-                    logger.warn("Bulk price update failed: value cannot be greater than 100% and the passed value is {}",request.getValue());
-                    throw new IllegalArgumentException("value cannot be greater than 100%");
-                }
-                if (request.getValue()<-100){
-                    logger.warn("Bulk price update failed: discount cannot be less than -100% and the passed value is {}",request.getValue());
-                    throw new IllegalArgumentException("value cannot be less than 100%");
-                }
-                logger.debug("Applying percentage update: {}%", request.getValue());
-                yield productRepository.updatePricesByPercentage(request.getValue());
-            }
-            case FIXED -> {
-                logger.debug("Applying fixed update: {}", request.getValue());
-                yield productRepository.updatePricesByFixed(request.getValue());
-            }
-            default -> {
-                logger.error("Invalid update price type: {}", request.getUpdatePricesType());
-                throw new IllegalArgumentException("invalid change Prices Type");
-            }
-        };
-        logger.info("Bulk price update completed. Updated {} products", updatedCount);
-        return updatedCount;
+        List<Long> ids = idPage.getContent().stream()
+                .map(Product::getId)
+                .toList();
+
+        List<Product> products = ids.isEmpty()
+                ? List.of()
+                : productRepository.findByIdsWithImagesAndRatings(ids);
+
+        Map<Long, Product> byId = products.stream()
+                .collect(Collectors.toMap(Product::getId, p -> p));
+
+        List<ProductDTO> result = ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .map(ProductDTO::new)
+                .toList();
+
+        logger.debug("Returning {} of {} total products (page {} of {})",
+                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
+
+        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
     }
+
+
+    // --------------------<< facebook feed functions >>---------------------------------------------
     private String sanitizeForXml(String input) {
         if (input == null) return "";
 

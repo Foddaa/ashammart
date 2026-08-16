@@ -11,7 +11,7 @@ import {
   Home, Shop, Cart, Checkout, ProductDetails
 } from "@components/lazyload/index";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ;
-import AboutUs from "@/pages/AboutUs";
+import AboutUs from "@/pages/info_pages/AboutUs";
 import Blog from "@/pages/Blog";
 import Contact from "@/pages/Contact";
 import Error from "@/pages/Error";
@@ -33,10 +33,10 @@ import SupplierList from "@/admin/SupplierList";
 import ExecutiveOrdersPage from "@/executive/ExecutiveOrdersPage";
 import AddReviewPage from "@/pages/AddReviewPage";
 import SupplierRequestForm from "@/pages/SupplierRequestForm";
-import PrivacyRules from "@/pages/privacyRules";
-import DileveryRules from "@/pages/DileveryRules";
-import ReturningAndReplacing from "@/pages/ReturningAndReplacing";
-import WhoAreWe from "@/pages/WhoAreWe";
+import PrivacyRules from "@/pages/info_pages/privacyRules";
+import DileveryRules from "@/pages/info_pages/DileveryRules";
+import ReturningAndReplacing from "@/pages/info_pages/ReturningAndReplacing";
+import WhoAreWe from "@/pages/info_pages/WhoAreWe";
 import PaymentMethods from "@/pages/PaymentMethod";
 import SupplierRequestList from "@/admin/SupplierRequestList";
 import UserProfilePage from "@/pages/UserProfilePage";

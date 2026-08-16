@@ -101,7 +101,7 @@ public class OrderService {
             }
             order.setItems(orderItems);
             order.setSubtotal(order.getItems().stream().mapToDouble(OrderItem::getCost).sum());
-            if (request.getDeliveryCost() == 0) {
+                if (request.getDeliveryCost() == 0) {
                 if (!checkEligibilityForFreeDelivery(products)){
                     throw new Exception("عذراً، لا يمكن تحميل هذا الطلب");
                 }

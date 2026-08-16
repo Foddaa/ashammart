@@ -1,5 +1,4 @@
 import React from "react";
-import manImg from "../assets/images/man.png";
 
 export default function AboutUs() {
   return (
@@ -36,11 +35,7 @@ export default function AboutUs() {
 
   <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-start">
 
-    <img
-      src={manImg}
-      alt="CEO"
-      className="w-full shadow"
-    />
+
     <div className="my-3">
       <p className="mb-6 leading-6 text-base">Rachel Leonard - Bacola CEO</p>
       <h2 className="text-3xl font-semibold mb-6 ledaing-6">
