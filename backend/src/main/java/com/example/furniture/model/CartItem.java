@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.security.PrivateKey;
 @Data
 @NoArgsConstructor
 @Entity
@@ -17,22 +16,25 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
-    @JsonIgnore // Add this
+    @JsonIgnore
     private Cart cart;
 
     @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @JoinColumn(name = "product_variant_id")
+    private ProductVariant productVariant;
+
     private String comments;
     private int quantity;
     private double cost;
-    public CartItem(Cart cart,Product product,String comments,int quantity,double cost){
-        this.cart=cart;
-        this.product=product;
-        this.comments=comments;
-        this.quantity=quantity;
-        this.cost=cost;
+
+    public CartItem(Cart cart, ProductVariant productVariant, String comments, int quantity, double cost) {
+        this.cart = cart;
+        this.productVariant = productVariant;
+        this.comments = comments;
+        this.quantity = quantity;
+        this.cost = cost;
     }
+
     @Override
     public String toString() {
         return "CartItem{" +

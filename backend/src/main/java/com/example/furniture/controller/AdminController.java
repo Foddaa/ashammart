@@ -1,5 +1,6 @@
 package com.example.furniture.controller;
 
+import com.example.furniture.inputDTO.ProductVariantInputDTO;
 import com.example.furniture.inputDTO.RealLifePhotoDTO;
 import com.example.furniture.inputDTO.UpdatePricesRequest;
 import com.example.furniture.model.*;
@@ -69,19 +70,27 @@ public class AdminController {
                                            @RequestParam("freeDelivery") boolean freeDelivery,
                                            @RequestParam("fastDelivery") boolean fastDelivery,
                                            @RequestParam(value = "images", required = false) MultipartFile[] newImages,
-                                           @RequestParam(value = "deletedImages", required = false) String deletedImagesJson) {
+                                           @RequestParam(value = "deletedImages", required = false) String deletedImagesJson,
+                                           @RequestParam(value = "variants", required = false) String variantsJson) {
         logger.info("Updating product with ID: {}", id);
         try {
+            ObjectMapper mapper = new ObjectMapper();
+
             List<Long> deletedImages = new ArrayList<>();
             if (deletedImagesJson != null && !deletedImagesJson.isBlank()) {
-                ObjectMapper mapper = new ObjectMapper();
                 deletedImages = mapper.readValue(deletedImagesJson, new TypeReference<List<Long>>() {});
                 logger.debug("Deleted images IDs: {}", deletedImages);
             }
+
+            List<ProductVariantInputDTO> variants = new ArrayList<>();
+            if (variantsJson != null && !variantsJson.isBlank()) {
+                variants = mapper.readValue(variantsJson, new TypeReference<List<ProductVariantInputDTO>>() {});
+            }
+
             ResponseEntity<?> response = productService.updateProductById(
-                    id, name, code, description, price,canceledPrice, categoryId,
+                    id, name, code, description, price, canceledPrice, categoryId,
                     supplierCode, freeDelivery, fastDelivery, newImages != null ? newImages : new MultipartFile[0],
-                    deletedImages
+                    deletedImages, variants
             );
             logger.info("Product updated successfully with ID: {}", id);
             return response;
@@ -104,9 +113,16 @@ public class AdminController {
                                            @RequestParam String supplierCode,
                                            @RequestParam("freeDelivery") boolean freeDelivery,
                                            @RequestParam("fastDelivery") boolean fastDelivery,
-                                           @RequestParam(value = "images", required = false) MultipartFile[] images) {
+                                           @RequestParam(value = "images", required = false) MultipartFile[] images,
+                                           @RequestParam(value = "variants", required = false) String variantsJson) {
         try {
             logger.info("new product request, name: {}, code: {}, description: {}, price: {}, canceledPrice: {}, category: {}, supplierCode: {}, images: {}", name, code, description, price, canceledPrice, category, supplierCode, images);
+
+            List<ProductVariantInputDTO> variants = new ArrayList<>();
+            if (variantsJson != null && !variantsJson.isBlank()) {
+                ObjectMapper mapper = new ObjectMapper();
+                variants = mapper.readValue(variantsJson, new TypeReference<List<ProductVariantInputDTO>>() {});
+            }
 
             Product product = new Product();
             product.setName(name);
@@ -133,7 +149,7 @@ public class AdminController {
             }
             product.setSupplier(supplier);
 
-            return productService.addProduct(product, images);
+            return productService.addProduct(product, images, variants);
 
         } catch (IllegalArgumentException e) {
             logger.warn("Validation failed while adding product: {}", e.getMessage());

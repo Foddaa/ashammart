@@ -1,9 +1,6 @@
 package com.example.furniture.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Data
@@ -15,10 +12,12 @@ public class OrderItem {
 
     @ManyToOne
     private Order order;
-    @ManyToOne private Product product;
+
+    @ManyToOne
+    @JoinColumn(name = "product_variant_id")
+    private ProductVariant productVariant;
 
     private int quantity;
     private double cost;
     private String comments;
 }
-

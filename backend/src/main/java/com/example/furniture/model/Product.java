@@ -23,21 +23,22 @@ public class Product {
 
     private String description;
 
-    @Column(nullable = false,unique = true)
+    @Column(nullable = false, unique = true)
     public String code;
 
+    // Default price/canceledPrice — used when a variant doesn't override them
     @Column(nullable = false)
     private double price;
 
     private double canceledPrice;
 
     @ManyToOne
-    @JoinColumn(name = "category_id",nullable = false)
+    @JoinColumn(name = "category_id", nullable = false)
     @JsonIgnore
     private Category category;
 
     @ManyToOne
-    @JoinColumn(name = "supplier_Id",nullable = false)
+    @JoinColumn(name = "supplier_Id", nullable = false)
     @JsonIgnore
     private Supplier supplier;
 
@@ -45,17 +46,20 @@ public class Product {
     @JsonManagedReference
     private List<Image> images = new ArrayList<>();
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ProductVariant> variants = new ArrayList<>();
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JsonManagedReference
-    private Set<Rating> ratings=new HashSet<>();
+    private Set<Rating> ratings = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonBackReference
     private List<CartItem> cartItems;
 
-    private int quantitySailed;
-    private boolean freeDelivery ;
-    private boolean fastDelivery ;
+    private boolean freeDelivery;
+    private boolean fastDelivery;
     private String status = "AVAILABLE";
 
     @Transient
@@ -67,6 +71,19 @@ public class Product {
         }
         return sum / ratings.size();
     }
+
+    @Transient
+    public int getTotalQuantitySailed() {
+        if (variants == null) return 0;
+        return variants.stream().mapToInt(ProductVariant::getQuantitySailed).sum();
+    }
+
+    @Transient
+    public int getTotalStock() {
+        if (variants == null) return 0;
+        return variants.stream().mapToInt(ProductVariant::getQuantity).sum();
+    }
+
     @Override
     public String toString() {
         double averageRating = 0.0;
@@ -82,10 +99,9 @@ public class Product {
                         " id =" + id +
                         ", name =" + name +
                         ", code =" + code +
-                        ", status ="+ status +
+                        ", status =" + status +
                         ", categoryId =" + category.getId() +
                         ", rating =" + averageRating +
-                        ", imagesCount =" + (images != null ? images.size() : 0) +"}";
+                        ", imagesCount =" + (images != null ? images.size() : 0) + "}";
     }
-
 }

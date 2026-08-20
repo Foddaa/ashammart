@@ -1,11 +1,8 @@
 package com.example.furniture.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
-import jakarta.persistence.Id;
-import lombok.ToString;
 
 @Data
 @Entity
@@ -15,12 +12,19 @@ public class Image {
     private Long id;
 
     private String url;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     @JsonBackReference
     private Product product;
+
+    @ManyToOne
+    @JoinColumn(name = "color_id") // nullable: null = general image, not color-specific
+    private Color color;
+
     @Override
     public String toString() {
-        return "Image{id=" + id + ", filename=" + url + "}";
+        return "Image{id=" + id + ", filename=" + url + ", color=" +
+                (color != null ? color.getName() : "general") + "}";
     }
 }

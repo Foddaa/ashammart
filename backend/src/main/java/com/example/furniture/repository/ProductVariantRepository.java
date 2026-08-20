@@ -1,0 +1,66 @@
+package com.example.furniture.repository;
+
+import com.example.furniture.model.ProductVariant;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface ProductVariantRepository extends JpaRepository<ProductVariant, Long> {
+
+    List<ProductVariant> findByProductId(Long productId);
+
+    @Query("""
+        SELECT v FROM ProductVariant v
+        WHERE v.product.id = :productId
+        AND (:colorId IS NULL OR v.color.id = :colorId)
+        AND (:sizeId IS NULL OR v.size.id = :sizeId)
+        AND ((:colorId IS NULL AND v.color IS NULL) OR :colorId IS NOT NULL)
+        AND ((:sizeId IS NULL AND v.size IS NULL) OR :sizeId IS NOT NULL)
+    """)
+    Optional<ProductVariant> findByProductAndColorAndSize(
+            @Param("productId") Long productId,
+            @Param("colorId") Long colorId,
+            @Param("sizeId") Long sizeId
+    );
+
+    Optional<ProductVariant> findBySku(String sku);
+
+    // Only touches variants that have an explicit price override (non-null)
+    @Modifying
+    @Query("""
+        UPDATE ProductVariant v
+        SET v.price = ROUND(v.price + (v.price * :percentage / 100), 1),
+            v.canceledPrice = CASE WHEN v.canceledPrice IS NOT NULL
+                THEN ROUND(v.canceledPrice + (v.canceledPrice * :percentage / 100), 1)
+                ELSE NULL END
+        WHERE v.price IS NOT NULL
+    """)
+    int updateOverriddenPricesByPercentage(@Param("percentage") double percentage);
+
+    @Modifying
+    @Query("""
+        UPDATE ProductVariant v
+        SET v.price = ROUND(
+                CASE WHEN (v.price + :amount) < 0 THEN 0 ELSE (v.price + :amount) END
+            , 1),
+            v.canceledPrice = CASE WHEN v.canceledPrice IS NOT NULL
+                THEN ROUND(
+                    CASE WHEN (v.canceledPrice + :amount) < 0 THEN 0 ELSE (v.canceledPrice + :amount) END
+                , 1)
+                ELSE NULL END
+        WHERE v.price IS NOT NULL
+    """)
+    int updateOverriddenPricesByFixed(@Param("amount") double amount);
+
+    @Modifying
+    @Query("UPDATE ProductVariant v SET v.status = :status WHERE v.product.id = :productId")
+    int updateStatusByProductId(@Param("productId") Long productId, @Param("status") String status);
+
+    @Modifying
+    @Query("UPDATE ProductVariant v SET v.quantity = v.quantity - :amount WHERE v.id = :id AND v.quantity >= :amount")
+    int decrementStock(@Param("id") Long id, @Param("amount") int amount);
+}
