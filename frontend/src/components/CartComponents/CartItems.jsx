@@ -1,10 +1,13 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { updateCartItemQuantity, removeFromCart } from "@/components/shared/cartService";
 import { toast } from "react-toastify";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function CartItems({ items = [], onUpdate }) {
+  const navigate = useNavigate();
+
   // Guard: if items is not an array, render nothing
   if (!Array.isArray(items)) {
     return null;
@@ -55,7 +58,12 @@ export default function CartItems({ items = [], onUpdate }) {
                       : "/placeholder.png"
                   }
                   alt={item.name}
-                  className="w-full h-full object-cover"
+                  onClick={() =>
+                    navigate(`/product/${item.id}`, {
+                      state: { product: item },
+                    })
+                  }
+                  className="w-full h-full object-cover cursor-pointer"
                 />
               </div>
               <div className="flex-1 flex flex-col justify-center">

@@ -54,54 +54,65 @@ export default function ImageGallery({ images, mainImage, setMainImage, title })
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center w-full mt-2">
-      
-      {/* Main Image & Arrows Container */}
-      <div
-        className="w-full max-h-[600px] flex items-center justify-center relative touch-pan-y select-none"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+  <div className="relative flex flex-col items-center justify-center w-full mt-2">
+    
+    {/* Main Image Container */}
+    <div
+      className="w-full max-h-[600px] flex items-center justify-center relative touch-pan-y select-none"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <img
+        src={images[currentIndex].url}
+        className="object-contain w-full h-full max-h-[500px] transition-all duration-300"
+        alt={title}
+        loading="lazy"
+        draggable={false}
+      />
+
+      {/* Left Arrow */}
+      <button
+        onClick={handlePrev}
+        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2
+                   bg-transparent hover:bg-neutral-100/80
+                   text-neutral-900 p-2 rounded-md transition-all
+                   duration-200 z-10 border border-transparent
+                   hover:border-neutral-200"
+        aria-label="Previous image"
       >
-        <img
-          src={images[currentIndex].url}
-          className="object-contain w-full h-full max-h-[500px] transition-all duration-300"
-          alt={title}
-          loading="lazy"
-          draggable={false}
-        />
-        {/* Minimal Left Arrow */}
-        <button
-          onClick={handlePrev}
-          className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-transparent hover:bg-neutral-100/80 text-neutral-900 p-2 rounded-md transition-all duration-200 z-10 border border-transparent hover:border-neutral-200"
-          aria-label="Previous image"
-        >
-          <ChevronLeftIcon />
-        </button>
-        {/* Minimal Right Arrow */}
-        <button
-          onClick={handleNext}
-          className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-transparent hover:bg-neutral-100/80 text-neutral-900 p-2 rounded-md transition-all duration-200 z-10 border border-transparent hover:border-neutral-200"
-          aria-label="Next image"
-        >
-          <ChevronRightIcon />
-        </button>
-      </div>
-      {/* Minimal Dots Pagination */}
-      <div className="flex gap-3 mt-6">
+        <ChevronLeftIcon />
+      </button>
+
+      {/* Right Arrow */}
+      <button
+        onClick={handleNext}
+        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2
+                   bg-transparent hover:bg-neutral-100/80
+                   text-neutral-900 p-2 rounded-md transition-all
+                   duration-200 z-10 border border-transparent
+                   hover:border-neutral-200"
+        aria-label="Next image"
+      >
+        <ChevronRightIcon />
+      </button>
+
+      {/* Dots INSIDE image */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
         {images.map((_, index) => (
           <button
             key={index}
             onClick={() => handleDotClick(index)}
-            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+            className={`rounded-full transition-all duration-300 shadow-sm ${
               currentIndex === index
-                ? "bg-neutral-900 w-4" // Active: Darker and slightly wider
-                : "bg-neutral-300 hover:bg-neutral-400" // Inactive: Subtle gray
+                ? "bg-white w-4 h-2"
+                : "bg-white/60 hover:bg-white/90 w-2 h-2"
             }`}
             aria-label={`Go to image ${index + 1}`}
           />
         ))}
       </div>
     </div>
-  );
+  </div>
+);
 }
