@@ -5,6 +5,8 @@ import api from "@/api/axiosInstance";   // ✅ your configured instance
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [exporting, setExporting] = useState(false); // ✅ loading state for export button
+
 
   const fetchProducts = async () => {
     try {
@@ -31,7 +33,38 @@ const ProductList = () => {
       alert("فشل حذف المنتج. ربما يكون مرتبطاً بالطلبات.");
     }
   };
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const res = await api.get("/api/admin/products/export", {
+        responseType: "blob", // important: response is a file, not JSON
+      });
 
+      // Create a temporary link to trigger the browser download
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Optional: use filename from Content-Disposition header if present
+      const disposition = res.headers["content-disposition"];
+      let filename = "products.csv";
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match?.[1]) filename = match[1];
+      }
+
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("خطأ في تصدير المنتجات:", error);
+      alert("فشل تصدير الملف. تأكد أنك مسجل الدخول كمسؤول.");
+    } finally {
+      setExporting(false);
+    }
+  };
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -63,6 +96,23 @@ const ProductList = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+           <button
+              onClick={handleExportCsv}
+              disabled={exporting}
+              className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition shadow-sm whitespace-nowrap"
+            >
+              {exporting ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i>
+                  جاري التصدير...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-file-csv"></i>
+                  تصدير CSV
+                </>
+              )}
+            </button>
           </div>
         </div>
 

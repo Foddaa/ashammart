@@ -1,22 +1,25 @@
 package com.example.furniture.repository;
 
 import com.example.furniture.model.Product;
+import jakarta.persistence.QueryHint;
 import org.hibernate.annotations.SQLUpdate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
 
 import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface ProductRepository extends JpaRepository<Product,Long> {
 
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images LEFT JOIN FETCH p.ratings WHERE p.status != 'DELETED'")
     List<Product> findAllWithImagesAndRatings();
-
+    
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.category.id = :categoryId AND p.status != 'DELETED'")
     List<Product> findByCategoryIdWithImages(@Param("categoryId") Long categoryId);
 
@@ -45,7 +48,7 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
     @Modifying
     @Query("""
-            UPDATE Product p 
+            UPDATE Product p
             SET p.price = ROUND(p.price + (p.price * :percentage / 100), 1) ,
              p.canceledPrice = ROUND(p.canceledPrice + (p.canceledPrice * :percentage / 100), 1)
              """)
@@ -72,4 +75,8 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     @Modifying
     @Query("UPDATE Product p SET p.status = :status WHERE p.id = :id")
     int updateStatus(@Param("id") Long id, @Param("status") String status);
+
+    @QueryHints(@QueryHint(name = "org.hibernate.fetchSize", value = "50"))
+    @Query("SELECT p FROM Product p")
+    Stream<Product> streamAll();
 }
