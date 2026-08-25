@@ -56,6 +56,16 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     """)
     int updateOverriddenPricesByFixed(@Param("amount") double amount);
 
+    @Query("""
+    SELECT DISTINCT v
+    FROM ProductVariant v
+    LEFT JOIN FETCH v.color
+    LEFT JOIN FETCH v.size
+    LEFT JOIN FETCH v.product p
+    LEFT JOIN FETCH p.images
+    WHERE v.sku IN :skus
+""")
+    List<ProductVariant> findBySkuInWithDetails(@Param("skus") List<String> skus);
     @Modifying
     @Query("UPDATE ProductVariant v SET v.status = :status WHERE v.product.id = :productId")
     int updateStatusByProductId(@Param("productId") Long productId, @Param("status") String status);

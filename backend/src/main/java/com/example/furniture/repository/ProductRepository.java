@@ -1,6 +1,7 @@
 package com.example.furniture.repository;
 
 import com.example.furniture.model.Product;
+import com.example.furniture.model.ProductVariant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -31,14 +32,23 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
     Page<Long> findProductIds(@Param("search") String search, Pageable pageable);
 
     // Step 2: fetch full details only for this page's IDs.
-    @Query("SELECT DISTINCT p FROM Product p " +
-            "LEFT JOIN FETCH p.images " +
-            "LEFT JOIN FETCH p.ratings " +
-            "LEFT JOIN FETCH p.variants v " +
-            "LEFT JOIN FETCH v.color " +
-            "LEFT JOIN FETCH v.size " +
-            "WHERE p.id IN :ids")
+    @Query("""
+        SELECT DISTINCT p
+        FROM Product p
+        LEFT JOIN FETCH p.images
+        LEFT JOIN FETCH p.ratings
+        WHERE p.id IN :ids
+    """)
     List<Product> findByIdsWithImagesAndRatings(@Param("ids") List<Long> ids);
+
+    @Query("""
+    SELECT DISTINCT v
+    FROM ProductVariant v
+    LEFT JOIN FETCH v.color
+    LEFT JOIN FETCH v.size
+    WHERE v.product.id IN :ids
+""")
+    List<ProductVariant> findVariantsByProductIds(@Param("ids") List<Long> ids);
 
 
     @Query(
@@ -108,16 +118,22 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
     List<Product> findFastDelivery();
 
     @Query("""
-        SELECT DISTINCT p FROM Product p
+        SELECT DISTINCT p
+        FROM Product p
         LEFT JOIN FETCH p.images
-        LEFT JOIN FETCH p.variants v
-        LEFT JOIN FETCH v.color
-        LEFT JOIN FETCH v.size
         WHERE p.id = :productId
         AND p.status != 'DELETED'
     """)
     Optional<Product> findByIdWithImages(@Param("productId") Long productId);
 
+    @Query("""
+        SELECT DISTINCT v
+        FROM ProductVariant v
+        LEFT JOIN FETCH v.color
+        LEFT JOIN FETCH v.size
+        WHERE v.product.id = :productId
+    """)
+    List<ProductVariant> findByProductIdWithColorAndSize(@Param("productId") Long productId);
     Product findByCode(String code);
 
     @Modifying

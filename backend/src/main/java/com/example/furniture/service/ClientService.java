@@ -3,6 +3,7 @@ package com.example.furniture.service;
 import com.example.furniture.inputDTO.CartItemDTO;
 import com.example.furniture.inputDTO.ClientDTO;
 import com.example.furniture.inputDTO.ProductDTO;
+import com.example.furniture.inputDTO.ProductVariantDTO;
 import com.example.furniture.model.*;
 import com.example.furniture.repository.*;
 import jakarta.transaction.Transactional;
@@ -22,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ClientService {
@@ -37,6 +39,9 @@ public class ClientService {
     CartRepository cartRepository;
     @Autowired
     RatingRepository ratingRepository;
+
+    @Autowired
+    ProductVariantRepository productVariantRepository;
     @Value("${file.upload-dir}")
     private String uploadDir;
 
@@ -54,23 +59,28 @@ public class ClientService {
 //    }
 
 
-//    public String addItemToCart(CartItemDTO cartItemDTO, String email) {
-//        try {
-//            User user = userRepository.findByEmail(email).get();
-//            Client client = clientRepository.findById(user.getId()).get();
-//            Product product = productRepository.findById(cartItemDTO.getProduct().getId()).get();
-//            Cart cart = cartRepository.findById(client.getCart().getId()).get();
-//            cart.setIsEmpty(false);
-//            cartRepository.save(cart);
-//            CartItem cartItem = new CartItem(client.getCart(), product, cartItemDTO.getComments(), cartItemDTO.getQuantity(), product.getPrice() * cartItemDTO.getQuantity());
-//            cartItem.toString();
-//            cartItemRepository.save(cartItem);
-//
-//            return "success";
-//        } catch (Exception e) {
-//            return e.toString();
-//        }
-//    }
+    @Transactional
+    public String addItemToCart(Long variantId, int quantity, String comments, String email) {
+        try {
+            Client client = getClient(email);
+            Cart cart = client.getCart();
+            cart.setIsEmpty(false);
+            cartRepository.save(cart);
+
+            ProductVariant variant = productVariantRepository.findById(variantId)
+                    .orElseThrow(() -> new NoSuchElementException("Variant not found"));
+
+            // Calculate cost: use variant effective price (or fallback to product price)
+            double price = variant.getEffectivePrice();
+            double cost = price * quantity;
+
+            CartItem cartItem = new CartItem(cart, variant, comments, quantity, cost);
+            cartItemRepository.save(cartItem);
+            return "success";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
     public Optional<Client> getClientByPhone(String phone) {
         Optional<Client> client = clientRepository.findByPhone(phone);
         return client;
@@ -90,12 +100,24 @@ public class ClientService {
         Client client = getClient(email);
         Cart cart = client.getCart();
 
-        List<CartItem> cartItems = cartItemRepository.getByCart(cart);
+        List<CartItem> cartItems = cartItemRepository.findByCartWithVariant(cart);
 
-        return cartItems.stream().map(item -> {
-            ProductDTO productDTO = new ProductDTO(item.getProduct());
-            return new CartItemDTO(item.getId(), item.getComments(), item.getQuantity(), item.getCost(), productDTO);
-        }).toList(); // or use .collect(Collectors.toList())
+        return cartItems.stream()
+                .map(item -> {
+                    ProductVariant variant = item.getProductVariant();
+                    Product product = variant.getProduct();
+                    ProductDTO productDTO = new ProductDTO(product);
+                    ProductVariantDTO variantDTO = new ProductVariantDTO(variant);
+                    return new CartItemDTO(
+                            item.getId(),
+                            item.getComments(),
+                            item.getQuantity(),
+                            item.getCost(),
+                            productDTO,
+                            variantDTO
+                    );
+                })
+                .collect(Collectors.toList());
     }
     @Transactional
     public ResponseEntity<?> addReview(

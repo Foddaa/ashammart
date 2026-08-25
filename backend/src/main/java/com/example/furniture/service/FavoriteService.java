@@ -55,24 +55,25 @@ public class FavoriteService {
         return favoriteRepository.existsByClientIdAndProductId(clientId, productId);
     }
 
+    @Transactional(readOnly = true)
     public PagedResponse<ProductDTO> getFavorites(Long clientId, int page, int limit) {
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
         Page<Long> productIdPage = favoriteRepository.findProductIdsByClientId(clientId, pageable);
-
+System.out.println("productIdPage = " + productIdPage);
         List<Long> ids = productIdPage.getContent();
         List<Product> products = ids.isEmpty()
                 ? List.of()
                 : productRepository.findByIdsWithImagesAndRatings(ids);
-
+System.out.println("products = " + products.size());
         Map<Long, Product> byId = products.stream()
                 .collect(Collectors.toMap(Product::getId, p -> p));
-
+System.out.println("byId = " + byId.size());
         List<ProductDTO> result = ids.stream()
                 .map(byId::get)
                 .filter(Objects::nonNull)
                 .map(ProductDTO::new)
                 .toList();
-
+System.out.println("result = " + result.size());
         log.debug("Returning {} favorite products (page {} of {})", result.size(), page, productIdPage.getTotalPages());
         return new PagedResponse<>(result, productIdPage.getTotalElements(), productIdPage.getTotalPages(), page);
     }

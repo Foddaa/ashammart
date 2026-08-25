@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -31,6 +32,7 @@ public class ProductDTO {
     private double averageRating;
     private List<ReviewDTO> ratings;
     private int quantitySailed;
+    private List<ProductVariantDTO> variants = new ArrayList<>();
     public ProductDTO(Product product) {
         this.id = product.getId();
         this.name = product.getName();
@@ -44,7 +46,9 @@ public class ProductDTO {
         this.fastDelivery = product.isFastDelivery();
         this.images = product.getImages();
         this.averageRating = product.getAverageRating();
-        this.quantitySailed = product.getQuantitySailed();
+        this.variants = product.getVariants().stream()
+                .map(ProductVariantDTO::new)
+                .collect(Collectors.toList());
     }
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private SupplierRepository supplierRepository;
@@ -69,7 +73,6 @@ public class ProductDTO {
         dto.setFreeDelivery(product.isFreeDelivery());
         dto.setFastDelivery(product.isFastDelivery());
         dto.setImages(product.getImages());
-        dto.setQuantitySailed(product.getQuantitySailed());
         return dto;
     }
     public static ProductDTO withRatings(Product product) {
@@ -86,12 +89,15 @@ public class ProductDTO {
         dto.fastDelivery = product.isFastDelivery();
         dto.images = product.getImages();
         dto.averageRating = product.getAverageRating();
-        dto.quantitySailed = product.getQuantitySailed();
         List<ReviewDTO> ratingDTOs = product.getRatings()
                 .stream()
                 .map(ReviewDTO::new)
                 .toList();
-        dto.setRatings(ratingDTOs);        return dto;
+        dto.setRatings(ratingDTOs);
+        dto.variants = product.getVariants().stream()
+                .map(ProductVariantDTO::new)
+                .collect(Collectors.toList());
+        return dto;
     }
 }
 

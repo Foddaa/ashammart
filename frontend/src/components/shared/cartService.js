@@ -25,46 +25,51 @@ export const saveCart = (cart) => {
   try {
     window.localStorage.setItem(CART_KEY, JSON.stringify(cart));
   } catch (err) {
-    // e.g. storage quota exceeded / private-browsing restrictions
     console.error("Failed to save cart:", err);
   }
   triggerCartUpdate(); // Trigger event when cart is saved
 };
 
 /**
- * Reduce a full product object down to only what the cart needs to display
- * and check out. Keeps cart payload tiny and avoids caching stale
- * description/ratings/full-size image data inside the cart item.
+ * Reduce a full product and variant object down to only what the cart needs
  */
-const toCartItem = (product, quantity) => ({
-  id: product.id,
+const toCartItem = (product, variant, quantity) => ({
+  id: product.id, // Keep product ID for product-level operations
+  variantId: variant.id, // Variant ID
+  sku: variant.sku, // Save the SKU
   name: product.name || product.title,
-  price: product.price,
-  canceledPrice: product.canceledPrice,
+  price: variant.price ?? product.price,
+  canceledPrice: variant.canceledPrice ?? product.canceledPrice,
   code: product.code,
-  image: product.images?.[0]?.url || null,
+  image: product.images?.find(img => img.color?.id === variant.colorId)?.url || product.images?.[0]?.url || null,
+  color: variant.colorName,
+  size: variant.sizeName,
   quantity,
 });
 
-export const addToCart = (product, quantity = 1) => {
-  const cart = getCart();
-  const existing = cart.find((item) => item.id === product.id);
-  if (existing) {
-    existing.quantity += quantity;
+/**
+ * Adds to cart locally, saving the SKU and variant ID.
+ */
+export const addToCart = (product, variant, quantity) => {
+  let cart = getCart();
+  const existingIndex = cart.findIndex(item => item.variantId === variant.id);
+
+  if (existingIndex !== -1) {
+    cart[existingIndex].quantity += quantity;
   } else {
-    cart.push(toCartItem(product, quantity));
+    cart.push(toCartItem(product, variant, quantity));
   }
+
   saveCart(cart);
-  // triggerCartUpdate() is already called inside saveCart
+  // Note: If you need to sync this with the backend as well, add the API call here.
 };
 
-export const updateCartItem = (productId, quantity) => {
+export const updateCartItem = (variantId, quantity) => {
   let cart = getCart();
   cart = cart.map((item) =>
-    item.id === productId ? { ...item, quantity } : item
+    item.variantId === variantId ? { ...item, quantity } : item
   );
   saveCart(cart);
-  // triggerCartUpdate() is already called inside saveCart
 };
 
 export const clearCart = () => {
@@ -73,29 +78,26 @@ export const clearCart = () => {
   } catch (err) {
     console.error("Failed to clear cart:", err);
   }
-  triggerCartUpdate(); // Trigger event when cart is cleared
+  triggerCartUpdate();
 };
 
-export const updateCartItemQuantity = (productId, newQuantity) => {
+export const updateCartItemQuantity = (variantId, newQuantity) => {
   const cart = getCart();
-  const existingIndex = cart.findIndex((item) => item.id === productId);
+  const existingIndex = cart.findIndex((item) => item.variantId === variantId);
   if (existingIndex !== -1) {
     if (newQuantity <= 0) {
-      // remove if quantity becomes zero
       cart.splice(existingIndex, 1);
     } else {
       cart[existingIndex].quantity = newQuantity;
     }
     saveCart(cart);
-    // triggerCartUpdate() is already called inside saveCart
   }
 };
 
-export const removeFromCart = (productId) => {
+export const removeFromCart = (variantId) => {
   const cart = getCart();
-  const filtered = cart.filter((item) => item.id !== productId);
+  const filtered = cart.filter((item) => item.variantId !== variantId);
   saveCart(filtered);
-  // triggerCartUpdate() is already called inside saveCart
 };
 
 // Optional: Get total items count

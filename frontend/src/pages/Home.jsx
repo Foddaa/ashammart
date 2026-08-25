@@ -8,7 +8,7 @@ import NewArrivals from "@/components/HomeComponents/NewArrivals/NewArrivals";
 
 export default function Home() {
   return (
-    <section className="w-full bg-white py-4 md:py-6" dir="ltr">
+    <section className="w-full bg-white py-0 md:py-0" dir="ltr">
       <WrapperMargin>
         {/* Hero Section */}
         {/* <div className="w-full text-left">
@@ -20,7 +20,7 @@ export default function Home() {
           <HomeCategory />
         </div> */}
         {/* New Arrivals Section */}
-        <div className="w-full text-left mt-12">
+        <div className="w-full text-left mt-4">
           <NewArrivals />
         </div>
         {/* Best Sellers Section */}

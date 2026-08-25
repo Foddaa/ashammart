@@ -6,6 +6,7 @@ import com.example.furniture.model.*;
 import com.example.furniture.repository.CartItemRepository;
 import com.example.furniture.repository.OrderRepository;
 import com.example.furniture.repository.ProductRepository;
+import com.example.furniture.repository.ProductVariantRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,30 +28,36 @@ public class OrderService {
     CartItemRepository cartItemRepository;
     @Autowired
     ProductRepository productRepository;
+    @Autowired
+    ProductVariantRepository productVariantRepository;
 
     @Transactional
     public OrderPreviewDTO placeOrder(String email) {
         try {
             Client client = clientService.getClient(email);
             Cart cart = client.getCart();
-            List<CartItem> cartItems = cartItemRepository.getByCart(cart);
+            List<CartItem> cartItems = cartItemRepository.findByCartWithVariant(cart);
             double subtotal = cartItems.stream().mapToDouble(CartItem::getCost).sum();
             LocalDateTime estimatedDate = LocalDateTime.now().plusDays(10);
-            OrderPreviewDTO orderPreviewDTO = new OrderPreviewDTO(
-                    cartItems.stream()
-                            .map(item -> {
-                                ProductDTO productDTO = new ProductDTO(item.getProduct());
-                                return new CartItemDTO(
-                                        item.getId(),
-                                        item.getComments(),
-                                        item.getQuantity(),
-                                        item.getCost(),
-                                        productDTO
-                                );
-                            })
-                            .toList()
-                    , subtotal, estimatedDate.toLocalDate());
-            return orderPreviewDTO;
+
+            List<CartItemDTO> itemDTOs = cartItems.stream()
+                    .map(item -> {
+                        ProductVariant variant = item.getProductVariant();
+                        Product product = variant.getProduct();
+                        ProductDTO productDTO = new ProductDTO(product);
+                        ProductVariantDTO variantDTO = new ProductVariantDTO(variant);
+                        return new CartItemDTO(
+                                item.getId(),
+                                item.getComments(),
+                                item.getQuantity(),
+                                item.getCost(),
+                                productDTO,
+                                variantDTO
+                        );
+                    })
+                    .collect(Collectors.toList());
+
+            return new OrderPreviewDTO(itemDTOs, subtotal, estimatedDate.toLocalDate());
         } catch (Exception e) {
             return null;
         }
@@ -65,6 +72,7 @@ public class OrderService {
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest().body("طريقة الدفع غير صالحة");
             }
+
             if (request.getPhone() == null || !request.getPhone().matches("^01[0-9]{9}$")) {
                 return ResponseEntity.badRequest().body("رقم الهاتف غير صالح، يجب أن يكون 11 رقم ويبدأ بـ 01");
             }
@@ -73,51 +81,98 @@ public class OrderService {
                     return ResponseEntity.badRequest().body("البريد الإلكتروني غير صالح");
                 }
             }
+
             if (request.getItems() == null || request.getItems().isEmpty()) {
                 return ResponseEntity.badRequest().body("قائمة المنتجات فارغة");
             }
-            List<Long> Ids = request.getItems()
-                    .stream()
-                    .map(orderProduct_Id_quantity::getProductId)
+
+            // Fetch variants by SKUs or Variant IDs
+            List<String> skus = request.getItems().stream()
+                    .map(OrderProductVariantQuantity::getSku)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
-            List<Product> products = productRepository.findAllById(Ids);
-            if (products.isEmpty()) {
-                return ResponseEntity.badRequest().body("لم يتم العثور على المنتجات المطلوبة");
+
+            List<ProductVariant> variants = new ArrayList<>();
+            if (!skus.isEmpty()) {
+                variants = productVariantRepository.findBySkuInWithDetails(skus);
+            } else {
+                List<Long> variantIds = request.getItems().stream()
+                        .map(OrderProductVariantQuantity::getVariantId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+                variants = productVariantRepository.findAllById(variantIds);
             }
+
+            if (variants.isEmpty()) {
+                return ResponseEntity.badRequest().body("لم يتم العثور على المتغيرات المطلوبة");
+            }
+
+            // Build lookup maps
+            Map<String, ProductVariant> variantBySku = variants.stream()
+                    .filter(v -> v.getSku() != null)
+                    .collect(Collectors.toMap(ProductVariant::getSku, v -> v));
+            Map<Long, ProductVariant> variantById = variants.stream()
+                    .collect(Collectors.toMap(ProductVariant::getId, v -> v));
+
             Order order = new Order();
             order.setStatus("Pending");
             order.setAddress(request.getAddress());
             order.setOrderDate(LocalDateTime.now().toLocalDate());
             order.setEstimatedDeliveryDate(LocalDate.now().plusDays(10));
             order.setPaymentMethod(payment);
+
             List<OrderItem> orderItems = new ArrayList<>();
-            for (orderProduct_Id_quantity item : request.getItems()) {
+            double subtotal = 0.0;
+
+            for (OrderProductVariantQuantity item : request.getItems()) {
+                ProductVariant variant = null;
+
+                // Prefer SKU, fallback to Variant ID
+                if (item.getSku() != null) {
+                    variant = variantBySku.get(item.getSku());
+                } else if (item.getVariantId() != null) {
+                    variant = variantById.get(item.getVariantId());
+                }
+
+                if (variant == null) {
+                    return ResponseEntity.badRequest().body("المتغير غير موجود: " +
+                            (item.getSku() != null ? item.getSku() : item.getVariantId()));
+                }
+
+                double price = variant.getEffectivePrice();
+                double cost = price * item.getQuantity();
+
                 OrderItem orderItem = new OrderItem();
-                orderItem.setProduct(products.get(Ids.indexOf(item.getProductId())));
+                orderItem.setProductVariant(variant);
                 orderItem.setQuantity(item.getQuantity());
-                orderItem.setCost(orderItem.getProduct().getPrice() * orderItem.getQuantity());
+                orderItem.setCost(cost);
                 orderItem.setOrder(order);
                 orderItems.add(orderItem);
+
+                subtotal += cost;
+
+                variant.setQuantitySailed(variant.getQuantitySailed() + item.getQuantity());
+                variant.setQuantity(variant.getQuantity() - item.getQuantity());
+                productVariantRepository.save(variant);
             }
+
             order.setItems(orderItems);
-            order.setSubtotal(order.getItems().stream().mapToDouble(OrderItem::getCost).sum());
-                if (request.getDeliveryCost() == 0) {
-                if (!checkEligibilityForFreeDelivery(products)){
+            order.setSubtotal(subtotal);
+
+            if (request.getDeliveryCost() == 0) {
+                List<Product> products = variants.stream().map(ProductVariant::getProduct).distinct().collect(Collectors.toList());
+                if (!checkEligibilityForFreeDelivery(products)) {
                     throw new Exception("عذراً، لا يمكن تحميل هذا الطلب");
                 }
             }
             order.setDeliveryCost(request.getDeliveryCost());
-            order.setTotalCost(order.getSubtotal() + order.getDeliveryCost());
-            for (OrderItem orderItem : order.getItems()) {
-                Product product = productRepository.findById(orderItem.getProduct().getId())
-                        .orElseThrow(() -> new NoSuchElementException("المنتج غير موجود"));
-                product.setQuantitySailed(product.getQuantitySailed() + orderItem.getQuantity());
-                productRepository.save(product);
-            }
+            order.setTotalCost(subtotal + order.getDeliveryCost());
+
+            Client client;
             if (clientService.getClientByPhone(request.getPhone()).isPresent()) {
-                order.setClient(clientService.getClientByPhone(request.getPhone()).get());
+                client = clientService.getClientByPhone(request.getPhone()).get();
             } else {
-                Client client = new Client();
+                client = new Client();
                 client.setName(request.getFirstName() + " " + request.getLastName());
                 client.setPhone(request.getPhone());
                 if (request.getEmail() != null && !request.getEmail().isBlank()) {
@@ -126,9 +181,8 @@ public class OrderService {
                 client.setAddress(request.getAddress());
                 client.setCart(new Cart());
                 clientService.save(client);
-                order.setClient(client);
             }
-
+            order.setClient(client);
 
             orderRepository.save(order);
             return ResponseEntity.ok("تم تأكيد الطلب بنجاح");
@@ -143,7 +197,6 @@ public class OrderService {
         }
     }
 
-
     public double calculateDeliveryCost(Address address) {
         if (address.getCity().equals("القاهرة") || address.getCity().equals("الجيزة"))
             return 350;
@@ -154,7 +207,7 @@ public class OrderService {
 
     @Transactional
     public List<Map<String, Object>> getSimplifiedOrdersView(String status) {
-        List<Order> orders = orderRepository.findAllByStatus(status); // or fetch based on client
+        List<Order> orders = orderRepository.findAllByStatus(status);
         return orders.stream().map(order -> {
             Map<String, Object> dto = new HashMap<>();
             dto.put("orderId", order.getId());
@@ -168,29 +221,34 @@ public class OrderService {
             dto.put("totalCost", order.getTotalCost());
             dto.put("paymentMethod", order.getPaymentMethod());
             dto.put("clientName", order.getClient().getName());
-            System.out.println(order.getItems());
+
             List<String> productNames = order.getItems().stream()
-                    .map(item -> new ProductDTO(item.getProduct()).getName() + " x " + item.getQuantity() + " = " + item.getCost())
+                    .map(item -> {
+                        ProductVariant variant = item.getProductVariant();
+                        Product product = variant.getProduct();
+                        return product.getName() + " x " + item.getQuantity() + " = " + item.getCost();
+                    })
                     .collect(Collectors.toList());
 
             dto.put("productNames", productNames);
-
             return dto;
         }).collect(Collectors.toList());
     }
 
-
     @Transactional
     public Map<String, Object> getOrder(Long orderId) {
-
         Order order = orderRepository.findById(orderId).orElse(null);
         Map<String, Object> dto = new HashMap<>();
-//        dto.put("clientId", order.getClient().getId());
         dto.put("clientName", order.getClient().getName());
         dto.put("clientPhone", order.getClient().getPhone());
         dto.put("deliveryAddress", order.getAddress());
+
         List<String> productNames = order.getItems().stream()
-                .map(item -> new ProductDTO(item.getProduct()).getCode() + " x " + item.getQuantity() + " = " + item.getCost())
+                .map(item -> {
+                    ProductVariant variant = item.getProductVariant();
+                    Product product = variant.getProduct();
+                    return product.getCode() + " x " + item.getQuantity() + " = " + item.getCost();
+                })
                 .collect(Collectors.toList());
         dto.put("productNames", productNames);
         dto.put("orderId", order.getId());

@@ -16,7 +16,7 @@ export default function Cart() {
   const isBuyNow = location.state?.buyNow || false;
   const directProduct = location.state?.directProduct || null;
 
-  const fetchCartItems = async () => {
+const fetchCartItems = async () => {
     if (isBuyNow && directProduct) {
       setCartItems([directProduct]);
       setLoading(false);
@@ -32,27 +32,30 @@ export default function Cart() {
         return;
       }
 
-      const productIds = localCart.map((item) => item.id);
-      const response = await api.post("/api/product/by-ids", productIds);
+      // Select by SKU instead of Product ID
+      const skus = localCart.map((item) => item.sku).filter(Boolean);
+      
+      // New API endpoint to select by SKUs
+      const response = await api.post("/api/product/by-skus", skus);
 
       const products = response.data;
 
       const mergedCart = localCart
         .map((item) => {
-          const product = products.find((p) => p.id === item.id);
+          const product = products.find((p) => p.sku === item.sku);
           if (!product) {
-            console.warn(`Product with id ${item.id} not found, skipping`);
+            console.warn(`Product with sku ${item.sku} not found, skipping`);
             return null;
           }
           return {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            code: product.code,
+            ...item,
+            id: product.productId || item.id, // Map to actual product ID
+            name: product.name || item.name,
+            price: product.price ?? item.price,
             canceledPrice: product.canceledPrice,
-            images: product.images,
-            quantity: item.quantity,
-            freeDelivery: product.freeDelivery,
+            images: product.images || item.images,
+            color: product.colorName || item.color,
+            size: product.sizeName || item.size,
           };
         })
         .filter((item) => item !== null);
@@ -60,7 +63,7 @@ export default function Cart() {
       setCartItems(mergedCart);
 
       if (mergedCart.length !== localCart.length) {
-        const cleanCart = mergedCart.map(({ id, quantity }) => ({ id, quantity }));
+        const cleanCart = mergedCart.map(({ variantId, quantity }) => ({ variantId, quantity }));
         saveCart(cleanCart);
       }
     } catch (error) {
@@ -69,7 +72,7 @@ export default function Cart() {
     } finally {
       setLoading(false);
     }
-  };
+};
 
   useEffect(() => {
     fetchCartItems();

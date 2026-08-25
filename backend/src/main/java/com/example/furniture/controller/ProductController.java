@@ -3,6 +3,7 @@ package com.example.furniture.controller;
 import com.example.furniture.ENUMS.SortOption;
 import com.example.furniture.inputDTO.ProductDTO;
 import com.example.furniture.inputDTO.response.PagedResponse;
+import com.example.furniture.inputDTO.response.SkuProductDTO;
 import com.example.furniture.model.Product;
 import com.example.furniture.repository.CategoryRepository;
 import com.example.furniture.repository.SupplierRepository;
@@ -104,6 +105,11 @@ public class ProductController {
         List<Product> products = productService.getFastDelivery();
         return products.stream().map(ProductDTO::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/by-skus")
+    public List<SkuProductDTO> getProductsBySkus(@RequestBody List<String> skus) {
+        return productService.getProductsBySkus(skus);
     }
 
     @GetMapping("/unified")

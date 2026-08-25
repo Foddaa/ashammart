@@ -13,13 +13,13 @@ export default function CartItems({ items = [], onUpdate }) {
     return null;
   }
 
-  const handleQuantityChange = (productId, newQuantity) => {
+  const handleQuantityChange = (variantId, newQuantity) => {
     if (newQuantity < 1) {
-      handleRemove(productId);
+      handleRemove(variantId);
       return;
     }
     try {
-      updateCartItemQuantity(productId, newQuantity);
+      updateCartItemQuantity(variantId, newQuantity);
       onUpdate(); // refresh cart
     } catch (err) {
       console.error("Failed to update quantity:", err);
@@ -27,9 +27,9 @@ export default function CartItems({ items = [], onUpdate }) {
     }
   };
 
-  const handleRemove = (productId) => {
+  const handleRemove = (variantId) => {
     try {
-      removeFromCart(productId);
+      removeFromCart(variantId);
       toast.success("Product removed from cart");
       onUpdate();
     } catch (err) {
@@ -42,7 +42,7 @@ export default function CartItems({ items = [], onUpdate }) {
     <div className="divide-y divide-neutral-100">
       {items.map((item) => (
         <div
-          key={item.id}
+          key={item.variantId || item.id} // Changed to variantId to avoid React key collisions
           className="p-4 sm:p-6 bg-white transition-colors duration-200 hover:bg-neutral-50"
         >
           {/* Main row: LTR responsive grid */}
@@ -59,7 +59,7 @@ export default function CartItems({ items = [], onUpdate }) {
                   }
                   alt={item.name}
                   onClick={() =>
-                    navigate(`/product/${item.id}`, {
+                    navigate(`/product/${item.id}`, { // NOTE: Keep item.id here for navigation URL
                       state: { product: item },
                     })
                   }
@@ -73,6 +73,16 @@ export default function CartItems({ items = [], onUpdate }) {
                 <p className="text-neutral-400 text-[10px] uppercase tracking-wider mt-0.5">
                   Code: {item.code}
                 </p>
+                
+                {/* NEW: Display Size and Color */}
+                {item.size || item.color ? (
+                  <p className="text-neutral-500 text-xs mt-1">
+                    {item.size && <span>Size: {item.size}</span>}
+                    {item.size && item.color && <span className="mx-1 text-neutral-300">|</span>}
+                    {item.color && <span>Color: {item.color}</span>}
+                  </p>
+                ) : null}
+
                 {/* Mobile price (visible on small screens only) */}
                 <div className="sm:hidden mt-2 flex items-center gap-2">
                   <span className="text-neutral-900 font-medium">
@@ -103,7 +113,7 @@ export default function CartItems({ items = [], onUpdate }) {
             <div className="flex items-center justify-start sm:justify-center mb-4 sm:mb-0">
               <div className="flex items-center border border-neutral-200 bg-white">
                 <button
-                  onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                  onClick={() => handleQuantityChange(item.variantId, item.quantity - 1)} // Changed to variantId
                   className="px-3 py-1.5 text-neutral-500 hover:bg-neutral-50 transition-colors duration-200"
                   aria-label="Decrease quantity"
                 >
@@ -117,7 +127,7 @@ export default function CartItems({ items = [], onUpdate }) {
                 </span>
                 
                 <button
-                  onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                  onClick={() => handleQuantityChange(item.variantId, item.quantity + 1)} // Changed to variantId
                   className="px-3 py-1.5 text-neutral-500 hover:bg-neutral-50 transition-colors duration-200"
                   aria-label="Increase quantity"
                 >
@@ -139,7 +149,7 @@ export default function CartItems({ items = [], onUpdate }) {
             {/* Minimal Delete Button (Exactly matching your admin tables) */}
             <div className="flex justify-start sm:justify-center mt-2 sm:mt-0">
               <button
-                onClick={() => handleRemove(item.id)}
+                onClick={() => handleRemove(item.variantId)} // Changed to variantId
                 className="inline-flex items-center gap-1.5 border border-red-400 px-3 py-1.5 text-red-500 hover:bg-red-500 hover:text-white transition-colors duration-200 text-[10px] uppercase tracking-wider"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

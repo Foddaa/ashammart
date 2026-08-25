@@ -1,35 +1,49 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { addFavorite, removeFavorite, checkFavorite } from "@/services/favoriteService";
 import { getAccessToken } from "@/api/axiosInstance";
 import {
   getProductImageUrl,
   getDisplayCanceledPrice,
-  getTruncatedDescription,
   getDiscountPercentage,
   PLACEHOLDER_IMAGE,
 } from "@/utils/productDisplay";
+import { useBuyNow } from '@/context/BuyNowContext';
 
 export default function ProductCard({ product, className = "" }) {
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { openBuyNow } = useBuyNow();
+
+  // Extract unique colors from product.variants
+  const availableColors = useMemo(() => {
+    if (!product?.variants) return [];
+    const colorMap = new Map();
+    product.variants.forEach((variant) => {
+      if (!colorMap.has(variant.colorId)) {
+        colorMap.set(variant.colorId, {
+          id: variant.colorId,
+          name: variant.colorName,
+          hex: variant.colorHex,
+        });
+      }
+    });
+    return Array.from(colorMap.values());
+  }, [product]);
 
   useEffect(() => {
-    if (!product?.id || !getAccessToken()) return; // skip if logged out — avoids a guaranteed 401
-
+    if (!product?.id || !getAccessToken()) return;
     let cancelled = false;
 
     checkFavorite(product.id)
       .then((res) => {
         if (!cancelled) setIsFavorite(res.data);
       })
-      .catch(() => {
-        // not fatal — card just renders as "not favorited"
-      });
+      .catch(() => {});
 
     return () => {
-      cancelled = true; // avoid setting state on an unmounted card (fast scroll/unmount)
+      cancelled = true;
     };
   }, [product?.id]);
 
@@ -51,57 +65,38 @@ export default function ProductCard({ product, className = "" }) {
 
   const handleBuyNow = (e) => {
     e.stopPropagation();
-    const orderItem = {
-      id: product.id,
-      name: product.name || product.title,
-      price: product.price,
-      code: product.code,
-      canceledPrice: product.canceledPrice,
-      images: product.images,
-      quantity: 1,
-      comment: "",
-      freeDelivery: product.freeDelivery,
-    };
-    navigate("/review-order", {
-      state: {
-        buyNow: true,
-        directProduct: orderItem,
-        subtotal: product.price,
-        quantity: 1,
-        comment: "",
-      },
-    });
+    openBuyNow(product);
   };
 
-const toggleFavorite = async (e) => {
-  e.stopPropagation();
-  if (isSaving) return;
+  const toggleFavorite = async (e) => {
+    e.stopPropagation();
+    if (isSaving) return;
 
-  if (!getAccessToken()) {
-    navigate("/login", { state: { from: `/product/${product.id}` } });
-    return;
-  }
-
-  const next = !isFavorite;
-  setIsFavorite(next);
-  setIsSaving(true);
-
-  try {
-    if (next) {
-      await addFavorite(product.id);
-    } else {
-      await removeFavorite(product.id);
-    }
-  } catch (err) {
-    setIsFavorite(!next);
-    if (err.response?.status === 401) {
+    if (!getAccessToken()) {
       navigate("/login", { state: { from: `/product/${product.id}` } });
+      return;
     }
-    console.error("Failed to update favorite:", err);
-  } finally {
-    setIsSaving(false);
-  }
-};
+
+    const next = !isFavorite;
+    setIsFavorite(next);
+    setIsSaving(true);
+
+    try {
+      if (next) {
+        await addFavorite(product.id);
+      } else {
+        await removeFavorite(product.id);
+      }
+    } catch (err) {
+      setIsFavorite(!next);
+      if (err.response?.status === 401) {
+        navigate("/login", { state: { from: `/product/${product.id}` } });
+      }
+      console.error("Failed to update favorite:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div
@@ -172,6 +167,22 @@ const toggleFavorite = async (e) => {
             </div>
           </div>
 
+          {/* ---- SMALL COLOR INFO ---- */}
+          {availableColors.length > 0 && (
+            <div className="flex gap-1 mt-2">
+              {availableColors.map((c) => (
+                <div
+                  key={c.id}
+                  className="w-4 h-4 border border-neutral-300"
+                  style={{ backgroundColor: c.hex || "#cccccc" }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* mt-auto ensures the button always stays at the bottom of the card */}
+        <div className="mt-auto pt-2">
           <button
             onClick={handleBuyNow}
             className="w-full py-2 border text-black text-sm hover:bg-gray-50 transition-colors duration-200"

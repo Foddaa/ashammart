@@ -115,7 +115,8 @@ export default function OrderReview() {
           address: { city, description },
           deliveryCost,
           items: items.map((item) => ({
-            productId: item.id,
+            variantId: item.variantId, // Included for fallback
+            sku: item.sku,             // New: sends the SKU
             quantity: item.quantity,
           })),
           subtotal: totalAmount,
@@ -200,6 +201,16 @@ export default function OrderReview() {
                           Qty: {item.quantity}
                           {buyNow && <span className="ml-2 border border-neutral-200 px-1.5 py-0.5 text-[9px]">Instant</span>}
                         </p>
+                        
+                        {/* NEW: Display Size and Color */}
+                        {item.size || item.color ? (
+                          <p className="text-neutral-500 text-xs mt-1">
+                            {item.size && <span>Size: {item.size}</span>}
+                            {item.size && item.color && <span className="mx-1 text-neutral-300">|</span>}
+                            {item.color && <span>Color: {item.color}</span>}
+                          </p>
+                        ) : null}
+
                         {/* Mobile Free Delivery Badge */}
                         {item.freeDelivery && (
                           <div className="sm:hidden mt-1 flex items-center gap-1 text-[10px] text-neutral-600 uppercase tracking-wider">
@@ -255,7 +266,7 @@ export default function OrderReview() {
           <h3 className="text-sm font-medium tracking-wide text-neutral-800 border-b border-neutral-200 pb-3 mb-3">Summary</h3>
           <div className="space-y-2 text-sm text-neutral-600">
             <p className="flex justify-between">
-              <span>Subtotal</span>
+              <span>Cart Total</span>
               <span className="font-medium text-neutral-900">{totalAmount.toLocaleString()} EGP</span>
             </p>
             <p className="flex justify-between items-center gap-2">

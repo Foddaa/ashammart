@@ -1,8 +1,6 @@
 package com.example.furniture.controller;
 
-import com.example.furniture.inputDTO.ProductVariantInputDTO;
-import com.example.furniture.inputDTO.RealLifePhotoDTO;
-import com.example.furniture.inputDTO.UpdatePricesRequest;
+import com.example.furniture.inputDTO.*;
 import com.example.furniture.model.*;
 import com.example.furniture.repository.*;
 import com.example.furniture.service.*;
@@ -40,6 +38,13 @@ public class AdminController {
     SupplierService supplierService;
     @Autowired
     SupplierRequestRepository supplierRequestRepository;
+    @Autowired
+    ColorRepository colorRepository;
+    @Autowired
+    SizeRepository sizeRepository;
+
+
+
 
     @Autowired
     DeliveryPriceRepository deliveryPriceRepository;
@@ -71,7 +76,9 @@ public class AdminController {
                                            @RequestParam("fastDelivery") boolean fastDelivery,
                                            @RequestParam(value = "images", required = false) MultipartFile[] newImages,
                                            @RequestParam(value = "deletedImages", required = false) String deletedImagesJson,
-                                           @RequestParam(value = "variants", required = false) String variantsJson) {
+                                           @RequestParam(value = "variants", required = false) String variantsJson,
+                                           @RequestParam(value = "colorImages", required = false) String colorImagesJson,
+                                           @RequestParam(value = "imageColorUpdates", required = false) String imageColorUpdatesJson) {
         logger.info("Updating product with ID: {}", id);
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -79,7 +86,6 @@ public class AdminController {
             List<Long> deletedImages = new ArrayList<>();
             if (deletedImagesJson != null && !deletedImagesJson.isBlank()) {
                 deletedImages = mapper.readValue(deletedImagesJson, new TypeReference<List<Long>>() {});
-                logger.debug("Deleted images IDs: {}", deletedImages);
             }
 
             List<ProductVariantInputDTO> variants = new ArrayList<>();
@@ -87,14 +93,24 @@ public class AdminController {
                 variants = mapper.readValue(variantsJson, new TypeReference<List<ProductVariantInputDTO>>() {});
             }
 
+            List<ColorImageMappingDTO> colorMappings = new ArrayList<>();
+            if (colorImagesJson != null && !colorImagesJson.isBlank()) {
+                colorMappings = mapper.readValue(colorImagesJson, new TypeReference<List<ColorImageMappingDTO>>() {});
+            }
+
+            List<ImageColorUpdateDTO> imageColorUpdates = new ArrayList<>();
+            if (imageColorUpdatesJson != null && !imageColorUpdatesJson.isBlank()) {
+                imageColorUpdates = mapper.readValue(imageColorUpdatesJson, new TypeReference<List<ImageColorUpdateDTO>>() {});
+            }
+
             ResponseEntity<?> response = productService.updateProductById(
                     id, name, code, description, price, canceledPrice, categoryId,
-                    supplierCode, freeDelivery, fastDelivery, newImages != null ? newImages : new MultipartFile[0],
-                    deletedImages, variants
+                    supplierCode, freeDelivery, fastDelivery,
+                    newImages != null ? newImages : new MultipartFile[0],
+                    deletedImages, variants, colorMappings, imageColorUpdates
             );
             logger.info("Product updated successfully with ID: {}", id);
             return response;
-
         } catch (Exception e) {
             logger.error("Error updating product ID {}: {}", id, e.getMessage(), e);
             return ResponseEntity.badRequest().body("Update failed: " + e.getMessage());
@@ -104,17 +120,19 @@ public class AdminController {
 
 
     @PostMapping("/product/add")
-    public ResponseEntity<?> createProduct(@RequestParam String name,
-                                           @RequestParam String code,
-                                           @RequestParam String description,
-                                           @RequestParam double price,
-                                           @RequestParam double canceledPrice,
-                                           @RequestParam long category,
-                                           @RequestParam String supplierCode,
-                                           @RequestParam("freeDelivery") boolean freeDelivery,
-                                           @RequestParam("fastDelivery") boolean fastDelivery,
-                                           @RequestParam(value = "images", required = false) MultipartFile[] images,
-                                           @RequestParam(value = "variants", required = false) String variantsJson) {
+    public ResponseEntity<?> createProduct(
+            @RequestParam String name,
+            @RequestParam String code,
+            @RequestParam String description,
+            @RequestParam double price,
+            @RequestParam double canceledPrice,
+            @RequestParam long category,
+            @RequestParam String supplierCode,
+            @RequestParam("freeDelivery") boolean freeDelivery,
+            @RequestParam("fastDelivery") boolean fastDelivery,
+            @RequestParam(value = "images", required = false) MultipartFile[] images,
+            @RequestParam(value = "variants", required = false) String variantsJson,
+            @RequestParam(value = "colorImages", required = false) String colorImagesJson) {
         try {
             logger.info("new product request, name: {}, code: {}, description: {}, price: {}, canceledPrice: {}, category: {}, supplierCode: {}, images: {}", name, code, description, price, canceledPrice, category, supplierCode, images);
 
@@ -122,6 +140,11 @@ public class AdminController {
             if (variantsJson != null && !variantsJson.isBlank()) {
                 ObjectMapper mapper = new ObjectMapper();
                 variants = mapper.readValue(variantsJson, new TypeReference<List<ProductVariantInputDTO>>() {});
+            }
+            List<ColorImageMappingDTO> colorMappings = new ArrayList<>();
+            if (colorImagesJson != null && !colorImagesJson.isBlank()) {
+                ObjectMapper mapper = new ObjectMapper();
+                colorMappings = mapper.readValue(colorImagesJson, new TypeReference<List<ColorImageMappingDTO>>() {});
             }
 
             Product product = new Product();
@@ -149,7 +172,7 @@ public class AdminController {
             }
             product.setSupplier(supplier);
 
-            return productService.addProduct(product, images, variants);
+            return productService.addProduct(product, images, variants, colorMappings);
 
         } catch (IllegalArgumentException e) {
             logger.warn("Validation failed while adding product: {}", e.getMessage());
@@ -482,5 +505,16 @@ public class AdminController {
         realLifePhotoStorageService.delete(photo.getFileName());
         realLifePhotoRepository.delete(photo);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/colors/all")
+    public ResponseEntity<?> getAllColors() {
+        List<Color> colors = colorRepository.findAll();
+        return ResponseEntity.ok(colors);
+    }
+    @GetMapping("/sizes/all")
+    public ResponseEntity<?> getAllSizes() {
+        List<Size> sizes = sizeRepository.findAll();
+        return ResponseEntity.ok(sizes);
     }
 }

@@ -15,6 +15,6 @@ public class ConfirmOrderRequest {
     private String paymentMethod;
     private Address address;
     private double deliveryCost;
-    private List<orderProduct_Id_quantity> items;
+    private List<OrderProductVariantQuantity> items;
 
 }

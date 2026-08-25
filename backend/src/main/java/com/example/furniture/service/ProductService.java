@@ -1,13 +1,12 @@
 package com.example.furniture.service;
 import com.example.furniture.ENUMS.SortOption;
-import com.example.furniture.inputDTO.UpdatePricesRequest;
+import com.example.furniture.inputDTO.*;
 import com.example.furniture.inputDTO.response.PagedResponse;
+import com.example.furniture.inputDTO.response.SkuImageDTO;
+import com.example.furniture.inputDTO.response.SkuProductDTO;
+import com.example.furniture.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.example.furniture.inputDTO.ProductDTO;
-import com.example.furniture.model.Image;
-import com.example.furniture.model.Product;
-import com.example.furniture.model.Rating;
 import com.example.furniture.repository.*;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -38,118 +37,170 @@ public class ProductService {
     private final ImageRepository imageRepository;
     private final RatingRepository ratingRepository;
 
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, SupplierRepository supplierRepository, ImageRepository imageRepository, RatingRepository ratingRepository) {
+    private final ColorRepository colorRepository;
+    private final SizeRepository sizeRepository;
+    private final ProductVariantRepository productVariantRepository;
+
+    public ProductService(
+            ProductRepository productRepository,
+            CategoryRepository categoryRepository,
+            SupplierRepository supplierRepository,
+            ImageRepository imageRepository,
+            RatingRepository ratingRepository,
+            ColorRepository colorRepository,
+            SizeRepository sizeRepository,
+            ProductVariantRepository productVariantRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.supplierRepository = supplierRepository;
         this.imageRepository = imageRepository;
         this.ratingRepository = ratingRepository;
+        this.colorRepository = colorRepository;
+        this.sizeRepository = sizeRepository;
+        this.productVariantRepository = productVariantRepository;
     }
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
     @Value("${file.upload-dir}")
     private String uploadDir;
 
     // -------------------------<< admin CRUDs >>-------------------------
-    public ResponseEntity<?> addProduct(Product product, MultipartFile[] files) {
+    @Transactional
+    public ResponseEntity<?> addProduct(Product product, MultipartFile[] files,
+                                        List<ProductVariantInputDTO> variantInputs,
+                                        List<ColorImageMappingDTO> colorMappings) {
         try {
             logger.info("Attempting to add new product: {}", product.getName());
 
-            // Validate product fields
+            // Validate basic fields
             if (product.getName() == null || product.getName().trim().isEmpty()) {
-                logger.warn("Validation failed: Product name is missing");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "اسم المنتج مطلوب"));
+                return ResponseEntity.badRequest().body(Map.of("message", "اسم المنتج مطلوب"));
             }
             if (product.getCode() == null || product.getCode().trim().isEmpty()) {
-                logger.warn("Validation failed: Product code is missing");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("message", "كود المنتج مطلوب"));
+                return ResponseEntity.badRequest().body(Map.of("message", "كود المنتج مطلوب"));
             }
 
+            // --- Image handling (unchanged from your original) ---
             List<Image> imageList = new ArrayList<>();
-
-            // Max file size (2MB) and total request size (10MB)
-            long MAX_FILE_SIZE = 2 * 1024 * 1024;   // 2MB
-            long MAX_REQUEST_SIZE = 10 * 1024 * 1024; // 10MB
-
+            long MAX_FILE_SIZE = 2 * 1024 * 1024;
+            long MAX_REQUEST_SIZE = 10 * 1024 * 1024;
             long totalSize = 0;
 
-            // Handle image upload
             if (files != null && files.length > 0) {
                 for (MultipartFile file : files) {
                     if (file != null && !file.isEmpty()) {
-
-                        // Check individual file size
                         if (file.getSize() > MAX_FILE_SIZE) {
-                            logger.warn("File {} exceeded max allowed size ({} bytes)", file.getOriginalFilename(), MAX_FILE_SIZE);
-                            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            return ResponseEntity.badRequest()
                                     .body(Map.of("message", "حجم الملف أكبر من المسموح به (2MB): " + file.getOriginalFilename()));
                         }
-
-                        // Check total request size
                         totalSize += file.getSize();
                         if (totalSize > MAX_REQUEST_SIZE) {
-                            logger.warn("Total request size exceeded ({} bytes)", MAX_REQUEST_SIZE);
-                            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            return ResponseEntity.badRequest()
                                     .body(Map.of("message", "إجمالي حجم الملفات تجاوز الحد الأقصى (10MB)"));
                         }
-
                         try {
                             String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
                             Path filePath = Paths.get(uploadDir, filename);
                             Files.createDirectories(filePath.getParent());
                             Files.write(filePath, file.getBytes());
-
                             Image img = new Image();
                             img.setUrl("/uploads/" + filename);
                             img.setProduct(product);
                             imageList.add(img);
-
                             logger.info("Saved image: {}", filename);
                         } catch (IOException ex) {
-                            logger.error("File upload error for product {}: {}", product.getName(), ex.getMessage(), ex);
+                            logger.error("File upload error: {}", ex.getMessage());
                             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                     .body(Map.of("message", "حدث خطأ أثناء رفع الصور"));
                         }
                     }
                 }
             }
-
             product.setImages(imageList);
-            productRepository.save(product);
-            logger.info("Product added successfully: {}", product.getName());
 
+            // --- First save product to get an ID (needed for SKU generation) ---
+            product = productRepository.save(product);
+
+            // --- Handle variants ---
+            if (variantInputs != null && !variantInputs.isEmpty()) {
+                for (ProductVariantInputDTO input : variantInputs) {
+                    ProductVariant variant = new ProductVariant();
+                    variant.setProduct(product);
+
+                    // Resolve color
+                    if (input.getColorId() != null) {
+                        Color color = colorRepository.findById(input.getColorId())
+                                .orElseThrow(() -> new IllegalArgumentException("Color not found: " + input.getColorId()));
+                        variant.setColor(color);
+                    }
+                    // Resolve size
+                    if (input.getSizeId() != null) {
+                        Size size = sizeRepository.findById(input.getSizeId())
+                                .orElseThrow(() -> new IllegalArgumentException("Size not found: " + input.getSizeId()));
+                        variant.setSize(size);
+                    }
+                    variant.setPrice(input.getPrice());
+                    variant.setCanceledPrice(input.getCanceledPrice());
+                    variant.setQuantity(input.getQuantity());
+                    variant.setSku(generateSku(product, input));
+                    // status defaults to AVAILABLE
+
+                    product.getVariants().add(variant);
+                }
+            }
+            if (colorMappings != null && !colorMappings.isEmpty()) {
+                // Get the list of images in the order they were uploaded
+                imageList = product.getImages(); // order preserved if using List
+
+                for (ColorImageMappingDTO mapping : colorMappings) {
+                    Color color = colorRepository.findById(mapping.getColorId())
+                            .orElseThrow(() -> new IllegalArgumentException("Color not found: " + mapping.getColorId()));
+                    for (Integer index : mapping.getImageIndices()) {
+                        if (index >= 0 && index < imageList.size()) {
+                            imageList.get(index).setColor(color);
+                        } else {
+                            logger.warn("Invalid image index {} for color mapping", index);
+                        }
+                    }
+                }
+            }
+
+            // --- Save again to persist variants (cascade) ---
+            productRepository.save(product);
+
+            logger.info("Product added successfully with {} variants",
+                    product.getVariants().size());
             return ResponseEntity.ok(Map.of("message", "تمت إضافة المنتج بنجاح"));
 
         } catch (DataIntegrityViolationException e) {
-            logger.error("Duplicate code error while saving product {}: {}", product.getName(), e.getMessage(), e);
+            logger.error("Duplicate code or SKU error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("message", "الكود المدخل مستخدم بالفعل، يرجى إدخال كود مختلف"));
-
+                    .body(Map.of("message", "الكود أو SKU مستخدم بالفعل، يرجى إدخال قيم مختلفة"));
         } catch (IllegalArgumentException e) {
-            logger.warn("Invalid argument while adding product {}: {}", product.getName(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            logger.warn("Validation error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
                     .body(Map.of("message", "البيانات المدخلة غير صحيحة: " + e.getMessage()));
-
         } catch (Exception e) {
-            logger.error("Unexpected error while saving product {}: {}", product.getName(), e.getMessage(), e);
+            logger.error("Unexpected error: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "حدث خطأ غير متوقع أثناء حفظ المنتج"));
         }
     }
-
+    @Transactional
     public ResponseEntity<?> updateProductById(Long id, String name, String code, String description,
                                                double price, double canceledPrice,
                                                Long categoryId, String supplierCode,
                                                boolean freeDelivery, boolean fastDelivery,
                                                MultipartFile[] newImages,
-                                               List<Long> deletedImages) {
+                                               List<Long> deletedImages,
+                                               List<ProductVariantInputDTO> variantInputs,
+                                               List<ColorImageMappingDTO> colorMappings,
+                                               List<ImageColorUpdateDTO> imageColorUpdates) {
         try {
             logger.info("Updating product with id: {}", id);
             Product product = productRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-            // Update fields
+            // --- Update basic fields ---
             product.setName(name);
             product.setCode(code);
             product.setDescription(description);
@@ -160,10 +211,10 @@ public class ProductService {
             product.setSupplier(supplierRepository.findByCode(supplierCode));
             product.setFreeDelivery(freeDelivery);
             product.setFastDelivery(fastDelivery);
-            // Handle deleted images
+
+            // --- Handle deleted images ---
             if (deletedImages != null && !deletedImages.isEmpty()) {
                 List<Image> existingImages = imageRepository.findByProduct(product);
-
                 for (Image image : existingImages) {
                     if (deletedImages.contains(image.getId())) {
                         Path path = Paths.get(uploadDir, Paths.get(image.getUrl()).getFileName().toString());
@@ -174,7 +225,8 @@ public class ProductService {
                 }
             }
 
-            // Handle new images
+            // --- Handle new images (store them in a temporary list to assign colors later) ---
+            List<Image> newImageList = new ArrayList<>();
             if (newImages != null) {
                 for (MultipartFile file : newImages) {
                     if (!file.isEmpty()) {
@@ -182,42 +234,148 @@ public class ProductService {
                         Path path = Paths.get(uploadDir, filename);
                         Files.createDirectories(path.getParent());
                         Files.write(path, file.getBytes());
-
                         Image image = new Image();
                         image.setUrl("/uploads/" + filename);
                         image.setProduct(product);
+                        // Save and add to product's images
                         imageRepository.save(image);
-
+                        product.getImages().add(image);
+                        newImageList.add(image);
                         logger.info("Added new image: {}", filename);
                     }
                 }
             }
 
+            // --- Assign colors to new images using colorMappings ---
+            if (colorMappings != null && !colorMappings.isEmpty()) {
+                for (ColorImageMappingDTO mapping : colorMappings) {
+                    Color color = colorRepository.findById(mapping.getColorId())
+                            .orElseThrow(() -> new IllegalArgumentException("Color not found: " + mapping.getColorId()));
+                    for (Integer index : mapping.getImageIndices()) {
+                        if (index >= 0 && index < newImageList.size()) {
+                            newImageList.get(index).setColor(color);
+                            imageRepository.save(newImageList.get(index)); // update color
+                        } else {
+                            logger.warn("Invalid image index {} for color mapping", index);
+                        }
+                    }
+                }
+            }
+
+            // --- Update colors of existing images ---
+            if (imageColorUpdates != null && !imageColorUpdates.isEmpty()) {
+                for (ImageColorUpdateDTO update : imageColorUpdates) {
+                    Image image = imageRepository.findById(update.getImageId())
+                            .orElseThrow(() -> new IllegalArgumentException("Image not found: " + update.getImageId()));
+                    if (update.getColorId() != null) {
+                        Color color = colorRepository.findById(update.getColorId())
+                                .orElseThrow(() -> new IllegalArgumentException("Color not found: " + update.getColorId()));
+                        image.setColor(color);
+                    } else {
+                        image.setColor(null);
+                    }
+                    imageRepository.save(image);
+                }
+            }
+
+            // --- Handle variants (corrected to avoid duplicate adds) ---
+            if (variantInputs != null) {
+                // Build map of existing variants by id
+                Map<Long, ProductVariant> existingMap = product.getVariants().stream()
+                        .collect(Collectors.toMap(ProductVariant::getId, v -> v));
+
+                // Collect IDs from incoming list (non‑null)
+                Set<Long> incomingIds = variantInputs.stream()
+                        .filter(v -> v.getId() != null)
+                        .map(ProductVariantInputDTO::getId)
+                        .collect(Collectors.toSet());
+
+                // 1. Update existing variants in place, and collect new ones
+                List<ProductVariant> newVariants = new ArrayList<>();
+                for (ProductVariantInputDTO input : variantInputs) {
+                    ProductVariant variant;
+                    boolean isNew = false;
+                    if (input.getId() != null && existingMap.containsKey(input.getId())) {
+                        variant = existingMap.get(input.getId());
+                    } else {
+                        variant = new ProductVariant();
+                        variant.setProduct(product);
+                        isNew = true;
+                    }
+
+                    // Set color / size (may be null)
+                    if (input.getColorId() != null) {
+                        Color color = colorRepository.findById(input.getColorId())
+                                .orElseThrow(() -> new IllegalArgumentException("Color not found: " + input.getColorId()));
+                        variant.setColor(color);
+                    } else {
+                        variant.setColor(null);
+                    }
+                    if (input.getSizeId() != null) {
+                        Size size = sizeRepository.findById(input.getSizeId())
+                                .orElseThrow(() -> new IllegalArgumentException("Size not found: " + input.getSizeId()));
+                        variant.setSize(size);
+                    } else {
+                        variant.setSize(null);
+                    }
+
+                    variant.setPrice(input.getPrice());
+                    variant.setCanceledPrice(input.getCanceledPrice());
+                    variant.setQuantity(input.getQuantity());
+
+                    // If new variant, generate SKU
+                    if (isNew) {
+                        variant.setSku(generateSku(product, input));
+                        newVariants.add(variant);
+                    }
+                    // If existing, fields are updated in place
+                }
+
+                // 2. Remove variants that are not in the incoming list
+                product.getVariants().removeIf(v -> !incomingIds.contains(v.getId()));
+
+                // 3. Add the new variants
+                product.getVariants().addAll(newVariants);
+            }
+
+            // --- Save product (cascade will persist changes) ---
             Product updated = productRepository.save(product);
             logger.info("Successfully updated product: {}", updated.getName());
             return ResponseEntity.ok(updated);
 
         } catch (IllegalArgumentException e) {
-            logger.warn("Update failed for product id {}: {}", id, e.getMessage());
+            logger.warn("Update failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", "المنتج أو الفئة غير موجودة"));
-
+                    .body(Map.of("message", "المنتج أو الفئة أو اللون/المقاس غير موجود"));
         } catch (DataIntegrityViolationException e) {
-            logger.error("Update failed due to duplicate code for product id {}: {}", id, e.getMessage(), e);
+            logger.error("Duplicate code or SKU: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("message", "الكود المدخل مستخدم بالفعل، يرجى إدخال كود مختلف"));
-
+                    .body(Map.of("message", "الكود أو SKU مستخدم بالفعل، يرجى إدخال قيم مختلفة"));
         } catch (IOException e) {
-            logger.error("File handling error while updating product id {}: {}", id, e.getMessage(), e);
+            logger.error("File handling error: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "حدث خطأ أثناء حفظ أو حذف الصور"));
-
         } catch (Exception e) {
-            logger.error("Unexpected error while updating product id {}: {}", id, e.getMessage(), e);
+            logger.error("Unexpected error: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "حدث خطأ غير متوقع أثناء تحديث المنتج"));
         }
     }
+    private String generateSku(Product product, ProductVariantInputDTO input) {
+        String base = product.getCode();
+        String colorPart = (input.getColorId() != null) ? "-C" + input.getColorId() : "";
+        String sizePart = (input.getSizeId() != null) ? "-S" + input.getSizeId() : "";
+        String sku = base + colorPart + sizePart;
+
+        // Ensure uniqueness – if it already exists, append a suffix
+        int counter = 1;
+        String candidate = sku;
+        while (productVariantRepository.findBySku(candidate).isPresent()) {
+            candidate = sku + "-" + counter++;
+        }
+        return candidate;
+    }
+
     @Transactional
     public int updateAllPrices(UpdatePricesRequest request) {
         logger.info("Starting bulk price update: type={}, value={}",
@@ -267,20 +425,42 @@ public class ProductService {
     }
 
     // ---------------------------<< General Queries >>---------------------------
-    @Transactional
+    @Transactional(readOnly = true)
     public ProductDTO getProduct(Long id) {
         logger.info("Fetching product with ID: {}", id);
-        Optional<Product> optionalProduct = productRepository.findByIdWithImages(id);
+
+        Optional<Product> optionalProduct =
+                productRepository.findByIdWithImages(id);
+
         if (optionalProduct.isEmpty()) {
             logger.warn("Product not found with ID: {}", id);
             return null;
         }
+
         Product product = optionalProduct.get();
-        logger.debug("Product fetched: {}", product.getName());
+
+        // Load variants separately
+        List<ProductVariant> variants =
+                productRepository.findByProductIdWithColorAndSize(id);
+        for (ProductVariant variant : variants) {
+            System.out.println(variant.toString());
+        }
+        product.setVariants(variants);
+
+        for (ProductVariant variant : product.getVariants()) {
+            System.out.println(variant.toString());
+        }
+
+        logger.debug("Product fetched: {}, variants={}",
+                product.getName(), variants.size());
+
         ProductDTO productDto = ProductDTO.withRatings(product);
+
         logger.info("Returning product DTO for ID: {}", id);
+
         return productDto;
     }
+
     @Transactional(readOnly = true)
     public PagedResponse<ProductDTO> getAllProducts(int page, int limit, String search) {
         logger.info("Fetching products page={} limit={} search={}", page, limit, search);
@@ -419,7 +599,7 @@ public class ProductService {
         return products;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ProductDTO> findAllByIdList(List<Long> ids) {
         List<ProductDTO> products = new ArrayList<>();
         for (long id:ids){
@@ -432,13 +612,57 @@ public class ProductService {
         return products;
     }
 
-    // --------------------<< Unified Get List Query >>---------------------------------------------
+    @Transactional(readOnly = true)
+    public List<SkuProductDTO> getProductsBySkus(List<String> skus) {
+        logger.info("Fetching products by SKUs: {}", skus);
 
-    public PagedResponse<ProductDTO> search(int page, int limit, String search,
-                                            List<Long> categoryIds, Double minPrice, Double maxPrice,
-                                            Double minRating, SortOption sortOption) {
-        logger.info("Searching for products: page={}, limit={}, search={}, categoryIds={}, minPrice={}, maxPrice={}, minRating={}, sortOption={}",
-                page, limit, search, categoryIds, minPrice, maxPrice, minRating, sortOption);
+        if (skus == null || skus.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<ProductVariant> variants = productVariantRepository.findBySkuInWithDetails(skus);
+
+        return variants.stream().map(variant -> {
+            Product product = variant.getProduct();
+            SkuProductDTO dto = new SkuProductDTO();
+
+            dto.setSku(variant.getSku());
+            dto.setProductId(product.getId());
+            dto.setName(product.getName());
+            dto.setCode(product.getCode());
+            dto.setPrice(variant.getEffectivePrice());
+            dto.setCanceledPrice(variant.getEffectiveCanceledPrice());
+
+            List<SkuImageDTO> imageDtos = product.getImages().stream()
+                    .limit(1) // <--- Added this line
+                    .map(img -> new SkuImageDTO(img.getUrl()))
+                    .collect(Collectors.toList());
+            dto.setImages(imageDtos);
+
+            dto.setColorName(variant.getColor() != null ? variant.getColor().getName() : null);
+            dto.setSizeName(variant.getSize() != null ? variant.getSize().getName() : null);
+            dto.setQuantity(variant.getQuantity());
+            dto.setStatus(variant.getStatus());
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+    // --------------------<< Unified Get List Query >>---------------------------------------------
+    @Transactional(readOnly = true)
+    public PagedResponse<ProductDTO> search(
+            int page,
+            int limit,
+            String search,
+            List<Long> categoryIds,
+            Double minPrice,
+            Double maxPrice,
+            Double minRating,
+            SortOption sortOption) {
+
+        logger.info(
+                "Searching for products: page={}, limit={}, search={}, categoryIds={}, minPrice={}, maxPrice={}, minRating={}, sortOption={}",
+                page, limit, search, categoryIds, minPrice, maxPrice, minRating, sortOption
+        );
 
         Specification<Product> spec = Specification
                 .where(ProductSpecifications.hasSearch(search))
@@ -449,22 +673,48 @@ public class ProductService {
         Page<Product> idPage;
 
         if (sortOption == SortOption.MOST_RATED) {
-            // Handled by custom Criteria query that sorts by AVG(rating.stars) DESC
-            Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
-            idPage = productRepository.findAllOrderByAverageRating(spec, pageable);
+
+            Pageable pageable =
+                    PageRequest.of(Math.max(page - 1, 0), limit);
+
+            idPage = productRepository.findAllOrderByAverageRating(
+                    spec,
+                    pageable
+            );
+
         } else {
+
             Sort sort = switch (sortOption) {
-                case PRICE_ASC     -> Sort.by("price").ascending();
-                case PRICE_DESC    -> Sort.by("price").descending();
-                case BEST_SELLERS  -> Sort.by("quantitySailed").descending();
-                case NEWEST        -> Sort.by("id").descending();
-                default            -> throw new IllegalStateException("Unexpected sort: " + sortOption);
+                case PRICE_ASC ->
+                        Sort.by("price").ascending();
+
+                case PRICE_DESC ->
+                        Sort.by("price").descending();
+
+                case BEST_SELLERS ->
+                        Sort.by("quantitySailed").descending();
+
+                case NEWEST ->
+                        Sort.by("id").descending();
+
+                default ->
+                        throw new IllegalStateException(
+                                "Unexpected sort: " + sortOption
+                        );
             };
-            Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit, sort);
+
+            Pageable pageable =
+                    PageRequest.of(
+                            Math.max(page - 1, 0),
+                            limit,
+                            sort
+                    );
+
             idPage = productRepository.findAll(spec, pageable);
         }
 
-        List<Long> ids = idPage.getContent().stream()
+        List<Long> ids = idPage.getContent()
+                .stream()
                 .map(Product::getId)
                 .toList();
 
@@ -481,10 +731,20 @@ public class ProductService {
                 .map(ProductDTO::new)
                 .toList();
 
-        logger.debug("Returning {} of {} total products (page {} of {})",
-                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
+        logger.debug(
+                "Returning {} of {} total products (page {} of {})",
+                result.size(),
+                idPage.getTotalElements(),
+                page,
+                idPage.getTotalPages()
+        );
 
-        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
+        return new PagedResponse<>(
+                result,
+                idPage.getTotalElements(),
+                idPage.getTotalPages(),
+                page
+        );
     }
 
 
