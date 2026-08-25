@@ -1,16 +1,19 @@
 package com.example.furniture.repository;
 
 import com.example.furniture.model.Product;
+import jakarta.persistence.QueryHint;
 import org.hibernate.annotations.SQLUpdate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
 
 import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface ProductRepository extends JpaRepository<Product,Long> {
 
@@ -72,4 +75,8 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     @Modifying
     @Query("UPDATE Product p SET p.status = :status WHERE p.id = :id")
     int updateStatus(@Param("id") Long id, @Param("status") String status);
+
+    @QueryHints(@QueryHint(name = "org.hibernate.fetchSize", value = "50"))
+    @Query("SELECT p FROM Product p")
+    Stream<Product> streamAll();
 }
