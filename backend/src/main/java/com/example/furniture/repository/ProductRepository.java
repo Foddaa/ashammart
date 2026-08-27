@@ -48,7 +48,7 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
     @Modifying
     @Query("""
-            UPDATE Product p 
+            UPDATE Product p
             SET p.price = ROUND(p.price + (p.price * :percentage / 100), 1) ,
              p.canceledPrice = ROUND(p.canceledPrice + (p.canceledPrice * :percentage / 100), 1)
              """)
