@@ -19,7 +19,7 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images LEFT JOIN FETCH p.ratings WHERE p.status != 'DELETED'")
     List<Product> findAllWithImagesAndRatings();
-    
+
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.images WHERE p.category.id = :categoryId AND p.status != 'DELETED'")
     List<Product> findByCategoryIdWithImages(@Param("categoryId") Long categoryId);
 

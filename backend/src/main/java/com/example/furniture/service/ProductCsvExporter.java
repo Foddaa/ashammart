@@ -18,8 +18,8 @@ public class ProductCsvExporter {
 
     // ✅ Only the "useful" columns — edit this list to add/remove fields
     private static final String[] HEADERS = {
-            "id", "name", "code", "price",
-            "category", "supplier", "quantitySailed", "averageRating"
+            "id", "name","description", "code", "price",
+            "category", "supplier", "quantitySailed", "averageRating","images"
     };
 
     @Transactional(readOnly = true)
@@ -40,13 +40,17 @@ public class ProductCsvExporter {
         return String.join(",",
                 csv(p.getId()),
                 csv(p.getName()),
+                csv(p.getDescription()),
                 csv(p.getCode()),
                 csv(p.getPrice()),
                 csv(p.getCategory() != null ? p.getCategory().getName() : ""),
                 csv(p.getSupplier() != null ? p.getSupplier().getName() : ""),
                 csv(p.getQuantitySailed()),
-                csv(p.getAverageRating())
-        );
+                csv(p.getAverageRating()),
+                csv(p.getImages().stream()
+                        .map(i -> "https://anttikka.com/api" + i.getUrl())
+                        .reduce((a, b) -> a + ", " + b)
+                        .orElse(""))        );
     }
 
     private String csv(Object value) {
