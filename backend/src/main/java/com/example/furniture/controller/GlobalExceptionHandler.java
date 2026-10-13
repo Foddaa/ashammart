@@ -9,10 +9,17 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<Map<String, String>> handleMaxSizeException(MaxUploadSizeExceededException ex) {
+//    @ExceptionHandler(MaxUploadSizeExceededException.class)
+//    public ResponseEntity<Map<String, String>> handleMaxSizeException(MaxUploadSizeExceededException ex) {
+//        return ResponseEntity.badRequest().body(
+//                Map.of("message", "حجم الملف أو مجموع الملفات كبير جدًا. الحد الأقصى المسموح به هو 2 ميجا للملف و 10 ميجا للإجمالي.")
+//        );
+//    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleException(Exception ex) {
         return ResponseEntity.badRequest().body(
-                Map.of("message", "حجم الملف أو مجموع الملفات كبير جدًا. الحد الأقصى المسموح به هو 2 ميجا للملف و 10 ميجا للإجمالي.")
+                Map.of("message", ex.getMessage())
         );
     }
 }

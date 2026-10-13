@@ -341,7 +341,7 @@ public class ProductService {
             // --- Save product (cascade will persist changes) ---
             Product updated = productRepository.save(product);
             logger.info("Successfully updated product: {}", updated.getName());
-            return ResponseEntity.ok(updated);
+            return ResponseEntity.ok("Product updated successfully");
 
         } catch (IllegalArgumentException e) {
             logger.warn("Update failed: {}", e.getMessage());

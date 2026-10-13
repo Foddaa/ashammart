@@ -109,7 +109,11 @@ public class AdminController {
                     newImages != null ? newImages : new MultipartFile[0],
                     deletedImages, variants, colorMappings, imageColorUpdates
             );
-            logger.info("Product updated successfully with ID: {}", id);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                logger.info("Product updated successfully with ID: {}", id);
+            } else {
+                logger.warn("Product update returned {} for ID: {}", response.getStatusCode(), id);
+            }
             return response;
         } catch (Exception e) {
             logger.error("Error updating product ID {}: {}", id, e.getMessage(), e);
