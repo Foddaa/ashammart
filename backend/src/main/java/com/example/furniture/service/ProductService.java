@@ -1,9 +1,8 @@
 package com.example.furniture.service;
+import com.example.furniture.ENUMS.Gender;
 import com.example.furniture.ENUMS.SortOption;
 import com.example.furniture.inputDTO.*;
-import com.example.furniture.inputDTO.response.PagedResponse;
-import com.example.furniture.inputDTO.response.SkuImageDTO;
-import com.example.furniture.inputDTO.response.SkuProductDTO;
+import com.example.furniture.inputDTO.response.*;
 import com.example.furniture.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -347,7 +347,7 @@ public class ProductService {
             logger.warn("Update failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", "المنتج أو الفئة أو اللون/المقاس غير موجود"));
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException e)     {
             logger.error("Duplicate code or SKU: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body(Map.of("message", "الكود أو SKU مستخدم بالفعل، يرجى إدخال قيم مختلفة"));
@@ -442,8 +442,9 @@ public class ProductService {
         // Load variants separately
         List<ProductVariant> variants =
                 productRepository.findByProductIdWithColorAndSize(id);
+        int quantitySailed = 0;
         for (ProductVariant variant : variants) {
-            System.out.println(variant.toString());
+            quantitySailed += variant.getQuantitySailed();
         }
         product.setVariants(variants);
 
@@ -454,32 +455,32 @@ public class ProductService {
         logger.debug("Product fetched: {}, variants={}",
                 product.getName(), variants.size());
 
-        ProductDTO productDto = ProductDTO.withRatings(product);
+        ProductDTO productDto = ProductDTO.withRatings(product, quantitySailed);
 
         logger.info("Returning product DTO for ID: {}", id);
 
         return productDto;
     }
 
-    @Transactional(readOnly = true)
-    public PagedResponse<ProductDTO> getAllProducts(int page, int limit, String search) {
-        logger.info("Fetching products page={} limit={} search={}", page, limit, search);
-
-        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
-        Page<Long> idPage = productRepository.findProductIds(search, pageable);
-
+    // ---------- Helper: build PagedResponse<ProductCardDto> from page of IDs ----------
+    public PagedResponse<ProductCardDto> buildCardPage(Page<Long> idPage, int page) {
         List<Long> ids = idPage.getContent();
-        List<Product> products = ids.isEmpty()
-                ? List.of()
-                : productRepository.findByIdsWithImagesAndRatings(ids);
 
-        Map<Long, Product> byId = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-        List<ProductDTO> result = ids.stream()
-                .map(byId::get)
-                .filter(Objects::nonNull)
-                .map(ProductDTO::new)
-                .toList();
+        List<ProductCardDto> result = List.of();
+        if (!ids.isEmpty()) {
+            Map<Long, ProductCardDto> byId = productRepository.findCardsByIds(ids).stream()
+                    .collect(Collectors.toMap(ProductCardDto::id, Function.identity()));
+
+            Map<Long, List<ColorDto>> colorsByProduct = productRepository.findColorsByProductIds(ids).stream()
+                    .collect(Collectors.groupingBy(ProductColorRow::productId,
+                            Collectors.mapping(r -> new ColorDto(r.id(), r.hex()), Collectors.toList())));
+
+            result = ids.stream()
+                    .map(byId::get)
+                    .filter(Objects::nonNull)
+                    .map(c -> c.withColors(colorsByProduct.getOrDefault(c.id(), List.of())))
+                    .toList();
+        }
 
         logger.debug("Returning {} of {} total products (page {} of {})",
                 result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
@@ -487,29 +488,23 @@ public class ProductService {
         return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
     }
 
+    @Transactional(readOnly = true)
+    public PagedResponse<ProductCardDto> getAllProducts(int page, int limit, String search) {
+        logger.info("Fetching products page={} limit={} search={}", page, limit, search);
+
+        Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+        Page<Long> idPage = productRepository.findProductIds(search, pageable);
+
+        return buildCardPage(idPage, page);
+    }
+
     @Transactional
-    public PagedResponse<ProductDTO> getByCategoryId(Long categoryId, int page, int limit, String search) {
+    public PagedResponse<ProductCardDto> getByCategoryId(Long categoryId, int page, int limit, String search) {
         logger.info("Fetching products by category ID: {}", categoryId);
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
-        Page<Long> idPage = productRepository.findProductByCategoryIds(categoryId ,search, pageable);
+        Page<Long> idPage = productRepository.findProductByCategoryIds(categoryId, search, pageable);
 
-        List<Long> ids = idPage.getContent();
-        List<Product> products = ids.isEmpty()
-                ? List.of()
-                : productRepository.findByIdsWithImagesAndRatings(ids);
-
-        Map<Long, Product> byId = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-        List<ProductDTO> result = ids.stream()
-                .map(byId::get)
-                .filter(Objects::nonNull)
-                .map(ProductDTO::new)
-                .toList();
-
-        logger.debug("Returning {} of {} total products (page {} of {})",
-                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
-
-        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
+        return buildCardPage(idPage, page);
     }
 
     @Transactional
@@ -519,74 +514,27 @@ public class ProductService {
     }
 
     @Transactional
-    public PagedResponse<ProductDTO> getBestSellers(int page, int limit) {
+    public PagedResponse<ProductCardDto> getBestSellers(int page, int limit) {
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
         Page<Long> idPage = productRepository.findBestSellersIds(pageable);
-        List<Long> ids = idPage.getContent();
-        List<Product> products = ids.isEmpty()
-                ? List.of()
-                : productRepository.findByIdsWithImagesAndRatings(ids);
-        Map<Long, Product> byId = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-        List<ProductDTO> result = ids.stream()
-                .map(byId::get)
-                .filter(Objects::nonNull)
-                .map(ProductDTO::new)
-                .toList();
 
-        logger.debug("Returning {} of {} total products (page {} of {})",
-                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
-
-        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
+        return buildCardPage(idPage, page);
     }
 
-    @Transactional
-    public PagedResponse<ProductDTO> getNewArrivals(int page, int limit){
+    @Transactional(readOnly = true)
+    public PagedResponse<ProductCardDto> getNewArrivals(int page, int limit) {
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
         Page<Long> idPage = productRepository.findNewArrivalIds(pageable);
 
-        List<Long> ids = idPage.getContent();
-        List<Product> products = ids.isEmpty()
-                ? List.of()
-                : productRepository.findByIdsWithImagesAndRatings(ids);
-
-        Map<Long, Product> byId = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-        List<ProductDTO> result = ids.stream()
-                .map(byId::get)
-                .filter(Objects::nonNull)
-                .map(ProductDTO::new)
-                .toList();
-
-        logger.debug("Returning {} of {} total products (page {} of {})",
-                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
-
-        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
+        return buildCardPage(idPage, page);
     }
 
     @Transactional
-    public PagedResponse<ProductDTO> getMostRated(int page, int limit) {
+    public PagedResponse<ProductCardDto> getMostRated(int page, int limit) {
         Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
         Page<Long> idPage = productRepository.findMostRatedIds(pageable);
 
-        List<Long> ids = idPage.getContent();
-        List<Product> products = ids.isEmpty()
-                ? List.of()
-                : productRepository.findByIdsWithImagesAndRatings(ids);
-
-        Map<Long, Product> byId = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-
-        List<ProductDTO> result = ids.stream()
-                .map(byId::get)
-                .filter(Objects::nonNull)
-                .map(ProductDTO::new)
-                .toList();
-
-        logger.debug("Returning {} of {} total products (page {} of {})",
-                result.size(), idPage.getTotalElements(), page, idPage.getTotalPages());
-
-        return new PagedResponse<>(result, idPage.getTotalElements(), idPage.getTotalPages(), page);
+        return buildCardPage(idPage, page);
     }
 
     @Transactional
@@ -649,102 +597,53 @@ public class ProductService {
     }
     // --------------------<< Unified Get List Query >>---------------------------------------------
     @Transactional(readOnly = true)
-    public PagedResponse<ProductDTO> search(
+    public PagedResponse<ProductCardDto> search(
             int page,
             int limit,
             String search,
             List<Long> categoryIds,
+            Gender gender,
             Double minPrice,
             Double maxPrice,
             Double minRating,
             SortOption sortOption) {
 
         logger.info(
-                "Searching for products: page={}, limit={}, search={}, categoryIds={}, minPrice={}, maxPrice={}, minRating={}, sortOption={}",
-                page, limit, search, categoryIds, minPrice, maxPrice, minRating, sortOption
+                "Searching for products: page={}, limit={}, search={}, categoryIds={}, gender={}, minPrice={}, maxPrice={}, minRating={}, sortOption={}",
+                page, limit, search, categoryIds, gender, minPrice, maxPrice, minRating, sortOption
         );
 
         Specification<Product> spec = Specification
                 .where(ProductSpecifications.hasSearch(search))
                 .and(ProductSpecifications.inCategories(categoryIds))
                 .and(ProductSpecifications.priceBetween(minPrice, maxPrice))
+                .and(ProductSpecifications.hasGender(gender))
                 .and(ProductSpecifications.minRating(minRating));
 
-        Page<Product> idPage;
+        Page<Long> idPage;
 
         if (sortOption == SortOption.MOST_RATED) {
+            Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+            idPage = productRepository.findAllOrderByAverageRating(spec, pageable)
+                    .map(Product::getId);
 
-            Pageable pageable =
-                    PageRequest.of(Math.max(page - 1, 0), limit);
-
-            idPage = productRepository.findAllOrderByAverageRating(
-                    spec,
-                    pageable
-            );
+        } else if (sortOption == SortOption.BEST_SELLERS) {
+            Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit);
+            idPage = productRepository.findAllOrderByBestSelling(spec, pageable)
+                    .map(Product::getId);
 
         } else {
-
             Sort sort = switch (sortOption) {
-                case PRICE_ASC ->
-                        Sort.by("price").ascending();
-
-                case PRICE_DESC ->
-                        Sort.by("price").descending();
-
-                case BEST_SELLERS ->
-                        Sort.by("quantitySailed").descending();
-
-                case NEWEST ->
-                        Sort.by("id").descending();
-
-                default ->
-                        throw new IllegalStateException(
-                                "Unexpected sort: " + sortOption
-                        );
+                case PRICE_ASC  -> Sort.by("price").ascending();
+                case PRICE_DESC -> Sort.by("price").descending();
+                case NEWEST     -> Sort.by("id").descending();
+                default -> throw new IllegalStateException("Unexpected sort: " + sortOption);
             };
-
-            Pageable pageable =
-                    PageRequest.of(
-                            Math.max(page - 1, 0),
-                            limit,
-                            sort
-                    );
-
-            idPage = productRepository.findAll(spec, pageable);
+            Pageable pageable = PageRequest.of(Math.max(page - 1, 0), limit, sort);
+            idPage = productRepository.findAll(spec, pageable).map(Product::getId);
         }
 
-        List<Long> ids = idPage.getContent()
-                .stream()
-                .map(Product::getId)
-                .toList();
-
-        List<Product> products = ids.isEmpty()
-                ? List.of()
-                : productRepository.findByIdsWithImagesAndRatings(ids);
-
-        Map<Long, Product> byId = products.stream()
-                .collect(Collectors.toMap(Product::getId, p -> p));
-
-        List<ProductDTO> result = ids.stream()
-                .map(byId::get)
-                .filter(Objects::nonNull)
-                .map(ProductDTO::new)
-                .toList();
-
-        logger.debug(
-                "Returning {} of {} total products (page {} of {})",
-                result.size(),
-                idPage.getTotalElements(),
-                page,
-                idPage.getTotalPages()
-        );
-
-        return new PagedResponse<>(
-                result,
-                idPage.getTotalElements(),
-                idPage.getTotalPages(),
-                page
-        );
+        return buildCardPage(idPage, page);
     }
 
 

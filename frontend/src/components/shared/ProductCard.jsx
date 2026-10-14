@@ -1,37 +1,21 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { addFavorite, removeFavorite, checkFavorite } from "@/services/favoriteService";
 import { getAccessToken } from "@/api/axiosInstance";
-import {
-  getProductImageUrl,
-  getDisplayCanceledPrice,
-  getDiscountPercentage,
-  PLACEHOLDER_IMAGE,
-} from "@/utils/productDisplay";
+import { getProductImageUrl, PLACEHOLDER_IMAGE } from "@/utils/productDisplay";
 import { useBuyNow } from '@/context/BuyNowContext';
 
+/**
+ * Expects the slim card shape returned by the list endpoints:
+ * { id, name, price, canceledPrice, averageRating, imageUrl, colors: [{ id, hex }] }
+ */
 export default function ProductCard({ product, className = "" }) {
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { openBuyNow } = useBuyNow();
 
-  // Extract unique colors from product.variants
-  const availableColors = useMemo(() => {
-    if (!product?.variants) return [];
-    const colorMap = new Map();
-    product.variants.forEach((variant) => {
-      if (!colorMap.has(variant.colorId)) {
-        colorMap.set(variant.colorId, {
-          id: variant.colorId,
-          name: variant.colorName,
-          hex: variant.colorHex,
-        });
-      }
-    });
-    return Array.from(colorMap.values());
-  }, [product]);
-
+  
   useEffect(() => {
     if (!product?.id || !getAccessToken()) return;
     let cancelled = false;
@@ -40,7 +24,7 @@ export default function ProductCard({ product, className = "" }) {
       .then((res) => {
         if (!cancelled) setIsFavorite(res.data);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     return () => {
       cancelled = true;
@@ -49,9 +33,20 @@ export default function ProductCard({ product, className = "" }) {
 
   if (!product) return null;
 
-  const imageUrl = getProductImageUrl(product);
-  const canceledPrice = getDisplayCanceledPrice(product);
-  const discount = getDiscountPercentage(product);
+  // The old helper expects product.images, so wrap the single imageUrl to keep
+  // its URL handling (e.g. adding the API base URL) working unchanged.
+  const imageUrl = getProductImageUrl({
+    images: product.imageUrl ? [{ url: product.imageUrl }] : [],
+  });
+
+  const colors = product.colors ?? [];
+
+  const price = Number(product.price) || 0;
+  const canceledPrice = Number(product.canceledPrice) || 0;
+  const discount =
+    canceledPrice > price && canceledPrice > 0
+      ? Math.round(((canceledPrice - price) / canceledPrice) * 100)
+      : 0;
   const hasDiscount = discount > 0;
 
   const formatPrice = (value) => {
@@ -60,7 +55,7 @@ export default function ProductCard({ product, className = "" }) {
   };
 
   const handleCardClick = () => {
-    navigate(`/product/${product.id}`, { state: { product } });
+    navigate(`/product/${product.id}`);
   };
 
   const handleBuyNow = (e) => {
@@ -125,16 +120,36 @@ export default function ProductCard({ product, className = "" }) {
         <button
           onClick={toggleFavorite}
           disabled={isSaving}
-          className="absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center hover:bg-neutral-100 transition-colors cursor-pointer disabled:opacity-50"
+          className="group absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center cursor-pointer disabled:opacity-50"
           aria-label="Toggle favorite"
           aria-pressed={isFavorite}
         >
           {isFavorite ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#000000" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="#000000"
+              stroke="#000000"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="transition-colors group-hover:fill-transparent"
+            >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
             </svg>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="transition-colors group-hover:fill-black group-hover:stroke-black"
+            >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
             </svg>
           )}
@@ -150,7 +165,7 @@ export default function ProductCard({ product, className = "" }) {
           <div className="px-0 flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
               <span className="text-sm text-neutral-900 font-medium">
-                EGP {formatPrice(product.price)}
+                EGP {formatPrice(price)}
               </span>
               {hasDiscount && (
                 <span className="text-xs text-neutral-400 line-through">
@@ -168,9 +183,9 @@ export default function ProductCard({ product, className = "" }) {
           </div>
 
           {/* ---- SMALL COLOR INFO ---- */}
-          {availableColors.length > 0 && (
+          {colors.length > 0 && (
             <div className="flex gap-1 mt-2">
-              {availableColors.map((c) => (
+              {colors.map((c) => (
                 <div
                   key={c.id}
                   className="w-4 h-4 border border-neutral-300"

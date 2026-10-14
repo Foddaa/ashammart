@@ -34,9 +34,7 @@ import ExecutiveOrdersPage from "@/executive/ExecutiveOrdersPage";
 import AddReviewPage from "@/pages/AddReviewPage";
 import SupplierRequestForm from "@/pages/SupplierRequestForm";
 import PrivacyRules from "@/pages/info_pages/privacyRules";
-import DileveryRules from "@/pages/info_pages/DileveryRules";
 import ReturningAndReplacing from "@/pages/info_pages/ReturningAndReplacing";
-import WhoAreWe from "@/pages/info_pages/WhoAreWe";
 import PaymentMethods from "@/pages/PaymentMethod";
 import SupplierRequestList from "@/admin/SupplierRequestList";
 import UserProfilePage from "@/pages/UserProfilePage";
@@ -46,6 +44,13 @@ import RealLifePhotos from "@/pages/RealLifePhotos";
 import AddRealLifePhoto from "@/admin/AddRealLifePhoto";
 import RealLifePhotoList from "@/admin/RealLifePhotoList";
 import Favorites from "@/pages/Favorites";
+import FAQ from "@/pages/info_pages/Faq";
+import ShippingInfo from "@/pages/info_pages/DileveryRules";
+import TermsOfService from "@/pages/info_pages/TermsOfService";
+import SizeGuide from "@/pages/info_pages/SizeGuides";
+import OrderTracking from "@/pages/info_pages/OrderTracking";
+import HelpCenter from "@/pages/info_pages/HelpCenter";
+import AvailablePaymentMethods from "@/pages/info_pages/AvailablePaymentMethods";
 
 const router = createBrowserRouter([
   {
@@ -54,8 +59,6 @@ const router = createBrowserRouter([
     errorElement: <Error />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'about-us', element: <AboutUs /> },
-      { path: 'contact', element: <Contact /> },
       { path: 'blog', element: <Blog /> },
       { path: 'checkout', element: <Checkout /> },
       { path: 'shop', element: <Shop /> },
@@ -65,14 +68,23 @@ const router = createBrowserRouter([
       { path:'/review-order' ,element:<OrderReview />},
       { path:'/addReview/:id' ,element:<AddReviewPage />},
       { path:'/supplierRequest' ,element:<SupplierRequestForm/>},
-      { path:'/privacyRules' ,element:<PrivacyRules/>},
-      { path:'/dileveryRules' ,element:<DileveryRules/>},
-      { path:'/returningAndreplacing' ,element:<ReturningAndReplacing/>},
-      { path:'/whoAreWe' ,element:<WhoAreWe/>},
-      { path:'/paymentMethods' ,element:<PaymentMethods/>},
       { path:"/profile" ,element:<UserProfilePage /> },
       { path:"/realLifePhotos" ,element:<RealLifePhotos /> },
       { path:"/favorites" ,element:<Favorites /> },
+
+      { path:"/FAQ" , element:<FAQ />},
+      { path:'/shippingInfo' ,element:<ShippingInfo/>},
+      { path:'/payment-methods' ,element:<AvailablePaymentMethods/>},
+      { path:'/aboutUs' ,element:<AboutUs/>},
+      { path:'/returningAndreplacing' ,element:<ReturningAndReplacing/>},
+      { path:'/privacyRules' ,element:<PrivacyRules/>},
+      { path:'/contact', element: <Contact /> },
+      { path:'/termsOfService', element: <TermsOfService/> },
+      { path:'/sizeGuide', element: <SizeGuide/> },
+      { path:'/order-tracking', element: <OrderTracking/> },
+      { path:'/help-center', element: <HelpCenter/> },
+
+
 
 
 

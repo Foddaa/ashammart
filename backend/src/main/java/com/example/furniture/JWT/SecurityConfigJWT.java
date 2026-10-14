@@ -50,6 +50,7 @@ public class SecurityConfigJWT {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
+                "http://192.168.100.170:5173",
                 "https://anttikka.com",
                 "http://anttikka.com"
         ));

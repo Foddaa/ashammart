@@ -1,5 +1,6 @@
 package com.example.furniture.service;
 
+import com.example.furniture.ENUMS.Gender;
 import com.example.furniture.model.Product;
 import com.example.furniture.model.Rating;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,6 +46,16 @@ public class ProductSpecifications {
 
             // Compare the subquery result with the threshold
             return cb.greaterThanOrEqualTo(subquery, min);
+        };
+    }
+
+    public static Specification<Product> hasGender(Gender gender) {
+        return (root, query, cb) -> {
+            if (gender == null) return null;
+            if (gender == Gender.MEN || gender == Gender.WOMEN) {
+                return root.get("gender").in(gender, Gender.UNISEX);
+            }
+            return cb.equal(root.get("gender"), gender);
         };
     }
 }

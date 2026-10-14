@@ -122,21 +122,7 @@ export default function Favorites() {
             {/* Favorites Grid with Remove Buttons */}
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {favorites.map((item) => (
-                <div key={item.id} className="relative group">
                   <ProductCard product={item} className="h-full" />
-
-                  <button
-                    onClick={() => handleRemove(item.id)}
-                    disabled={removingId === item.id}
-                    className="absolute top-2 right-2 z-20 bg-white border border-neutral-200 w-7 h-7 flex items-center justify-center hover:bg-neutral-100 transition-colors shadow-sm disabled:opacity-50"
-                    aria-label="Remove from favorites"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  </button>
-                </div>
               ))}
             </div>
 

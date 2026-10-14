@@ -52,7 +52,7 @@ public class FavoriteController {
 
     // List all favorite products (paginated)
     @GetMapping
-    public ResponseEntity<PagedResponse<ProductDTO>> getFavorites(
+    public ResponseEntity<?> getFavorites(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestHeader("Authorization") String authHeader) {

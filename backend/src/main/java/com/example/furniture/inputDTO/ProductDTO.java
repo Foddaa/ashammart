@@ -75,7 +75,7 @@ public class ProductDTO {
         dto.setImages(product.getImages());
         return dto;
     }
-    public static ProductDTO withRatings(Product product) {
+    public static ProductDTO withRatings(Product product, int quantitySailed) {
         ProductDTO dto = new ProductDTO();
         dto.id = product.getId();
         dto.name = product.getName();
@@ -89,6 +89,7 @@ public class ProductDTO {
         dto.fastDelivery = product.isFastDelivery();
         dto.images = product.getImages();
         dto.averageRating = product.getAverageRating();
+        dto.quantitySailed = quantitySailed;
         List<ReviewDTO> ratingDTOs = product.getRatings()
                 .stream()
                 .map(ReviewDTO::new)

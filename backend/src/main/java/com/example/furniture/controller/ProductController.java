@@ -1,5 +1,6 @@
 package com.example.furniture.controller;
 
+import com.example.furniture.ENUMS.Gender;
 import com.example.furniture.ENUMS.SortOption;
 import com.example.furniture.inputDTO.ProductDTO;
 import com.example.furniture.inputDTO.response.PagedResponse;
@@ -39,7 +40,7 @@ public class ProductController {
     ClientService clientService;
 
     @GetMapping("/all")
-    public PagedResponse<ProductDTO> getAllProducts(
+    public PagedResponse<?> getAllProducts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(required = false) String search) {
@@ -47,7 +48,7 @@ public class ProductController {
     }
 
     @GetMapping("/byCategory")
-        public PagedResponse<ProductDTO> getByCategory(
+        public PagedResponse<?> getByCategory(
                 @RequestParam Long categoryId,
                 @RequestParam(defaultValue = "1") int page,
                 @RequestParam(defaultValue = "10") int limit,
@@ -73,14 +74,14 @@ public class ProductController {
     }
 
     @GetMapping("/bestSellers")
-    public PagedResponse<ProductDTO> getBestSellers(
+    public PagedResponse<?> getBestSellers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit
     ){
         return productService.getBestSellers(page, limit);
     }
     @GetMapping("/mostRated")
-    public  PagedResponse<ProductDTO> getMostRated(
+    public  PagedResponse<?> getMostRated(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit
     ){
@@ -88,7 +89,7 @@ public class ProductController {
     }
 
     @GetMapping("/newArrivals")
-    public PagedResponse<ProductDTO> getMostViewed(
+    public PagedResponse<?> getMostViewed(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit
     ){
@@ -113,20 +114,20 @@ public class ProductController {
     }
 
     @GetMapping("/unified")
-    public ResponseEntity<PagedResponse<ProductDTO>> searchProducts(
+    public ResponseEntity<PagedResponse<?>> searchProducts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(required = false) Gender gender,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) Double minRating,
             @RequestParam(defaultValue = "NEWEST") SortOption sort
     ) {
-
         return ResponseEntity.ok(productService.search(
-                page, limit, search, categoryIds, minPrice, maxPrice,
-                minRating, sort
+                page, limit, search, categoryIds, gender,
+                minPrice, maxPrice, minRating, sort
         ));
     }
 }

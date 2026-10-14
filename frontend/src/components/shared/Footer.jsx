@@ -36,13 +36,13 @@ const Footer = () => {
   const navigate = useNavigate();
 
   const quickLinks = [
-    { label: "About Us", path: "/about" },
+    { label: "About Us", path: "/aboutUs" },
     { label: "Contact", path: "/contact" },
-    { label: "FAQ", path: "/faq" },
-    { label: "Shipping Info", path: "/shipping" },
-    { label: "Returns & Exchanges", path: "/returns" },
-    { label: "Privacy Policy", path: "/privacy" },
-    { label: "Terms of Service", path: "/terms" },
+    { label: "FAQ", path: "/FAQ" },
+    { label: "Shipping Info", path: "/shippingInfo" },
+    { label: "Returns & Exchanges", path: "/returningAndreplacing" },
+    { label: "Privacy Policy", path: "/privacyRules" },
+    { label: "Terms of Service", path: "/termsOfService" },
   ];
 
   const categories = [
@@ -57,9 +57,9 @@ const Footer = () => {
   ];
 
   const customerService = [
-    { label: "Help Center", path: "/help" },
-    { label: "Order Tracking", path: "/track-order" },
-    { label: "Size Guide", path: "/size-guide" },
+    { label: "Help Center", path: "/help-center" },
+    { label: "Order Tracking", path: "/order-tracking" },
+    { label: "Size Guide", path: "/sizeGuide" },
     { label: "Payment Methods", path: "/payment-methods" },
   ];
 
@@ -72,7 +72,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="col-span-1 lg:col-span-1">
             <Link to="/" className="inline-block mb-4">
-              <span className="text-2xl font-light tracking-widest text-neutral-900">DODO</span>
+              <span className="text-2xl font-light tracking-widest text-neutral-900">OTP</span>
             </Link>
             <p className="text-sm text-neutral-500 leading-relaxed max-w-xs">
               Casual clothing for men and women. Modern, comfortable, and sustainably made.

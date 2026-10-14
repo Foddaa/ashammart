@@ -2,98 +2,171 @@ import React from "react";
 
 export default function AboutUs() {
   return (
-    <>
-    <section>
-      <div
-        className="about-header  h-[60vh] bg-cover bg-center flex flex-col justify-center items-center text-white text-center px-4">
-        <h1 className="text-4xl md:text-6xl font-bold">About for Bacola</h1>
-        <p className="mt-2 text-lg md:text-sm font-semibold tracking-[4px] uppercase">We can do more for you</p>
-      </div>
+    <div className="w-full min-h-screen bg-white text-neutral-800" dir="ltr">
+      <div className="max-w-6xl mx-auto px-4 py-10 md:py-16 space-y-16">
 
-    
-      <div className="max-w-6xl mx-auto p-5 lg:py-12 lg:px-5 space-y-12 text-[#202435]">
-        <p className="text-justify text-sm leading-6">
-          In nec purus eget neque accumsan finibus. Duis condimentum elit ut libero commodo iaculis. Donec augue diam, tristique et ultricies nec, consectetur quis enim. Nullam id
-          rutrum ex. Aliquam a lectus id lacus rhoncus dapibus non ac justo. Vivamus lacinia vestibulum metus in dapibus. Vestibulum sit amet sollicitudin enim. Ut id interdum turpis.
-          Curabitur porta auctor quam, pretium facilisis nisl. Pellentesque efficitur elit ante, vel vulputate tortor blandit nec.
-        </p>
-
-        <div className="lg:px-20">
-          <h2 className="text-3xl font-semibold max-w-xl mb-9 leading-9 ">
-            Quisque erat urna, congue et libero in
-            eleifend euismod velit.
-          </h2>
-          <p className="text-justify text-sm leading-6">
-            In nec purus eget neque accumsan finibus. Duis condimentum elit ut libero commodo iaculis. Donec augue diam, tristique et ultricies nec, consectetur quis enim.
-            Nullam id rutrum ex. Aliquam a lectus id lacus rhoncus dapibus non ac justo. Vivamus lacinia vestibulum metus in dapibus. Vestibulum sit amet sollicitudin enim. Ut id
-            interdum turpis. Curabitur porta auctor quam, pretium facilisis nisl. Pellentesque efficitur elit ante, vel vulputate tortor blandit nec.
+        {/* ── Hero ── */}
+        <section className="border-b border-neutral-200 pb-12">
+          <p className="text-xs uppercase tracking-[4px] text-neutral-500 mb-3">
+            About Us
           </p>
-        </div>
+          <h1 className="text-3xl md:text-5xl font-light tracking-tight leading-tight text-neutral-900 mb-6">
+            Everyday essentials.
+            <br className="hidden md:block" />
+            Made for the way you live.
+          </h1>
+          <p className="text-neutral-600 leading-relaxed font-light text-[15px] max-w-3xl">
+            We're a clothing brand built around one idea: you shouldn't have to
+            choose between comfort, quality, and price. Every piece is designed to
+            be worn every day — by anyone, anywhere, from 16 to 40, from class to
+            campus to the coffee shop.
+          </p>
+        </section>
 
-        
-    <section className="relative px-2 xl:py-16 ">
+        {/* ── Intro paragraph ── */}
+        <section className="max-w-3xl">
+          <p className="text-neutral-600 leading-relaxed font-light text-[15px] text-justify">
+            We started with a simple question: why is it so hard to find clothes
+            that actually fit into your life? Most brands either chase trends
+            you'll forget in a season, or charge prices that make no sense for a
+            basic tee. We built our label to sit right in the middle — relaxed
+            silhouettes, honest fabrics, and a price tag that respects your wallet.
+            No gimmicks, no over-designing. Just clothes that work.
+          </p>
+        </section>
 
-  <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 items-start">
+        {/* ── Two-column: Our Story + Founder's Note ── */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 pt-8 border-t border-neutral-200">
+          <div>
+            <p className="text-xs uppercase tracking-[3px] text-neutral-500 mb-3">
+              Our Story
+            </p>
+            <h2 className="text-2xl md:text-3xl font-light tracking-tight leading-snug text-neutral-900 mb-6">
+              Built for real life, not for the runway.
+            </h2>
+            <p className="text-neutral-600 leading-relaxed font-light text-[15px] text-justify">
+              We design in small drops, test with real people, and keep only what
+              works. Every hoodie, tee, and pair of pants is wear-tested before it
+              ever hits the site — washed, stretched, sat in, and lived in. If it
+              doesn't hold up to a normal week, it doesn't make the cut. That's the
+              whole standard.
+            </p>
+          </div>
 
+          <div className="border border-neutral-200 p-8 md:p-10 bg-neutral-50">
+            <p className="text-xs uppercase tracking-[3px] text-neutral-500 mb-3">
+              A Note From Us
+            </p>
+            <p className="text-sm text-neutral-500 mb-4">
+              — The Founders
+            </p>
+            <h3 className="text-xl font-light text-neutral-900 mb-5 leading-snug">
+              We're not trying to be the biggest brand. Just the one you actually wear.
+            </h3>
+            <p className="text-neutral-600 leading-relaxed font-light text-sm text-justify mb-4">
+              We grew up shopping the same racks you did — mid-range, mid-quality,
+              mid-everything. We wanted something better without paying four times
+              more for a logo. So we made it ourselves. Same fabric mills, same
+              factories as brands three tiers up, but priced for the people who
+              actually wear the clothes.
+            </p>
+            <p className="text-neutral-600 leading-relaxed font-light text-sm text-justify">
+              If you're 16 or 40, if you're shopping for a first apartment or a
+              full closet — these are for you. We'll keep it simple, keep it fair,
+              and keep restocking the stuff you love.
+            </p>
+          </div>
+        </section>
 
-    <div className="my-3">
-      <p className="mb-6 leading-6 text-base">Rachel Leonard - Bacola CEO</p>
-      <h2 className="text-3xl font-semibold mb-6 ledaing-6">
-        Duis convallis luctus pretium. Pellentesque habitant morbi
-      </h2>
-      <div className="lg:p-6">
-        <p className=" mb-10 text-justify leading-6 text-sm">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-        tempor incididunt ut labore et dolore magna aliqua. Quis ipsum suspendisse
-        ultrices gravida. Risus commodo viverra maecenas accumsan lacus vel
-        facilisis.
-      </p>
-      <p className="leading-6 text-sm">
-       In fermentum mi ut sapien semper, a sagittis lorem vulputate. Integer gravida,
-        dui eget aliquet tempus, turpis orci vehicula ipsum, eget porttitor sapien tortor
-        at neque. Cras id pulvinar lacus, ac volutpat neque. Ut at magna id justo
-        bibendum lobortis. Integer tortor nulla, ultricies et nisi sit amet, interdum
-        dictum felis. In semper laoreet dui vitae pharetra. Etiam sit amet molestie nulla,
-        eu efficitur orci. Praesent rutrum ante justo, eget malesuada ante ornare ac. Ut
-        dignissim blandit urna, eget euismod leo rhoncus nec. Vestibulum ante ipsum
-        primis in faucibus orci luctus et ultrices posuere cubilia curae; Quisque lobortis
-        libero ante. Nullam in feugiat erat. Aenean sed justo dapibus, sodales nisi ut,
-        fringilla lorem. Vestibulum in orci ac nisl condimentum fermentum at et sem.
-        Curabitur fermentum dolor eu lacus consectetur varius.
-      </p>
+        {/* ── Values strip ── */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-b border-neutral-200 py-10">
+          {[
+            { value: "Unisex", label: "Fits Everyone" },
+            { value: "Everyday", label: "Not Just Trends" },
+            { value: "Fair", label: "Honest Pricing" },
+            { value: "Durable", label: "Made To Last" },
+          ].map((item, i) => (
+            <div key={i} className="text-center">
+              <p className="text-2xl md:text-3xl font-light tracking-tight text-neutral-900">
+                {item.value}
+              </p>
+              <p className="text-[11px] uppercase tracking-[2px] text-neutral-500 mt-2">
+                {item.label}
+              </p>
+            </div>
+          ))}
+        </section>
+
+        {/* ── Who it's for ── */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "For Students",
+              body: "Budget-friendly basics that survive a full semester of back-to-back wears. Layer it, wash it, repeat.",
+            },
+            {
+              title: "For 9-to-5",
+              body: "Clean, neutral pieces that pass for smart-casual without feeling stiff. Comfort that works at a desk.",
+            },
+            {
+              title: "For Weekends",
+              body: "Oversized fits, soft fabrics, and colors that go with everything already in your wardrobe.",
+            },
+          ].map((item, i) => (
+            <div key={i} className="border border-neutral-200 p-6 md:p-8">
+              <h3 className="text-lg font-light text-neutral-900 mb-3">
+                {item.title}
+              </h3>
+              <p className="text-sm text-neutral-600 leading-relaxed font-light">
+                {item.body}
+              </p>
+            </div>
+          ))}
+        </section>
+
+        {/* ── Closing paragraph ── */}
+        <section className="max-w-3xl">
+          <p className="text-neutral-600 leading-relaxed font-light text-[15px] text-justify">
+            We're still small. Still figuring things out. But the mission hasn't
+            changed: make clothes that real people actually want to wear, at a
+            price that makes sense, in sizes and styles that work for everyone.
+            If you're between 16 and 40 and tired of choosing between cheap and
+            good — welcome. You're exactly who we built this for.
+          </p>
+        </section>
+
+        {/* ── CTA ── */}
+        <section className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-t border-neutral-200 pt-10">
+          <div>
+            <h3 className="text-xl font-light text-neutral-900 mb-2">
+              Ready to see what we're about?
+            </h3>
+            <p className="text-sm text-neutral-500 font-light">
+              New drops every few weeks. Restocks on the staples.
+            </p>
+          </div>
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 bg-neutral-900 text-white px-6 py-3 text-sm hover:bg-neutral-800 transition-colors duration-200 tracking-wider whitespace-nowrap"
+          >
+            Shop The Collection
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </section>
+
       </div>
     </div>
-  </div>
-
-<div
-  className="
-    bg-white rounded-[7px]
-    px-4 pt-10 pb-16
-    w-full max-w-[1055px] mx-auto
-    mt-4
-    relative
-    xl:mt-0
-    xl:absolute xl:left-[115px] xl:top-[730px] xl:px-[100px] xl:pt-[60px] xl:pb-[76px]
-  "
->
-  <p className="text-gray-700 leading-relaxed text-sm">
-    In nec purus eget neque accumsan finibus. Duis condimentum elit ut libero commodo iaculis. Donec augue diam, tristique et ultricies nec,
-    consectetur quis enim. Nullam id rutrum ex. Aliquam a lectus id lacus rhoncus dapibus non ac justo. Vivamus lacinia vestibulum metus in
-    dapibus. Vestibulum sit amet sollicitudin enim. Ut id interdum turpis. Curabitur porta auctor quam, pretium facilisis nisl. Pellentesque efficitur elit
-    ante, vel vulputate tortor blandit nec.
-  </p>
-</div>
-</section>
-
-
-    
-        <p className="xl:mt-24 leading-6 text-justify text-sm">
-          In nec purus eget neque accumsan finibus. Duis condimentum elit ut libero commodo iaculis. Donec augue diam, tristique et ultricies nec, consectetur quis enim. Nullam id
-rutrum ex. Aliquam a lectus id lacus rhoncus dapibus non ac justo. Vivamus lacinia vestibulum metus in dapibus. Vestibulum sit amet sollicitudin enim. Ut id interdum turpis.
-Curabitur porta auctor quam, pretium facilisis nisl. Pellentesque efficitur elit ante, vel vulputate tortor blandit nec.
-        </p>
-      </div>
-    </section>
-    </>
-  )
+  );
 }

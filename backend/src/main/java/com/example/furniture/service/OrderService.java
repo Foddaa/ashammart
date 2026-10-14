@@ -8,6 +8,8 @@ import com.example.furniture.repository.OrderRepository;
 import com.example.furniture.repository.ProductRepository;
 import com.example.furniture.repository.ProductVariantRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
+
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+
     @Autowired
     OrderRepository orderRepository;
     @Autowired
@@ -33,10 +38,20 @@ public class OrderService {
 
     @Transactional
     public OrderPreviewDTO placeOrder(String email) {
+        log.info("placeOrder: start for email={}", email);
         try {
             Client client = clientService.getClient(email);
+            log.debug("placeOrder: client found id={}", client != null ? client.getId() : null);
+
             Cart cart = client.getCart();
+            if (cart == null) {
+                log.warn("placeOrder: client id={} has no cart", client.getId());
+                return null;
+            }
+
             List<CartItem> cartItems = cartItemRepository.findByCartWithVariant(cart);
+            log.debug("placeOrder: cart id={} has {} item(s)", cart.getId(), cartItems.size());
+
             double subtotal = cartItems.stream().mapToDouble(CartItem::getCost).sum();
             LocalDateTime estimatedDate = LocalDateTime.now().plusDays(10);
 
@@ -57,33 +72,46 @@ public class OrderService {
                     })
                     .collect(Collectors.toList());
 
+            log.info("placeOrder: success for email={}, subtotal={}, items={}",
+                    email, subtotal, itemDTOs.size());
             return new OrderPreviewDTO(itemDTOs, subtotal, estimatedDate.toLocalDate());
         } catch (Exception e) {
+            log.error("placeOrder: failed for email={} -> {}", email, e.getMessage(), e);
             return null;
         }
     }
 
     @Transactional
     public ResponseEntity<?> confirmOrder(ConfirmOrderRequest request) {
+        log.info("confirmOrder: start phone={}, email={}, itemsCount={}",
+                request.getPhone(),
+                request.getEmail(),
+                request.getItems() != null ? request.getItems().size() : 0);
+
         try {
             PaymentMethod payment;
             try {
                 payment = PaymentMethod.valueOf(request.getPaymentMethod());
+                log.debug("confirmOrder: payment method parsed = {}", payment);
             } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().body("طريقة الدفع غير صالحة");
+                log.warn("confirmOrder: invalid payment method = {}", request.getPaymentMethod());
+                return ResponseEntity.badRequest().body("Invalid payment method");
             }
 
             if (request.getPhone() == null || !request.getPhone().matches("^01[0-9]{9}$")) {
-                return ResponseEntity.badRequest().body("رقم الهاتف غير صالح، يجب أن يكون 11 رقم ويبدأ بـ 01");
+                log.warn("confirmOrder: invalid phone = {}", request.getPhone());
+                return ResponseEntity.badRequest().body("Invalid phone number, must be 11 digits starting with 01");
             }
             if (request.getEmail() != null && !request.getEmail().isBlank()) {
                 if (!request.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-                    return ResponseEntity.badRequest().body("البريد الإلكتروني غير صالح");
+                    log.warn("confirmOrder: invalid email = {}", request.getEmail());
+                    return ResponseEntity.badRequest().body("Invalid email address");
                 }
             }
 
             if (request.getItems() == null || request.getItems().isEmpty()) {
-                return ResponseEntity.badRequest().body("قائمة المنتجات فارغة");
+                log.warn("confirmOrder: empty items list");
+                return ResponseEntity.badRequest().body("Items list is empty");
             }
 
             // Fetch variants by SKUs or Variant IDs
@@ -92,19 +120,25 @@ public class OrderService {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
+            log.debug("confirmOrder: looking up variants by skus={}", skus);
+
             List<ProductVariant> variants = new ArrayList<>();
             if (!skus.isEmpty()) {
                 variants = productVariantRepository.findBySkuInWithDetails(skus);
+                log.debug("confirmOrder: found {} variant(s) by SKU", variants.size());
             } else {
                 List<Long> variantIds = request.getItems().stream()
                         .map(OrderProductVariantQuantity::getVariantId)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
+                log.debug("confirmOrder: looking up variants by ids={}", variantIds);
                 variants = productVariantRepository.findAllById(variantIds);
+                log.debug("confirmOrder: found {} variant(s) by ID", variants.size());
             }
 
             if (variants.isEmpty()) {
-                return ResponseEntity.badRequest().body("لم يتم العثور على المتغيرات المطلوبة");
+                log.warn("confirmOrder: no variants found for request");
+                return ResponseEntity.badRequest().body("Requested variants were not found");
             }
 
             // Build lookup maps
@@ -135,9 +169,14 @@ public class OrderService {
                 }
 
                 if (variant == null) {
-                    return ResponseEntity.badRequest().body("المتغير غير موجود: " +
+                    log.warn("confirmOrder: variant not found for sku={} / variantId={}",
+                            item.getSku(), item.getVariantId());
+                    return ResponseEntity.badRequest().body("Variant not found: " +
                             (item.getSku() != null ? item.getSku() : item.getVariantId()));
                 }
+
+                log.debug("confirmOrder: processing variant id={} sku={} requestedQty={} stockQty={}",
+                        variant.getId(), variant.getSku(), item.getQuantity(), variant.getQuantity());
 
                 double price = variant.getEffectivePrice();
                 double cost = price * item.getQuantity();
@@ -158,19 +197,27 @@ public class OrderService {
 
             order.setItems(orderItems);
             order.setSubtotal(subtotal);
+            log.debug("confirmOrder: subtotal computed = {}", subtotal);
 
             if (request.getDeliveryCost() == 0) {
-                List<Product> products = variants.stream().map(ProductVariant::getProduct).distinct().collect(Collectors.toList());
+                List<Product> products = variants.stream()
+                        .map(ProductVariant::getProduct)
+                        .distinct()
+                        .collect(Collectors.toList());
                 if (!checkEligibilityForFreeDelivery(products)) {
-                    throw new Exception("عذراً، لا يمكن تحميل هذا الطلب");
+                    log.warn("confirmOrder: free delivery not eligible for products={}",
+                            products.stream().map(Product::getId).collect(Collectors.toList()));
+                    throw new Exception("Sorry, this order is not eligible for free delivery");
                 }
             }
             order.setDeliveryCost(request.getDeliveryCost());
             order.setTotalCost(subtotal + order.getDeliveryCost());
 
             Client client;
-            if (clientService.getClientByPhone(request.getPhone()).isPresent()) {
-                client = clientService.getClientByPhone(request.getPhone()).get();
+            Optional<Client> existingClient = clientService.getClientByPhone(request.getPhone());
+            if (existingClient.isPresent()) {
+                client = existingClient.get();
+                log.debug("confirmOrder: reusing existing client id={}", client.getId());
             } else {
                 client = new Client();
                 client.setName(request.getFirstName() + " " + request.getLastName());
@@ -180,24 +227,31 @@ public class OrderService {
                 }
                 client.setAddress(request.getAddress());
                 client.setCart(new Cart());
+                client.setPassword("pass");
                 clientService.save(client);
+                log.debug("confirmOrder: created new client id={}", client.getId());
             }
             order.setClient(client);
 
             orderRepository.save(order);
-            return ResponseEntity.ok("تم تأكيد الطلب بنجاح");
+            log.info("confirmOrder: success, order id={}, total={}",
+                    order.getId(), order.getTotalCost());
+            return ResponseEntity.ok("Order confirmed successfully");
 
         } catch (NoSuchElementException e) {
-            return ResponseEntity.badRequest().body("المنتج غير موجود");
+            log.error("confirmOrder: NoSuchElementException -> {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Product not found");
         } catch (DataIntegrityViolationException e) {
-            return ResponseEntity.badRequest().body("خطأ في البيانات، قد يكون رقم الهاتف أو البريد الإلكتروني مسجل مسبقًا");
+            log.error("confirmOrder: DataIntegrityViolationException -> {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Data error, phone or email may already be registered");
         } catch (Exception e) {
-            System.out.println("Error in confirmOrder: " + e.getMessage());
-            return ResponseEntity.badRequest().body("حدث خطأ غير متوقع، يرجى المحاولة لاحقًا");
+            log.error("confirmOrder: unexpected error -> {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("An unexpected error occurred, please try again later");
         }
     }
 
     public double calculateDeliveryCost(Address address) {
+        log.debug("calculateDeliveryCost: city={}", address != null ? address.getCity() : null);
         if (address.getCity().equals("القاهرة") || address.getCity().equals("الجيزة"))
             return 350;
         else {
@@ -207,7 +261,10 @@ public class OrderService {
 
     @Transactional
     public List<Map<String, Object>> getSimplifiedOrdersView(String status) {
+        log.info("getSimplifiedOrdersView: status={}", status);
         List<Order> orders = orderRepository.findAllByStatus(status);
+        log.debug("getSimplifiedOrdersView: found {} order(s)", orders.size());
+
         return orders.stream().map(order -> {
             Map<String, Object> dto = new HashMap<>();
             dto.put("orderId", order.getId());
@@ -237,7 +294,13 @@ public class OrderService {
 
     @Transactional
     public Map<String, Object> getOrder(Long orderId) {
+        log.info("getOrder: orderId={}", orderId);
         Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            log.warn("getOrder: order id={} not found", orderId);
+            return null;
+        }
+
         Map<String, Object> dto = new HashMap<>();
         dto.put("clientName", order.getClient().getName());
         dto.put("clientPhone", order.getClient().getPhone());
@@ -259,24 +322,36 @@ public class OrderService {
         dto.put("deliveryCost", order.getDeliveryCost());
         dto.put("totalCost", order.getTotalCost());
         dto.put("paymentMethod", order.getPaymentMethod());
+
+        log.debug("getOrder: returning dto for order id={}", orderId);
         return dto;
     }
 
     @Transactional
     public String updateStatus(Long orderId, String status) {
+        log.info("updateStatus: orderId={}, newStatus={}", orderId, status);
         Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            log.warn("updateStatus: order id={} not found", orderId);
+            return "error";
+        }
         order.setStatus(status);
         orderRepository.save(order);
+        log.info("updateStatus: order id={} updated to status={}", orderId, status);
         return "success";
     }
 
     @Transactional
     public boolean checkEligibilityForFreeDelivery(List<Product> items) {
+        log.debug("checkEligibilityForFreeDelivery: checking {} product(s)", items.size());
         for (Product product : items) {
             if (!product.isFreeDelivery()) {
+                log.debug("checkEligibilityForFreeDelivery: product id={} is not free delivery",
+                        product.getId());
                 return false;
             }
         }
+        log.debug("checkEligibilityForFreeDelivery: all products eligible");
         return true;
     }
 }

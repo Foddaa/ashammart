@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import api from "@/api/axiosInstance";           // ✅ your configured instance
+import api from "@/api/axiosInstance";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import "react-toastify/dist/ReactToastify.css";
+import FilterDropdown from "@/components/shared/FilterDropdown";
 
 const UpdatePrices = () => {
   // Product price update state
@@ -11,12 +12,18 @@ const UpdatePrices = () => {
   const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Delivery price update state – now an array of objects
+  // Delivery price update state
   const [deliveryPrices, setDeliveryPrices] = useState([]);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
   const [fetchingDelivery, setFetchingDelivery] = useState(true);
 
   const navigate = useNavigate();
+
+  // Dropdown options for update type
+  const updateTypeOptions = [
+    { value: "PERCENTAGE", label: "Percentage (%)" },
+    { value: "FIXED", label: "Fixed Amount" },
+  ];
 
   // Fetch current delivery prices (list) on mount
   useEffect(() => {
@@ -118,7 +125,7 @@ const UpdatePrices = () => {
   return (
     <div dir="ltr" className="min-h-screen bg-neutral-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto space-y-6">
-        
+
         {/* Product Price Update Card */}
         <div className="bg-white border border-neutral-200 p-6 md:p-8 transition-all duration-300">
           {/* Header */}
@@ -140,19 +147,16 @@ const UpdatePrices = () => {
           </div>
 
           <form onSubmit={handleProductSubmit}>
-            {/* Type Selection */}
+            {/* Type Selection — now using FilterDropdown */}
             <div className="flex flex-col gap-1.5 mb-4">
               <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">
                 Update Type
               </label>
-              <select
+              <FilterDropdown
                 value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm"
-              >
-                <option value="PERCENTAGE">Percentage (%)</option>
-                <option value="FIXED">Fixed Amount</option>
-              </select>
+                onChange={setType}
+                options={updateTypeOptions}
+              />
             </div>
 
             {/* Value */}
@@ -184,8 +188,8 @@ const UpdatePrices = () => {
                   onChange={(e) => setConfirm(e.target.checked)}
                   className="peer h-4 w-4 cursor-pointer border border-neutral-300 bg-white checked:bg-neutral-900 checked:border-neutral-900 appearance-none"
                 />
-                <svg 
-                  className="absolute left-[1px] top-[1px] opacity-0 peer-checked:opacity-100 pointer-events-none w-3.5 h-3.5 text-white" 
+                <svg
+                  className="absolute left-[1px] top-[1px] opacity-0 peer-checked:opacity-100 pointer-events-none w-3.5 h-3.5 text-white"
                   fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"
                 >
                   <polyline points="20 6 9 17 4 12"></polyline>

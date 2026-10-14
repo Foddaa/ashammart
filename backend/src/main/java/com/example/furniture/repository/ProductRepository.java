@@ -1,5 +1,7 @@
 package com.example.furniture.repository;
 
+import com.example.furniture.inputDTO.response.ProductCardDto;
+import com.example.furniture.inputDTO.response.ProductColorRow;
 import com.example.furniture.model.Product;
 import com.example.furniture.model.ProductVariant;
 import org.springframework.data.domain.Page;
@@ -177,4 +179,26 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
             p.name ASC
     """)
     List<Product> searchByNameContaining(@Param("query") String query, Pageable pageable);
+
+    @Query("""
+    SELECT new com.example.furniture.inputDTO.response.ProductCardDto(
+        p.id, p.name, p.price, p.canceledPrice,
+        COALESCE((SELECT AVG(r.stars) FROM Rating r WHERE r.product = p), 0.0),
+        (SELECT i.url FROM Product p2 JOIN p2.images i
+          WHERE p2.id = p.id
+            AND i.id = (SELECT MIN(i2.id) FROM Product p3 JOIN p3.images i2 WHERE p3.id = p.id))
+    )
+    FROM Product p
+    WHERE p.id IN :ids
+""")
+    List<ProductCardDto> findCardsByIds(@Param("ids") List<Long> ids);
+
+    @Query("""
+    SELECT new com.example.furniture.inputDTO.response.ProductColorRow(v.product.id, c.id, c.hexCode)
+    FROM ProductVariant v
+    JOIN v.color c
+    WHERE v.product.id IN :ids
+    GROUP BY v.product.id, c.id, c.hexCode
+""")
+    List<ProductColorRow> findColorsByProductIds(@Param("ids") List<Long> ids);
 }

@@ -1,6 +1,7 @@
 package com.example.furniture.repository;
 
 import com.example.furniture.model.Product;
+import com.example.furniture.model.ProductVariant;
 import com.example.furniture.model.Rating;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -63,6 +64,49 @@ public class CustomProductRepositoryImpl implements CustomProductRepository {
         }
 
         countQuery.select(cb.countDistinct(countRoot));
+        long total = entityManager.createQuery(countQuery).getSingleResult();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+
+    @Override
+    public Page<Product> findAllOrderByBestSelling(Specification<Product> spec, Pageable pageable) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        // ---------- data query ----------
+        CriteriaQuery<Product> cq = cb.createQuery(Product.class);
+        Root<Product> root = cq.from(Product.class);
+
+        if (spec != null) {
+            Predicate predicate = spec.toPredicate(root, cq, cb);
+            if (predicate != null) cq.where(predicate);
+        }
+
+        // total sold = SUM(variant.quantitySailed) for this product
+        Subquery<Integer> soldSub = cq.subquery(Integer.class);   // use Long if the field is Long
+        Root<ProductVariant> v = soldSub.from(ProductVariant.class);
+        soldSub.select(cb.coalesce(cb.sum(v.<Integer>get("quantitySailed")), 0))
+                .where(cb.equal(v.get("product"), root));
+
+        cq.select(root)
+                .orderBy(cb.desc(soldSub), cb.desc(root.get("id"))); // id = stable tie-breaker
+
+        List<Product> content = entityManager.createQuery(cq)
+                .setFirstResult((int) pageable.getOffset())
+                .setMaxResults(pageable.getPageSize())
+                .getResultList();
+
+        // ---------- count query (same filters, no ordering) ----------
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<Product> countRoot = countQuery.from(Product.class);
+
+        if (spec != null) {
+            Predicate predicate = spec.toPredicate(countRoot, countQuery, cb);
+            if (predicate != null) countQuery.where(predicate);
+        }
+        countQuery.select(cb.count(countRoot));
+
         long total = entityManager.createQuery(countQuery).getSingleResult();
 
         return new PageImpl<>(content, pageable, total);

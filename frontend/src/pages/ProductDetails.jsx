@@ -48,6 +48,9 @@ export default function ProductDetails() {
   const [selectedSizeId, setSelectedSizeId] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
 
+  // 👇 Prevent duplicate favorite checks / retry loops
+  const favoriteCheckedForRef = useRef(null);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") setSelectedImage(null);
@@ -58,8 +61,10 @@ export default function ProductDetails() {
 
   useEffect(() => {
     const local = localStorage.getItem("token");
-    if (contextToken || local) {
-      setToken(contextToken || local);
+    const next = contextToken || local;
+    // 👇 Only update if actually different – prevents context churn / re-render loop
+    if (next && next !== contextToken) {
+      setToken(next);
     }
   }, [contextToken, id]);
 
@@ -160,13 +165,21 @@ export default function ProductDetails() {
       setIsFavorite(false);
       return;
     }
+
+    // 👇 Only check once per product. Prevents infinite 401/refresh loop.
+    if (favoriteCheckedForRef.current === product.id) return;
+    favoriteCheckedForRef.current = product.id;
+
     let cancelled = false;
     checkFavorite(product.id)
       .then((res) => {
         if (!cancelled) setIsFavorite(res.data);
       })
       .catch((err) => {
-        console.error("Failed to check favorite status:", err);
+        // 401s are expected for expired tokens; don't retry or toast.
+        if (err.response?.status !== 401) {
+          console.error("Failed to check favorite status:", err);
+        }
       });
     return () => { cancelled = true; };
   }, [product?.id, contextToken]);
@@ -205,6 +218,7 @@ export default function ProductDetails() {
     ? product.variants
         .filter((v, i, self) => self.findIndex(t => t.sizeId === v.sizeId) === i)
         .map(v => ({ id: v.sizeId, name: v.sizeName }))
+        .sort((a, b) => a.id - b.id)
     : [];
 
   // ---- Handlers ----

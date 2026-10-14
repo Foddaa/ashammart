@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, useLocation, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import Pagination from "@mui/material/Pagination";
 import ProductCard from "@/components/shared/ProductCard";
+import FilterDropdown, { RatingLabel } from "@/components/shared/FilterDropdown";
 import { useCategorySidebar } from "@/context/CategorySidebarContext";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -21,9 +22,27 @@ const SORT_OPTIONS = [
   { value: "BEST_SELLERS", label: "Best Sellers" },
 ];
 
+const GENDER_OPTIONS = [
+  { value: "", label: "All" },
+  { value: "MEN", label: "Men" },
+  { value: "WOMEN", label: "Women" },
+  { value: "KIDS", label: "Kids" },
+];
+
+const RATING_OPTIONS = [
+  { value: "", label: "Any rating" },
+  { value: "4", label: "4 & up", content: <RatingLabel stars={4} /> },
+  { value: "3", label: "3 & up", content: <RatingLabel stars={3} /> },
+  { value: "2", label: "2 & up", content: <RatingLabel stars={2} /> },
+];
+
+const LABEL_CLASS =
+  "block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5";
+const INPUT_CLASS =
+  "w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400";
+
 export default function Shop() {
   const { categoryId } = useParams();
-  const location = useLocation();
   const [searchParams] = useSearchParams();
   const isFastDeliveryRoute = categoryId === "fast-delivery";
   const searchTerm = (searchParams.get("search") || "").toLowerCase();
@@ -41,11 +60,16 @@ export default function Shop() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [minRating, setMinRating] = useState("");
+  const [gender, setGender] = useState(searchParams.get("gender") || "");
 
   // Default: filters are collapsed on page load
   const [showFilters, setShowFilters] = useState(false);
 
-  // Rest of hooks unchanged...
+  // Keep gender in sync with the URL (e.g. nav links "Men" / "Women")
+  useEffect(() => {
+    setGender(searchParams.get("gender") || "");
+  }, [searchParams]);
+
   useEffect(() => {
     setSort(SECTION_TO_SORT[section] || "NEWEST");
     setCurrentPage(1);
@@ -53,7 +77,7 @@ export default function Shop() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, categoryId, selectedCategories, minPrice, maxPrice, minRating, sort]);
+  }, [searchTerm, categoryId, selectedCategories, minPrice, maxPrice, minRating, gender, sort]);
 
   useEffect(() => {
     if ((section || searchTerm) && selectedCategories.length > 0) {
@@ -86,15 +110,16 @@ export default function Shop() {
         if (minPrice !== "") params.set("minPrice", minPrice);
         if (maxPrice !== "") params.set("maxPrice", maxPrice);
         if (minRating !== "") params.set("minRating", minRating);
+        if (gender !== "") params.set("gender", gender);
         if (isFastDeliveryRoute) params.set("fastDelivery", "true");
 
         const res = await fetch(
           `${BASE_URL}/api/product/unified?${params.toString()}`,
           {
-            credentials: 'include',
+            credentials: "include",
             headers: {
-              'Accept': 'application/json'   // optional but good practice
-            }
+              Accept: "application/json",
+            },
           }
         );
         if (!res.ok) throw new Error("Failed to load products");
@@ -128,6 +153,7 @@ export default function Shop() {
     minPrice,
     maxPrice,
     minRating,
+    gender,
     isFastDeliveryRoute,
   ]);
 
@@ -135,6 +161,7 @@ export default function Shop() {
     setMinPrice("");
     setMaxPrice("");
     setMinRating("");
+    setGender("");
   };
 
   return (
@@ -172,85 +199,67 @@ export default function Shop() {
           </div>
 
           {/* ===== FILTER BAR – collapsed by default ===== */}
+          {/* overflow-visible when open so dropdown lists are not clipped */}
           <div
-            className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              showFilters ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+            className={`transition-all duration-300 ease-in-out ${
+              showFilters
+                ? "max-h-[600px] opacity-100 overflow-visible"
+                : "max-h-0 opacity-0 overflow-hidden"
             }`}
           >
             <div className="pb-6 mb-8 border-b border-neutral-200">
-              {/* Desktop: grid layout */}
+              {/* Desktop: grid layout (2+2+2+2+2+2 = 12) */}
               <div className="hidden md:grid md:grid-cols-12 gap-4 items-end">
                 <div className="col-span-2">
-                  <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5">
-                    Min Price
-                  </label>
+                  <label className={LABEL_CLASS}>Min Price</label>
                   <input
                     type="number"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
                     placeholder="EGP"
-                    className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+                    className={INPUT_CLASS}
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5">
-                    Max Price
-                  </label>
+                  <label className={LABEL_CLASS}>Max Price</label>
                   <input
                     type="number"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
                     placeholder="EGP"
-                    className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+                    className={INPUT_CLASS}
                   />
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5">
-                    Rating
-                  </label>
-                  <select
+                  <label className={LABEL_CLASS}>Rating</label>
+                  <FilterDropdown
                     value={minRating}
-                    onChange={(e) => setMinRating(e.target.value)}
-                    className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm appearance-none"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "right 1rem center",
-                    }}
-                  >
-                    <option value="">Any</option>
-                    <option value="4">4★+</option>
-                    <option value="3">3★+</option>
-                    <option value="2">2★+</option>
-                  </select>
+                    onChange={setMinRating}
+                    options={RATING_OPTIONS}
+                  />
                 </div>
-                <div className="col-span-3">
-                  <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5">
-                    Sort by
-                  </label>
-                  <select
+                <div className="col-span-2">
+                  <label className={LABEL_CLASS}>Gender</label>
+                  <FilterDropdown
+                    value={gender}
+                    onChange={setGender}
+                    options={GENDER_OPTIONS}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className={LABEL_CLASS}>Sort by</label>
+                  <FilterDropdown
                     value={sort}
-                    onChange={(e) => setSort(e.target.value)}
-                    className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm appearance-none"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "right 1rem center",
-                    }}
-                  >
-                    {SORT_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setSort}
+                    options={SORT_OPTIONS}
+                  />
                 </div>
-                <div className="col-span-3 flex items-end justify-end">
+                <div className="col-span-2 flex items-end justify-end">
                   <button
                     onClick={clearFilters}
                     className="text-sm text-neutral-400 hover:text-black transition-colors tracking-wide font-light underline-offset-2 hover:underline pb-2.5"
                   >
-                    Clear all filters
+                    Clear all
                   </button>
                 </div>
               </div>
@@ -259,73 +268,55 @@ export default function Shop() {
               <div className="md:hidden space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5">
-                      Min Price
-                    </label>
+                    <label className={LABEL_CLASS}>Min Price</label>
                     <input
                       type="number"
                       value={minPrice}
                       onChange={(e) => setMinPrice(e.target.value)}
                       placeholder="EGP"
-                      className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+                      className={INPUT_CLASS}
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5">
-                      Max Price
-                    </label>
+                    <label className={LABEL_CLASS}>Max Price</label>
                     <input
                       type="number"
                       value={maxPrice}
                       onChange={(e) => setMaxPrice(e.target.value)}
                       placeholder="EGP"
-                      className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400"
+                      className={INPUT_CLASS}
                     />
                   </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5">
-                      Rating
-                    </label>
-                    <select
+                    <label className={LABEL_CLASS}>Rating</label>
+                    <FilterDropdown
                       value={minRating}
-                      onChange={(e) => setMinRating(e.target.value)}
-                      className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm appearance-none"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "right 1rem center",
-                      }}
-                    >
-                      <option value="">Any</option>
-                      <option value="4">4★+</option>
-                      <option value="3">3★+</option>
-                      <option value="2">2★+</option>
-                    </select>
+                      onChange={setMinRating}
+                      options={RATING_OPTIONS}
+                    />
                   </div>
                   <div>
-                    <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-1.5">
-                      Sort by
-                    </label>
-                    <select
-                      value={sort}
-                      onChange={(e) => setSort(e.target.value)}
-                      className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm appearance-none"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
-                        backgroundRepeat: "no-repeat",
-                        backgroundPosition: "right 1rem center",
-                      }}
-                    >
-                      {SORT_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                    <label className={LABEL_CLASS}>Gender</label>
+                    <FilterDropdown
+                      value={gender}
+                      onChange={setGender}
+                      options={GENDER_OPTIONS}
+                    />
                   </div>
                 </div>
+
+                <div>
+                  <label className={LABEL_CLASS}>Sort by</label>
+                  <FilterDropdown
+                    value={sort}
+                    onChange={setSort}
+                    options={SORT_OPTIONS}
+                  />
+                </div>
+
                 <button
                   onClick={clearFilters}
                   className="w-full text-sm text-neutral-400 hover:text-black transition-colors tracking-wide font-light underline-offset-2 hover:underline py-2 text-center"
@@ -336,7 +327,7 @@ export default function Shop() {
             </div>
           </div>
 
-          {/* Products grid (unchanged) */}
+          {/* Products grid */}
           {loading ? (
             <p className="text-center text-neutral-500 text-sm tracking-wide uppercase py-10">
               Loading...

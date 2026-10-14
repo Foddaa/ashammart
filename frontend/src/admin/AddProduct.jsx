@@ -4,6 +4,23 @@ import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import FilterDropdown from "@/components/shared/FilterDropdown";
+
+// Small colour swatch used inside colour options
+const Swatch = ({ hex }) =>
+  hex ? (
+    <span
+      className="inline-block w-3 h-3 border border-neutral-300 shrink-0"
+      style={{ backgroundColor: hex }}
+    />
+  ) : null;
+
+const colorOptionContent = (c) => (
+  <span className="flex items-center gap-2">
+    <Swatch hex={c.hex} />
+    <span className="truncate">{c.name}</span>
+  </span>
+);
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -29,6 +46,9 @@ const AddProduct = () => {
   const [images, setImages] = useState([]);
   const [imageColors, setImageColors] = useState([]);
 
+  // Lightbox state — holds the preview URL of the image being viewed
+  const [previewImage, setPreviewImage] = useState(null);
+
   const [variants, setVariants] = useState([
     { colorId: "", sizeId: "", price: "", canceledPrice: "", quantity: 1 },
   ]);
@@ -52,6 +72,40 @@ const AddProduct = () => {
     };
     fetchData();
   }, []);
+
+  // Close lightbox on Escape key
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") setPreviewImage(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // --- Dropdown options (values are strings so they match form state) ---
+  const categoryOptions = [
+    { value: "", label: "Select category" },
+    ...categories.map((c) => ({ value: String(c.id), label: c.name })),
+  ];
+
+  const supplierOptions = [
+    { value: "", label: "Select supplier" },
+    ...suppliers.map((s) => ({ value: String(s.code), label: s.name })),
+  ];
+
+  const colorOptions = [
+    { value: "", label: "None" },
+    ...colors.map((c) => ({
+      value: String(c.id),
+      label: c.name,
+      content: colorOptionContent(c),
+    })),
+  ];
+
+  const sizeOptions = [
+    { value: "", label: "None" },
+    ...sizes.map((s) => ({ value: String(s.id), label: s.name })),
+  ];
 
   // --- Sync images with used colors ---
   const usedColorIds = React.useMemo(() => {
@@ -87,6 +141,10 @@ const AddProduct = () => {
       ...prev,
       [e.target.name]: e.target.value,
     }));
+  };
+
+  const setField = (name) => (value) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleToggle = (e) => {
@@ -173,7 +231,15 @@ const AddProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate variants
+    if (!formData.category) {
+      toast.error("Please select a category.");
+      return;
+    }
+    if (!formData.supplierCode) {
+      toast.error("Please select a supplier.");
+      return;
+    }
+
     if (variants.some((v) => !v.quantity || v.quantity < 1)) {
       toast.error("All variants must have a positive quantity.");
       return;
@@ -187,7 +253,6 @@ const AddProduct = () => {
     images.forEach((image) => data.append("images", image));
     if (images.length === 0) data.append("images", "");
 
-    // Basic product fields
     for (const key in formData) {
       if (typeof formData[key] === "boolean") {
         data.append(key, formData[key] ? "true" : "false");
@@ -196,7 +261,6 @@ const AddProduct = () => {
       }
     }
 
-    // Variants payload
     const variantsPayload = variants.map((v) => ({
       colorId: v.colorId || null,
       sizeId: v.sizeId || null,
@@ -206,7 +270,6 @@ const AddProduct = () => {
     }));
     data.append("variants", JSON.stringify(variantsPayload));
 
-    // Build color‑image mappings
     const colorMappings = [];
     const map = new Map();
     imageColors.forEach((colorId, index) => {
@@ -225,7 +288,6 @@ const AddProduct = () => {
     try {
       await api.post("/api/admin/product/add", data);
       toast.success("✅ Product added successfully!");
-      // Reset form
       setFormData({
         name: "",
         code: "",
@@ -256,6 +318,14 @@ const AddProduct = () => {
 
   // Get allowed colors for image dropdown (used colors + "General")
   const allowedColors = colors.filter((c) => usedColorIds.has(c.id));
+  const imageColorOptions = [
+    { value: "", label: "General" },
+    ...allowedColors.map((c) => ({
+      value: String(c.id),
+      label: c.name,
+      content: colorOptionContent(c),
+    })),
+  ];
 
   return (
     <div className="min-h-screen bg-neutral-50 p-4 md:p-8 flex items-center justify-center" dir="ltr">
@@ -264,7 +334,7 @@ const AddProduct = () => {
         encType="multipart/form-data"
         className="bg-white border border-neutral-200 w-full max-w-4xl p-6 md:p-10 transition-all duration-300"
       >
-        {/* Header (unchanged) */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-neutral-200 pb-6 mb-8">
           <div>
             <h2 className="text-xl font-light tracking-wide text-neutral-900">Add New Product</h2>
@@ -279,7 +349,7 @@ const AddProduct = () => {
           </div>
         </div>
 
-        {/* Basic Fields Grid (unchanged) */}
+        {/* Basic Fields Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">Product Name <span className="text-neutral-400">*</span></label>
@@ -299,31 +369,33 @@ const AddProduct = () => {
           </div>
         </div>
 
-        {/* Category & Supplier (unchanged) */}
+        {/* Category & Supplier */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 mt-6">
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">Category <span className="text-neutral-400">*</span></label>
-            <select name="category" value={formData.category} onChange={handleInputChange} required className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm">
-              <option value="">Select category</option>
-              {categories.map((cat) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
-            </select>
+            <FilterDropdown
+              value={formData.category}
+              onChange={setField("category")}
+              options={categoryOptions}
+            />
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">Supplier <span className="text-neutral-400">*</span></label>
-            <select name="supplierCode" value={formData.supplierCode} onChange={handleInputChange} required className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-white text-sm">
-              <option value="">Select supplier</option>
-              {suppliers.map((sup) => (<option key={sup.id} value={sup.code}>{sup.name}</option>))}
-            </select>
+            <FilterDropdown
+              value={formData.supplierCode}
+              onChange={setField("supplierCode")}
+              options={supplierOptions}
+            />
           </div>
         </div>
 
-        {/* Description (unchanged) */}
+        {/* Description */}
         <div className="flex flex-col gap-1.5 mt-6">
           <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">Description <span className="text-neutral-400">*</span></label>
           <textarea name="description" value={formData.description} onChange={handleInputChange} required rows="4" placeholder="Provide a detailed description..." className="w-full border border-neutral-200 px-4 py-2.5 focus:outline-none focus:border-black bg-transparent text-sm placeholder:text-neutral-400 resize-y" />
         </div>
 
-        {/* Delivery Options (unchanged) */}
+        {/* Delivery Options */}
         <div className="mt-6">
           <label className="block text-[11px] uppercase tracking-wider text-neutral-400 font-medium mb-3">Delivery Options</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -340,7 +412,7 @@ const AddProduct = () => {
           </div>
         </div>
 
-        {/* Variants Section (unchanged) */}
+        {/* Variants Section */}
         <div className="mt-8 border-t border-neutral-200 pt-6">
           <div className="flex items-center justify-between mb-4">
             <label className="text-[11px] uppercase tracking-wider text-neutral-400 font-medium">Product Variants (Colors & Sizes)</label>
@@ -350,33 +422,25 @@ const AddProduct = () => {
           {variants.map((variant, index) => (
             <div key={index} className="grid grid-cols-1 sm:grid-cols-6 gap-3 items-end mb-3 p-3 border border-neutral-100 bg-neutral-50">
               <div className="sm:col-span-1">
-                <label className="text-[10px] text-neutral-400 block">Color</label>
-                <select
-                  value={variant.colorId}
-                  onChange={(e) => updateVariant(index, "colorId", e.target.value)}
-                  className="w-full border border-neutral-200 px-2 py-1.5 text-sm bg-white focus:outline-none focus:border-black"
-                >
-                  <option value="">None</option>
-                  {colors.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <label className="text-[10px] text-neutral-400 block mb-1">Color</label>
+                <FilterDropdown
+                  compact
+                  value={variant.colorId === "" ? "" : String(variant.colorId)}
+                  onChange={(v) => updateVariant(index, "colorId", v)}
+                  options={colorOptions}
+                />
               </div>
               <div className="sm:col-span-1">
-                <label className="text-[10px] text-neutral-400 block">Size</label>
-                <select
-                  value={variant.sizeId}
-                  onChange={(e) => updateVariant(index, "sizeId", e.target.value)}
-                  className="w-full border border-neutral-200 px-2 py-1.5 text-sm bg-white focus:outline-none focus:border-black"
-                >
-                  <option value="">None</option>
-                  {sizes.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
+                <label className="text-[10px] text-neutral-400 block mb-1">Size</label>
+                <FilterDropdown
+                  compact
+                  value={variant.sizeId === "" ? "" : String(variant.sizeId)}
+                  onChange={(v) => updateVariant(index, "sizeId", v)}
+                  options={sizeOptions}
+                />
               </div>
               <div className="sm:col-span-1">
-                <label className="text-[10px] text-neutral-400 block">Price (EGP)</label>
+                <label className="text-[10px] text-neutral-400 block mb-1">Price (EGP)</label>
                 <input
                   type="number"
                   value={variant.price}
@@ -386,7 +450,7 @@ const AddProduct = () => {
                 />
               </div>
               <div className="sm:col-span-1">
-                <label className="text-[10px] text-neutral-400 block">Old Price</label>
+                <label className="text-[10px] text-neutral-400 block mb-1">Old Price</label>
                 <input
                   type="number"
                   value={variant.canceledPrice}
@@ -396,7 +460,7 @@ const AddProduct = () => {
                 />
               </div>
               <div className="sm:col-span-1">
-                <label className="text-[10px] text-neutral-400 block">Qty *</label>
+                <label className="text-[10px] text-neutral-400 block mb-1">Qty *</label>
                 <input
                   type="number"
                   min="0"
@@ -426,7 +490,7 @@ const AddProduct = () => {
             Product Images <span className="text-neutral-400">*</span>
           </label>
 
-          {/* Upload area (unchanged) */}
+          {/* Upload area */}
           <div className="flex items-center justify-center w-full">
             <label className="flex flex-col items-center justify-center w-full h-32 border border-neutral-200 cursor-pointer bg-neutral-50 hover:bg-neutral-100 transition-colors">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -453,7 +517,7 @@ const AddProduct = () => {
           {images.length > 0 && (
             <div className="mt-4">
               <p className="text-[10px] uppercase tracking-wider text-neutral-400 mb-3">
-                Selected images ({images.length}) – Drag to reorder
+                Selected images ({images.length}) – Drag to reorder · Click to preview
               </p>
               <DragDropContext onDragEnd={onDragEnd}>
                 <Droppable droppableId="images">
@@ -474,29 +538,47 @@ const AddProduct = () => {
                                 snapshot.isDragging ? "border-black shadow-lg" : "border-neutral-200"
                               } bg-white rounded transition-shadow`}
                             >
-                              {/* Thumbnail */}
-                              <div className="w-20 h-20 flex-shrink-0">
+                              {/* Thumbnail — click to open lightbox */}
+                              <button
+                                type="button"
+                                onClick={() => setPreviewImage(URL.createObjectURL(file))}
+                                className="w-20 h-20 flex-shrink-0 group relative overflow-hidden border border-neutral-200 hover:border-black transition-colors cursor-zoom-in"
+                                title="Click to preview"
+                              >
                                 <img
                                   src={URL.createObjectURL(file)}
                                   alt={`preview-${idx}`}
                                   className="w-full h-full object-cover"
                                 />
-                              </div>
+                                {/* Hover overlay hint */}
+                                <span className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                                  <svg
+                                    className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <circle cx="11" cy="11" r="8" />
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                                    <line x1="11" y1="8" x2="11" y2="14" />
+                                    <line x1="8" y1="11" x2="14" y2="11" />
+                                  </svg>
+                                </span>
+                              </button>
 
                               {/* Controls: color dropdown + delete button */}
                               <div className="flex-1 flex items-center gap-3">
-                                <select
-                                  value={imageColors[idx] ?? ""}
-                                  onChange={(e) => updateImageColor(idx, e.target.value)}
-                                  className="border border-neutral-200 px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-black flex-1"
-                                >
-                                  <option value="">General</option>
-                                  {allowedColors.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                      {c.name}
-                                    </option>
-                                  ))}
-                                </select>
+                                <div className="flex-1 min-w-0">
+                                  <FilterDropdown
+                                    compact
+                                    value={imageColors[idx] != null ? String(imageColors[idx]) : ""}
+                                    onChange={(v) => updateImageColor(idx, v)}
+                                    options={imageColorOptions}
+                                  />
+                                </div>
                                 <button
                                   type="button"
                                   onClick={() => removeImage(idx)}
@@ -505,13 +587,6 @@ const AddProduct = () => {
                                   ✕
                                 </button>
                               </div>
-
-                              {/* Optional: display assigned color name */}
-                              {imageColors[idx] && (
-                                <div className="text-xs text-neutral-500 ml-2">
-                                  {colors.find((c) => c.id === imageColors[idx])?.name || "Color"}
-                                </div>
-                              )}
                             </div>
                           )}
                         </Draggable>
@@ -532,6 +607,29 @@ const AddProduct = () => {
           Add Product
         </button>
       </form>
+
+      {/* ── Lightbox ── */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 cursor-zoom-out backdrop-blur-md transition-all"
+          onClick={() => setPreviewImage(null)}
+        >
+          <img
+            src={previewImage}
+            alt="Preview"
+            className="max-w-[90vw] max-h-[90vh] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            type="button"
+            className="absolute top-6 right-6 text-white bg-transparent border border-white/30 px-4 py-2 hover:bg-white hover:text-black transition text-sm tracking-wide"
+            onClick={() => setPreviewImage(null)}
+          >
+            Close
+          </button>
+        </div>
+      )}
+
       <ToastContainer
         position="top-center"
         autoClose={4000}

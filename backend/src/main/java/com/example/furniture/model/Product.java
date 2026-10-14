@@ -1,5 +1,6 @@
 package com.example.furniture.model;
 
+import com.example.furniture.ENUMS.Gender;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -22,6 +23,7 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
 
     @Column(nullable = false, unique = true)
@@ -59,6 +61,10 @@ public class Product {
     private boolean freeDelivery;
     private boolean fastDelivery;
     private String status = "AVAILABLE";
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Gender gender = Gender.UNISEX;
 
     @Transient
     public double getAverageRating() {

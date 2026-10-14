@@ -4,8 +4,17 @@ import { toast } from "react-toastify";
 import api from "@/api/axiosInstance"; // ✅ centralized API client
 import PaymentMethod from "./PaymentMethod";
 import { clearCart } from "@/components/shared/cartService";
+import FilterDropdown from "@/components/shared/FilterDropdown";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const CITIES = [
+  "Cairo", "Giza", "Alexandria", "Dakahlia", "Red Sea", "Beheira", "Faiyum",
+  "Gharbia", "Ismailia", "Menoufia", "Minya", "Qalyubia", "New Valley", "Suez",
+  "Aswan", "Asyut", "Beni Suef", "Port Said", "Damietta", "Sharqia",
+  "South Sinai", "Kafr El Sheikh", "Matrouh", "Luxor", "Qena", "North Sinai",
+  "Sohag",
+];
+const CITY_OPTIONS = CITIES.map((c) => ({ value: c, label: c }));
 
 export default function OrderReview() {
   const location = useLocation();
@@ -125,7 +134,7 @@ export default function OrderReview() {
         }
       );
 
-      if (res.data === "تم تأكيد الطلب بنجاح" || res.data === "success") {
+      if (res.status == 200 && res.data === "Order confirmed successfully") {
         toast.success("Order confirmed successfully!");
         if (!buyNow || clearCartAfterOrder) {
           clearCart();
@@ -357,42 +366,10 @@ export default function OrderReview() {
         <div className="bg-white border border-neutral-200 p-4 sm:p-6 mb-6">
           <h3 className="text-sm font-medium tracking-wide text-neutral-800 border-b border-neutral-200 pb-3 mb-3">Delivery Information</h3>
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">City *</label>
-              <select
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black bg-white text-sm w-full"
-              >
-                <option value="Cairo">Cairo</option>
-                <option value="Giza">Giza</option>
-                <option value="Alexandria">Alexandria</option>
-                <option value="Dakahlia">Dakahlia</option>
-                <option value="Red Sea">Red Sea</option>
-                <option value="Beheira">Beheira</option>
-                <option value="Faiyum">Faiyum</option>
-                <option value="Gharbia">Gharbia</option>
-                <option value="Ismailia">Ismailia</option>
-                <option value="Menoufia">Menoufia</option>
-                <option value="Minya">Minya</option>
-                <option value="Qalyubia">Qalyubia</option>
-                <option value="New Valley">New Valley</option>
-                <option value="Suez">Suez</option>
-                <option value="Aswan">Aswan</option>
-                <option value="Asyut">Asyut</option>
-                <option value="Beni Suef">Beni Suef</option>
-                <option value="Port Said">Port Said</option>
-                <option value="Damietta">Damietta</option>
-                <option value="Sharqia">Sharqia</option>
-                <option value="South Sinai">South Sinai</option>
-                <option value="Kafr El Sheikh">Kafr El Sheikh</option>
-                <option value="Matrouh">Matrouh</option>
-                <option value="Luxor">Luxor</option>
-                <option value="Qena">Qena</option>
-                <option value="North Sinai">North Sinai</option>
-                <option value="Sohag">Sohag</option>
-              </select>
-            </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">City *</label>
+                <FilterDropdown value={city} onChange={setCity} options={CITY_OPTIONS} />
+              </div>
             <div className="flex flex-col gap-1">
               <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Detailed Address *</label>
               <textarea

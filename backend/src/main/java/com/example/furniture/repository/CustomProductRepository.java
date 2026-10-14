@@ -7,4 +7,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 public interface CustomProductRepository {
     Page<Product> findAllOrderByAverageRating(Specification<Product> spec, Pageable pageable);
+
+    Page<Product> findAllOrderByBestSelling(Specification<Product> spec, Pageable pageable);
 }
