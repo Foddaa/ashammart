@@ -182,11 +182,17 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
 
     @Query("""
     SELECT new com.example.furniture.inputDTO.response.ProductCardDto(
-        p.id, p.name, p.price, p.canceledPrice,
+        p.id, 
+        p.name, 
+        p.price, 
+        p.canceledPrice,
         COALESCE((SELECT AVG(r.stars) FROM Rating r WHERE r.product = p), 0.0),
-        (SELECT i.url FROM Product p2 JOIN p2.images i
-          WHERE p2.id = p.id
-            AND i.id = (SELECT MIN(i2.id) FROM Product p3 JOIN p3.images i2 WHERE p3.id = p.id))
+        (SELECT i.url
+        FROM Image i
+        WHERE i.id = (
+            SELECT MIN(i2.id) FROM Image i2
+            WHERE i2.product = p
+            AND i2.order = (SELECT MIN(i3.order) FROM Image i3 WHERE i3.product = p)))
     )
     FROM Product p
     WHERE p.id IN :ids

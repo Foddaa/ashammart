@@ -35,6 +35,7 @@ public class SecurityConfigJWT {
                         .requestMatchers("/api/supplier/**").permitAll()
                         .requestMatchers("/api/search/**").permitAll()
                         .requestMatchers("/api/guest/**").permitAll()
+                        .requestMatchers("/api/merchant-config/**").permitAll()
                         .requestMatchers("/api/client/**").hasRole("USER")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/executive/**").hasRole("EXECUTIVE")
@@ -50,7 +51,7 @@ public class SecurityConfigJWT {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
-                "http://192.168.100.170:5173",
+                "https://localhost:5173",
                 "https://anttikka.com",
                 "http://anttikka.com"
         ));

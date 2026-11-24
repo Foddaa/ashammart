@@ -2,18 +2,22 @@ package com.example.furniture.service;
 
 import com.example.furniture.ENUMS.PaymentMethod;
 import com.example.furniture.inputDTO.*;
+import com.example.furniture.inputDTO.response.OrderDetailsDTO;
+import com.example.furniture.inputDTO.response.OrderItemDTO;
 import com.example.furniture.model.*;
 import com.example.furniture.repository.CartItemRepository;
 import com.example.furniture.repository.OrderRepository;
 import com.example.furniture.repository.ProductRepository;
 import com.example.furniture.repository.ProductVariantRepository;
-import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -225,7 +229,7 @@ public class OrderService {
                 if (request.getEmail() != null && !request.getEmail().isBlank()) {
                     client.setEmail(request.getEmail());
                 }
-                client.setAddress(request.getAddress());
+                client.getAddresses().add(request.getAddress());
                 client.setCart(new Cart());
                 client.setPassword("pass");
                 clientService.save(client);
@@ -353,5 +357,64 @@ public class OrderService {
         }
         log.debug("checkEligibilityForFreeDelivery: all products eligible");
         return true;
+    }
+
+    @Transactional
+    public List<?> getOrdersByClient (String email) {
+        log.debug("getOrdersByClient: email={}", email);
+        Client client = clientService.getClient(email);
+        List<Order> orders = orderRepository.getOrdersByClient(client);
+        List<OrderDetailsDTO> result = new ArrayList<>();
+        for (Order order : orders) {
+            OrderDetailsDTO dto = getOrderDetails(order.getId(), client);
+            result.add(dto);
+        }
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDetailsDTO getOrderDetails(Long orderId, Client client) {
+        Order order = orderRepository.findByIdAndClient(orderId, client)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
+
+        // 3. Map the Order to OrderDetailsDTO
+        OrderDetailsDTO dto = new OrderDetailsDTO();
+        dto.setId(order.getId());
+        dto.setOrderDate(order.getOrderDate());
+        dto.setEstimatedDeliveryDate(order.getEstimatedDeliveryDate());
+        dto.setStatus(order.getStatus());
+        dto.setSubtotal(order.getSubtotal());
+        dto.setTotalCost(order.getTotalCost());
+        dto.setDeliveryCost(order.getDeliveryCost());
+        dto.setAddress(order.getAddress());
+        dto.setPaymentMethod(order.getPaymentMethod());
+
+        // 4. Map the OrderItems
+        List<OrderItemDTO> itemDTOs = order.getItems().stream().map(item -> {
+            OrderItemDTO itemDTO = new OrderItemDTO();
+            itemDTO.setId(item.getProductVariant().getProduct().getId());
+            itemDTO.setPrice(item.getCost());
+            itemDTO.setQuantity(item.getQuantity());
+
+            ProductVariant variant = item.getProductVariant();
+            if (variant != null) {
+                itemDTO.setVariantId(variant.getId());
+
+                if (variant.getSize() != null) itemDTO.setSize(variant.getSize().getName());
+                if (variant.getColor() != null) itemDTO.setColor(variant.getColor().getName());
+
+                Product product = variant.getProduct();
+                if (product != null) {
+                    itemDTO.setName(product.getName());
+                    if (product.getImages() != null && !product.getImages().isEmpty()) {
+                        itemDTO.setImage(product.getImages().get(0).getUrl());
+                    }
+                }
+            }
+            return itemDTO;
+        }).collect(Collectors.toList());
+
+        dto.setItems(itemDTOs);
+        return dto;
     }
 }

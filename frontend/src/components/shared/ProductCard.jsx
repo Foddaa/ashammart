@@ -5,17 +5,12 @@ import { getAccessToken } from "@/api/axiosInstance";
 import { getProductImageUrl, PLACEHOLDER_IMAGE } from "@/utils/productDisplay";
 import { useBuyNow } from '@/context/BuyNowContext';
 
-/**
- * Expects the slim card shape returned by the list endpoints:
- * { id, name, price, canceledPrice, averageRating, imageUrl, colors: [{ id, hex }] }
- */
 export default function ProductCard({ product, className = "" }) {
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { openBuyNow } = useBuyNow();
 
-  
   useEffect(() => {
     if (!product?.id || !getAccessToken()) return;
     let cancelled = false;
@@ -33,8 +28,6 @@ export default function ProductCard({ product, className = "" }) {
 
   if (!product) return null;
 
-  // The old helper expects product.images, so wrap the single imageUrl to keep
-  // its URL handling (e.g. adding the API base URL) working unchanged.
   const imageUrl = getProductImageUrl({
     images: product.imageUrl ? [{ url: product.imageUrl }] : [],
   });
@@ -99,7 +92,7 @@ export default function ProductCard({ product, className = "" }) {
       onClick={handleCardClick}
       className={`flex flex-col h-full overflow-hidden cursor-pointer duration-200 ${className}`}
     >
-      <div className="relative aspect-[3/4] w-full overflow-hidden shrink-0 bg-gray-50">
+      <div className="relative aspect-[3/4] w-full overflow-hidden shrink-0 bg-gray-50 dark:bg-neutral-800">
         <img
           src={imageUrl}
           alt={product.name}
@@ -116,66 +109,72 @@ export default function ProductCard({ product, className = "" }) {
             -{discount}%
           </span>
         )}
-
-        <button
-          onClick={toggleFavorite}
-          disabled={isSaving}
-          className="group absolute top-2 right-2 z-10 w-7 h-7 flex items-center justify-center cursor-pointer disabled:opacity-50"
-          aria-label="Toggle favorite"
-          aria-pressed={isFavorite}
-        >
-          {isFavorite ? (
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="#000000"
-              stroke="#000000"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-colors group-hover:fill-transparent"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-          ) : (
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-colors group-hover:fill-black group-hover:stroke-black"
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-          )}
-        </button>
       </div>
 
       <div className="p-1 text-left flex-grow flex flex-col">
-        <h3 className="text-sm font-light tracking-wide text-neutral-900 leading-tight line-clamp-1">
-          {product.name}
-        </h3>
+        {/* Title and Favorite Button Row */}
+        <div className="flex justify-between items-start gap-2">
+          {/* Removed dark:text-neutral-100, letting CSS variables handle the color */}
+          <h3 className="text-sm font-light tracking-wide text-neutral-900 leading-tight line-clamp-1 flex-1">
+            {product.name}
+          </h3>
+          
+          <button
+            onClick={toggleFavorite}
+            disabled={isSaving}
+            className="shrink-0 cursor-pointer disabled:opacity-50 transition-colors p-1 -m-1 mt-0"
+            aria-label="Toggle favorite"
+            aria-pressed={isFavorite}
+          >
+            {isFavorite ? (
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-[var(--color-text-black)] transition-colors"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            ) : (
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-neutral-400 hover:text-[var(--color-text-black)] transition-colors"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            )}
+          </button>
+        </div>
 
         <div>
-          <div className="px-0 flex items-center justify-between gap-2 flex-wrap">
+          <div className="px-0 flex items-center justify-between gap-2 flex-wrap mt-1">
             <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+              {/* Removed dark:text-neutral-100 here too */}
               <span className="text-sm text-neutral-900 font-medium">
                 EGP {formatPrice(price)}
               </span>
               {hasDiscount && (
-                <span className="text-xs text-neutral-400 line-through">
+                <span className="text-xs text-neutral-400 dark:text-neutral-500 line-through">
                   {formatPrice(canceledPrice)}
                 </span>
               )}
             </div>
 
             <div className="flex items-center gap-1.5 px-2.5 py-1 shrink-0">
-              <span className="font-semibold text-xs text-gray-900">
+              {/* Swapped to text-neutral-900 to ensure it inverts properly */}
+              <span className="font-semibold text-xs text-neutral-900">
                 {(product.averageRating || 0).toFixed(1)}
               </span>
               <span className="text-amber-400 text-[10px]">★</span>
@@ -188,7 +187,7 @@ export default function ProductCard({ product, className = "" }) {
               {colors.map((c) => (
                 <div
                   key={c.id}
-                  className="w-4 h-4 border border-neutral-300"
+                  className="w-4 h-4 border border-neutral-300 dark:border-neutral-600"
                   style={{ backgroundColor: c.hex || "#cccccc" }}
                 />
               ))}
@@ -196,11 +195,11 @@ export default function ProductCard({ product, className = "" }) {
           )}
         </div>
 
-        {/* mt-auto ensures the button always stays at the bottom of the card */}
         <div className="mt-auto pt-2">
           <button
             onClick={handleBuyNow}
-            className="w-full py-2 border text-black text-sm hover:bg-gray-50 transition-colors duration-200"
+            // Replaced text-black dark:text-white with the CSS variable
+            className="w-full py-2 border border-neutral-300 dark:border-neutral-600 text-[var(--color-text-black)] text-sm hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors duration-200"
           >
             Buy Now
           </button>

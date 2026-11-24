@@ -19,11 +19,6 @@ public class ClientDTO {
         dto.setPhone(client.getPhone());
         dto.setName(client.getName());
         dto.setEmail(client.getEmail());
-        if (client.getAddress() != null) {
-            dto.setAddress(client.getAddress());
-        } else {
-            dto.setAddress(null);
-        }
 
         if (client.getCart() != null) {
             dto.setCartId(client.getCart().getId());

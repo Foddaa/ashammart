@@ -1,12 +1,8 @@
-package com.example.furniture.controller;
+package com.example.furniture.controller.client;
 
 import com.example.furniture.JWT.JwtUtil;
-import com.example.furniture.inputDTO.ProductDTO;
-import com.example.furniture.inputDTO.response.PagedResponse;
 import com.example.furniture.service.ClientService;
 import com.example.furniture.service.FavoriteService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

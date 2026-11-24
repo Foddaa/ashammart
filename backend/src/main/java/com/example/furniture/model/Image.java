@@ -13,6 +13,14 @@ public class Image {
 
     private String url;
 
+    /**
+     * Display order within the product's image list (lower = first, 0 = main image on the product card).
+     * Legacy rows all have 0 and fall back to id order.
+     * Column name is quoted because ORDER is a reserved word in MySQL.
+     */
+    @Column(name = "`order`", nullable = false)
+    private int order = 0;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
     @JsonBackReference

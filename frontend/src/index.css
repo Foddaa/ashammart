@@ -20,7 +20,64 @@
   --color-text-red:rgba(213, 18, 67, 1);
   --color-text-light-gray:rgba(155, 155, 180, 1);
   --color-btn-bg-blue:rgba(35, 58, 149, 1);
+  --color-page: #ffffff;
+}
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-page: rgba(17, 19, 26, 1);
+  --color-bg: rgba(24, 26, 34, 1);
+  --color-primary: rgba(30, 34, 45, 1);
+  --color-hover: rgba(34, 48, 58, 1);
+  --color-border-gray: rgba(46, 51, 66, 1);
+
+  --color-text: rgba(226, 229, 240, 1);
+  --color-text-black: rgba(243, 244, 247, 1);
+  --color-text-menu: rgba(160, 166, 186, 1);
+  --color-secondary: rgba(160, 166, 186, 1);
+  --color-text-holder: rgba(125, 130, 152, 1);
+  --color-text-light-gray: rgba(125, 130, 152, 1);
+
+  --color-text-dark-green: rgba(52, 211, 120, 1);
+  --color-text-red: rgba(248, 98, 130, 1);
+  --color-btn-bg-blue: rgba(70, 95, 190, 1);
+  /* --color-accent and --color-text-white stay the same */
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* surfaces */
+  --color-white: #14161c;
+  --color-neutral-50: #1a1d25;
+  --color-neutral-100: #21252e;
+  --color-gray-50: #1a1d25;
+  --color-gray-100: #21252e;
+  --color-gray-200: #2e333d;
+
+  /* borders */
+  --color-neutral-200: #2e333d;
+  --color-neutral-300: #3d4350;
+  --color-gray-300: #3d4350;
+  --color-gray-400: #5b6270;
+
+  /* text (inverted) */
+  --color-black: #f3f4f6;
+  --color-neutral-400: #8b919e;
+  --color-neutral-500: #9aa0ac;
+  --color-neutral-600: #b4b9c4;
+  --color-neutral-700: #cdd1d9;
+  --color-neutral-800: #e5e7eb;
+  --color-neutral-900: #f3f4f6;
+  --color-gray-700: #cdd1d9;
+}
+
+body {
+  background-color: var(--color-page);
+  color: var(--color-text);
+  transition: background-color 0.2s, color 0.2s;
 }
 
 @font-face {

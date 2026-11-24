@@ -1,0 +1,9 @@
+1- address handling 
+2- order item cost and price handling
+2- system configuration entity
+3- home button
+4- working hours
+5- whatsapp logo 
+6- contacting phones
+7- arabic and english logo 
+8- ligh and dark theme 

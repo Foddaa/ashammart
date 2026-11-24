@@ -46,6 +46,7 @@ public class Product {
     private Supplier supplier;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OrderBy("order ASC, id ASC")
     @JsonManagedReference
     private List<Image> images = new ArrayList<>();
 

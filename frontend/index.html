@@ -1,7 +1,15 @@
 <!doctype html>
 <html lang="ar" translate="no">
   <head>
-    
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme");
+          var system = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", saved || system);
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="facebook-domain-verification" content="ronxpzuyuk43dmdkd5ywh75v2t0qi1" />
     <link rel="icon" type="image/svg+xml" href="./src/assets/icons/favico/logo.ico" />

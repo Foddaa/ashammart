@@ -1,17 +1,13 @@
-package com.example.furniture.controller;
+package com.example.furniture.controller.client;
 
 import com.example.furniture.JWT.JwtUtil;
 import com.example.furniture.inputDTO.ClientDTO;
-import com.example.furniture.inputDTO.ConfirmOrderRequest;
 import com.example.furniture.service.ClientService;
-import com.example.furniture.service.OrderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/client")
@@ -19,10 +15,10 @@ public class ClientController {
     @Autowired
     ClientService clientService;
     @Autowired
-    OrderService orderService;
-    @Autowired
     JwtUtil jwtUtil;
 
+
+    private static final Logger logger = LoggerFactory.getLogger(ClientController.class);
     @GetMapping
     public String client() {
         return "success";
@@ -30,10 +26,13 @@ public class ClientController {
 
     @GetMapping("/getProfile")
     public ResponseEntity<?> getProfile(@RequestHeader("Authorization") String authHeader) {
+        logger.debug("get Profile request received");
         String email = jwtUtil.extractEmail(authHeader.substring(7));
         ClientDTO client = clientService.getProfile(email);
+        logger.info("get profile request returned");
         return ResponseEntity.ok(client);
     }
+
 
 
 

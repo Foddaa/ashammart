@@ -42,15 +42,15 @@ export default function CartItems({ items = [], onUpdate }) {
     <div className="divide-y divide-neutral-100">
       {items.map((item) => (
         <div
-          key={item.variantId || item.id} // Changed to variantId to avoid React key collisions
+          key={item.variantId || item.id}
           className="p-4 sm:p-6 bg-white transition-colors duration-200 hover:bg-neutral-50"
         >
-          {/* Main row: LTR responsive grid */}
           <div className="flex flex-col sm:grid sm:grid-cols-[2fr_1fr_1fr_1fr_0.5fr] sm:gap-4 sm:items-center">
             
             {/* Product info (image + name + code) */}
-            <div className="flex gap-4 mb-4 sm:mb-0 text-left">
-              <div className="flex-shrink-0 w-20 h-20 border border-neutral-200 bg-neutral-50">
+            <div className="flex gap-4 text-left">
+              {/* Portrait Image */}
+              <div className="flex-shrink-0 w-20 aspect-[3/4] border border-neutral-200 bg-neutral-50 overflow-hidden">
                 <img
                   src={
                     item.images?.[0]?.url
@@ -59,22 +59,27 @@ export default function CartItems({ items = [], onUpdate }) {
                   }
                   alt={item.name}
                   onClick={() =>
-                    navigate(`/product/${item.id}`, { // NOTE: Keep item.id here for navigation URL
+                    navigate(`/product/${item.id}`, {
                       state: { product: item },
                     })
                   }
                   className="w-full h-full object-cover cursor-pointer"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/placeholder.png";
+                  }}
                 />
               </div>
+              
               <div className="flex-1 flex flex-col justify-center">
-                <h3 className="font-medium text-neutral-900 text-base sm:text-lg tracking-tight">
+                <h3 className="font-medium text-neutral-900 text-base sm:text-lg tracking-tight break-words">
                   {item.name}
                 </h3>
                 <p className="text-neutral-400 text-[10px] uppercase tracking-wider mt-0.5">
                   Code: {item.code}
                 </p>
                 
-                {/* NEW: Display Size and Color */}
+                {/* Display Size and Color */}
                 {item.size || item.color ? (
                   <p className="text-neutral-500 text-xs mt-1">
                     {item.size && <span>Size: {item.size}</span>}
@@ -84,7 +89,7 @@ export default function CartItems({ items = [], onUpdate }) {
                 ) : null}
 
                 {/* Mobile price (visible on small screens only) */}
-                <div className="sm:hidden mt-2 flex items-center gap-2">
+                <div className="sm:hidden mt-1 flex items-center gap-2">
                   <span className="text-neutral-900 font-medium">
                     {item.price.toLocaleString()} EGP
                   </span>
@@ -109,27 +114,23 @@ export default function CartItems({ items = [], onUpdate }) {
               )}
             </div>
 
-            {/* Quantity controls – Minimal & Sharp */}
-            <div className="flex items-center justify-start sm:justify-center mb-4 sm:mb-0">
+            {/* Desktop Quantity controls */}
+            <div className="hidden sm:flex items-center justify-center">
               <div className="flex items-center border border-neutral-200 bg-white">
                 <button
-                  onClick={() => handleQuantityChange(item.variantId, item.quantity - 1)} // Changed to variantId
+                  onClick={() => handleQuantityChange(item.variantId, item.quantity - 1)}
                   className="px-3 py-1.5 text-neutral-500 hover:bg-neutral-50 transition-colors duration-200"
-                  aria-label="Decrease quantity"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
                 </button>
-                
                 <span className="w-10 text-center text-sm font-light text-neutral-900 border-l border-r border-neutral-200 py-1.5">
                   {item.quantity}
                 </span>
-                
                 <button
-                  onClick={() => handleQuantityChange(item.variantId, item.quantity + 1)} // Changed to variantId
+                  onClick={() => handleQuantityChange(item.variantId, item.quantity + 1)}
                   className="px-3 py-1.5 text-neutral-500 hover:bg-neutral-50 transition-colors duration-200"
-                  aria-label="Increase quantity"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19" />
@@ -146,10 +147,10 @@ export default function CartItems({ items = [], onUpdate }) {
               </span>
             </div>
 
-            {/* Minimal Delete Button (Exactly matching your admin tables) */}
-            <div className="flex justify-start sm:justify-center mt-2 sm:mt-0">
+            {/* Desktop Delete Button */}
+            <div className="hidden sm:flex justify-center">
               <button
-                onClick={() => handleRemove(item.variantId)} // Changed to variantId
+                onClick={() => handleRemove(item.variantId)}
                 className="inline-flex items-center gap-1.5 border border-red-400 px-3 py-1.5 text-red-500 hover:bg-red-500 hover:text-white transition-colors duration-200 text-[10px] uppercase tracking-wider"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -162,13 +163,58 @@ export default function CartItems({ items = [], onUpdate }) {
               </button>
             </div>
 
-            {/* Mobile total row (visible only on small screens) */}
-            <div className="sm:hidden mt-3 pt-3 border-t border-neutral-200 flex justify-between items-center">
-              <span className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Total</span>
-              <span className="font-medium text-neutral-900 text-base">
-                {(item.price * item.quantity).toLocaleString()} EGP
-              </span>
+            {/* --- MOBILE ONLY: Actions Section --- */}
+            <div className="flex sm:hidden flex-col mt-3 pt-3 border-t border-neutral-100 w-full gap-3">
+              
+              {/* Row 1: Quantity & Delete */}
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center border border-neutral-200 bg-white shrink-0">
+                  <button
+                    onClick={() => handleQuantityChange(item.variantId, item.quantity - 1)}
+                    className="px-3 py-1.5 text-neutral-500 hover:bg-neutral-50 transition-colors"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                  </button>
+                  <span className="w-8 text-center text-xs font-light text-neutral-900 border-l border-r border-neutral-200 py-1.5">
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() => handleQuantityChange(item.variantId, item.quantity + 1)}
+                    className="px-3 py-1.5 text-neutral-500 hover:bg-neutral-50 transition-colors"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => handleRemove(item.variantId)}
+                  className="shrink-0 inline-flex items-center gap-1.5 border border-red-400 px-3 py-1.5 text-red-500 hover:bg-red-500 hover:text-white transition-colors duration-200 text-[10px] uppercase tracking-wider"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  Delete
+                </button>
+              </div>
+
+              {/* Row 2: Total (Alone) */}
+              <div className="flex items-center justify-between w-full pt-2 border-t border-neutral-50">
+                <span className="text-[10px] uppercase tracking-wider text-neutral-500 font-medium">Total</span>
+                <span className="font-medium text-neutral-900 text-sm">
+                  {(item.price * item.quantity).toLocaleString()} EGP
+                </span>
+              </div>
             </div>
+            {/* ------------------------------------------------------ */}
+
           </div>
         </div>
       ))}

@@ -196,22 +196,32 @@ export default function OrderReview() {
                   : "/default-image.jpg";
                 
                 return (
-                  <div key={item.id} className="py-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <img
-                      src={imageUrl}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover border border-neutral-200 bg-neutral-50 shrink-0"
-                      onError={(e) => { e.target.src = "/default-image.jpg"; }}
-                    />
-                    <div className="flex-1 flex flex-col sm:flex-row sm:items-start justify-between w-full gap-2 sm:gap-4 text-left">
-                      <div>
-                        <p className="font-medium text-neutral-900">{item.name}</p>
+                  <div key={item.id} className="py-4 flex flex-row items-start sm:items-center gap-3 sm:gap-4 w-full">
+                    
+                    {/* Image wrapper */}
+                    <div className="w-20 sm:w-16 aspect-[3/4] shrink-0 border border-neutral-200 bg-neutral-50 overflow-hidden">
+                      <img
+                        src={imageUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.src = "/default-image.jpg"; }}
+                      />
+                    </div>
+
+                    {/* Details wrapper - Added min-w-0 to prevent overflow */}
+                    <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4 text-left">
+                      
+                      <div className="flex-1 min-w-0">
+                        {/* Changed truncate to line-clamp-2 for mobile so text wraps nicely without overflowing */}
+                        <p className="font-medium text-neutral-900 line-clamp-2 sm:line-clamp-none sm:whitespace-normal break-words">
+                          {item.name}
+                        </p>
                         <p className="text-[10px] text-neutral-400 uppercase tracking-wider mt-0.5">
                           Qty: {item.quantity}
                           {buyNow && <span className="ml-2 border border-neutral-200 px-1.5 py-0.5 text-[9px]">Instant</span>}
                         </p>
                         
-                        {/* NEW: Display Size and Color */}
+                        {/* Display Size and Color */}
                         {item.size || item.color ? (
                           <p className="text-neutral-500 text-xs mt-1">
                             {item.size && <span>Size: {item.size}</span>}
@@ -233,12 +243,14 @@ export default function OrderReview() {
                           </div>
                         )}
                       </div>
-                      <div className="text-left sm:text-right shrink-0">
-                        <p className="text-sm text-neutral-600">
-                          {item.price.toLocaleString()} EGP
-                        </p>
+                      
+                      {/* Price Wrapper - shrink-0 prevents it from being squished */}
+                      <div className="text-left sm:text-right shrink-0 mt-1 sm:mt-0">
                         <p className="text-sm font-medium text-neutral-900">
                           Total: {(item.price * item.quantity).toLocaleString()} EGP
+                        </p>
+                        <p className="text-xs text-neutral-600">
+                          {item.price.toLocaleString()} EGP
                         </p>
                         {/* Desktop Free Delivery Badge */}
                         {item.freeDelivery && (

@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import svgr from 'vite-plugin-svgr'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url';
-
 
 // Reconstruct __dirname since it's not available in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -12,7 +12,8 @@ const __dirname = path.dirname(__filename);
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(),
+  plugins: [
+    react(),
     tailwindcss(),
     svgr(),
   ],
@@ -33,4 +34,17 @@ export default defineConfig({
       "@utils": path.resolve(__dirname, './src/utils'),      
     },
   },
+  server: {
+    https: {
+      key: fs.readFileSync(path.resolve(__dirname, 'localhost+2-key.pem')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'localhost+2.pem')),
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080', // Your Spring Boot backend
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })

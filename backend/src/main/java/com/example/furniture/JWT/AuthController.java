@@ -54,11 +54,11 @@ public class AuthController {
         String refreshToken = jwtUtil.generateRefreshToken(request.getEmail());
 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .path("/api/auth/refresh")
                 .httpOnly(true)
-                .secure(true)                      // HTTPS only — see note below for local dev
-                .sameSite("Strict")                // "None" if frontend/backend are different origins
-                .path("/api/auth/refresh")         // cookie only sent to the refresh endpoint, not every request
-                .maxAge(Duration.ofDays(7))
+                .secure(true)          // HTTPS true
+                .sameSite("None")      // None
+                .maxAge(604800)
                 .build();
 
         return ResponseEntity.ok()

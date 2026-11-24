@@ -13,7 +13,7 @@ import {
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ;
 import AboutUs from "@/pages/info_pages/AboutUs";
 import Blog from "@/pages/Blog";
-import Contact from "@/pages/Contact";
+import Contact from "@/pages/info_pages/Contact";
 import Error from "@/pages/Error";
 import MainLayout from "@/UI/MainLayout";
 import Register from "@/pages/Register";
@@ -37,7 +37,6 @@ import PrivacyRules from "@/pages/info_pages/privacyRules";
 import ReturningAndReplacing from "@/pages/info_pages/ReturningAndReplacing";
 import PaymentMethods from "@/pages/PaymentMethod";
 import SupplierRequestList from "@/admin/SupplierRequestList";
-import UserProfilePage from "@/pages/UserProfilePage";
 import UpdatePrices from "@/admin/UpdatePrices";
 import UpdateImages from "@/admin/UpdateImages";
 import RealLifePhotos from "@/pages/RealLifePhotos";
@@ -51,6 +50,12 @@ import SizeGuide from "@/pages/info_pages/SizeGuides";
 import OrderTracking from "@/pages/info_pages/OrderTracking";
 import HelpCenter from "@/pages/info_pages/HelpCenter";
 import AvailablePaymentMethods from "@/pages/info_pages/AvailablePaymentMethods";
+import ProfileInfoPage from "@/pages/UserProfilePage";
+import AddressesPage from "@/components/profile/AddressesPage";
+import OrdersPage from "@/components/profile/OrdersPage";
+import OrderDetailsPage from "@/components/profile/OrderDetailsPage";
+import ProfileLayout from "@/components/profile/ProfileLayout";
+import MerchantSettings from "@/admin/MerchantSettings";
 
 const router = createBrowserRouter([
   {
@@ -68,7 +73,19 @@ const router = createBrowserRouter([
       { path:'/review-order' ,element:<OrderReview />},
       { path:'/addReview/:id' ,element:<AddReviewPage />},
       { path:'/supplierRequest' ,element:<SupplierRequestForm/>},
-      { path:"/profile" ,element:<UserProfilePage /> },
+
+      // ── Profile section (nested) ──
+      {
+        path: "profile",
+        element: <ProfileLayout />,
+        children: [
+          { index: true, element: <ProfileInfoPage /> },
+          { path: "addresses", element: <AddressesPage /> },
+          { path: "orders", element: <OrdersPage /> },
+          { path: "orders/:id", element: <OrderDetailsPage /> },
+        ],
+      },
+
       { path:"/realLifePhotos" ,element:<RealLifePhotos /> },
       { path:"/favorites" ,element:<Favorites /> },
 
@@ -84,39 +101,34 @@ const router = createBrowserRouter([
       { path:'/order-tracking', element: <OrderTracking/> },
       { path:'/help-center', element: <HelpCenter/> },
 
+      {
+        path: '/admin',
+        element: <AdminDashboard />,
+        children: [
+          { path: 'products', element: <ProductList /> },
+          { path: 'products/add', element: <AddProduct /> },
+          { path: 'products/edit/:id', element: <EditProduct /> },
+          { path: 'categories', element: <CategoryList /> },
+          { path: 'categories/add', element: <AddCategory /> },
+          { path: 'categories/edit/:id', element: <EditCategory /> },
+          { path: 'supplier/add', element: <AddSupplier /> },
+          { path: 'supplier/edit/:id', element: <EditSupplier /> },
+          { path: 'suppliers', element: <SupplierList /> },
+          { path: 'supplierRequests', element: <SupplierRequestList /> },
+          { path: 'update/prices', element: <UpdatePrices/> },
+          { path: "update/images", element: <UpdateImages /> },
+          { path: 'realLifeImages/add', element: <AddRealLifePhoto /> },
+          { path: 'realLifeImages', element: <RealLifePhotoList /> },
+          { path: "settings", element: <MerchantSettings /> }
 
-
-
-
-
-
-
-{
-  path: '/admin',
-  element: <AdminDashboard />,
-  children: [
-    { path: 'products', element: <ProductList /> },
-    { path: 'products/add', element: <AddProduct /> },
-    { path: 'products/edit/:id', element: <EditProduct /> },
-    { path: 'categories', element: <CategoryList /> },
-    { path: 'categories/add', element: <AddCategory /> },
-    { path: 'categories/edit/:id', element: <EditCategory /> },
-    { path: 'supplier/add', element: <AddSupplier /> },
-    { path: 'supplier/edit/:id', element: <EditSupplier /> },
-    { path: 'suppliers', element: <SupplierList /> },
-    { path: 'supplierRequests', element: <SupplierRequestList /> },
-    { path: 'update/prices', element: <UpdatePrices/> },
-    { path: "update/images", element: <UpdateImages /> },
-    { path: 'realLifeImages/add', element: <AddRealLifePhoto /> },
-    { path: 'realLifeImages', element: <RealLifePhotoList /> },
-  ]
-},
-{path: '/executive',
-  element: <ExecutiveOrdersPage />,
-  children: [
-    
-  ]
-}
+        ]
+      },
+      {
+        path: '/executive',
+        element: <ExecutiveOrdersPage />,
+        children: [
+        ]
+      }
     ],
   },
 
@@ -128,44 +140,18 @@ const router = createBrowserRouter([
 ]);
 
 export default function AppRouter() {
-  // const { setUserRole } = useContext(UserContext); // from context
-
-  // useEffect(() => {
-  //   // Clean up app state or memory
-  //   sessionStorage.clear();
-
-  //   // Load token and fetch user
-  //   const token = localStorage.getItem("token");
-  //   if (token) {
-  //     fetch(`${BASE_URL}/api/client`, {
-  //       headers: {
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     })
-  //       .then(res => {
-  //         if (!res.ok) throw new Error("Invalid token");
-  //         return res.json();
-  //       })
-  //       .catch(() => {
-  //         localStorage.removeItem("token");
-  //       });
-  //   } else {
-  //     setUserRole(null); // no token at all
-  //   }
-  // }, []);
-
-   return (
-     <Suspense fallback={<SkeletonLoader />}>
-       <RouterProvider router={router} />
-       <ToastContainer
-          className="custom-toast-container"
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar
-          closeOnClick
-          pauseOnHover
-          draggable
-        />
-     </Suspense>
-   );
- }
+  return (
+    <Suspense fallback={<SkeletonLoader />}>
+      <RouterProvider router={router} />
+      <ToastContainer
+        className="custom-toast-container"
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
+    </Suspense>
+  );
+}

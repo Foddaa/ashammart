@@ -194,7 +194,8 @@ public class ProductService {
                                                List<Long> deletedImages,
                                                List<ProductVariantInputDTO> variantInputs,
                                                List<ColorImageMappingDTO> colorMappings,
-                                               List<ImageColorUpdateDTO> imageColorUpdates) {
+                                               List<ImageColorUpdateDTO> imageColorUpdates,
+                                               List<ImageOrderDTO> imageOrder) {
         try {
             logger.info("Updating product with id: {}", id);
             Product product = productRepository.findById(id)
@@ -336,6 +337,33 @@ public class ProductService {
 
                 // 3. Add the new variants
                 product.getVariants().addAll(newVariants);
+            }
+
+            // --- Apply image order ---
+            if (imageOrder != null && !imageOrder.isEmpty()) {
+                // Build a map of existing images by ID for quick lookup
+                Map<Long, Image> existingImagesMap = new HashMap<>();
+                for (Image img : imageRepository.findByProduct(product)) {
+                    existingImagesMap.put(img.getId(), img);
+                }
+                // newImageList is already in upload order (index 0, 1, 2, ...)
+                int orderIndex = 0;
+                for (ImageOrderDTO orderEntry : imageOrder) {
+                    if (orderEntry.getExistingId() != null) {
+                        Image img = existingImagesMap.get(orderEntry.getExistingId());
+                        if (img != null) {
+                            img.setOrder(orderIndex++);
+                            imageRepository.save(img);
+                        }
+                    } else if (orderEntry.getNewIndex() != null) {
+                        int newIndex = orderEntry.getNewIndex();
+                        if (newIndex >= 0 && newIndex < newImageList.size()) {
+                            newImageList.get(newIndex).setOrder(orderIndex++);
+                            imageRepository.save(newImageList.get(newIndex));
+                        }
+                    }
+                }
+                logger.info("Applied image order for {} images", imageOrder.size());
             }
 
             // --- Save product (cascade will persist changes) ---

@@ -4,6 +4,7 @@ import SearchOverlay from './SearchOverlay';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { UserContext } from "@/context/AuthContext";
 import { getCartItemCount } from "@/components/shared/cartService";
+import { ThemeToggle } from "./ThemeToggle";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -148,7 +149,7 @@ export default function HeaderSection() {
 
           {/* 1. User Account */}
           <Link
-            to={Token ? "/profile" : "/login"}
+            to={Token ? "profile" : "/login"}
             state={Token ? {} : { from: "/profile" }}
             className="flex items-center justify-center w-10 h-10 hover:bg-black/5 transition-colors duration-200"
             aria-label={Token ? "Profile" : "Sign In"}
@@ -211,7 +212,7 @@ export default function HeaderSection() {
               </svg>
             </Link>
           </div>
-
+          <ThemeToggle />
           {/* 4. Cart Widget (Native Icon) */}
           <div className="relative">
             <button
@@ -244,7 +245,7 @@ export default function HeaderSection() {
 
         </div>
       </div>
-
+            
       {/* Search Overlay - Rendered outside the header flex container */}
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>

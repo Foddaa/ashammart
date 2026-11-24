@@ -10,8 +10,8 @@ export default function RelatedProductsSlider({ relatedProducts }) {
   if (!relatedProducts?.length) return null;
 
   return (
-    <div className="mt-1 px-4  overflow-hidden text-left" dir="rtl">
-      <div className="relative p-4 md:p-6">
+    <div className=" overflow-hidden text-left" dir="rtl">
+      <div className="relative md:p-6">
         <Carousel
           autoPlay
           responsive={responsive}

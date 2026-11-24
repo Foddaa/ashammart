@@ -78,7 +78,8 @@ public class AdminController {
                                            @RequestParam(value = "deletedImages", required = false) String deletedImagesJson,
                                            @RequestParam(value = "variants", required = false) String variantsJson,
                                            @RequestParam(value = "colorImages", required = false) String colorImagesJson,
-                                           @RequestParam(value = "imageColorUpdates", required = false) String imageColorUpdatesJson) {
+                                           @RequestParam(value = "imageColorUpdates", required = false) String imageColorUpdatesJson,
+                                           @RequestParam(value = "imageOrder", required = false) String imageOrderJson) {
         logger.info("Updating product with ID: {}", id);
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -103,11 +104,16 @@ public class AdminController {
                 imageColorUpdates = mapper.readValue(imageColorUpdatesJson, new TypeReference<List<ImageColorUpdateDTO>>() {});
             }
 
+            List<ImageOrderDTO> imageOrder = new ArrayList<>();
+            if (imageOrderJson != null && !imageOrderJson.isBlank()) {
+                imageOrder = mapper.readValue(imageOrderJson, new TypeReference<List<ImageOrderDTO>>() {});
+            }
+
             ResponseEntity<?> response = productService.updateProductById(
                     id, name, code, description, price, canceledPrice, categoryId,
                     supplierCode, freeDelivery, fastDelivery,
                     newImages != null ? newImages : new MultipartFile[0],
-                    deletedImages, variants, colorMappings, imageColorUpdates
+                    deletedImages, variants, colorMappings, imageColorUpdates, imageOrder
             );
             if (response.getStatusCode().is2xxSuccessful()) {
                 logger.info("Product updated successfully with ID: {}", id);
