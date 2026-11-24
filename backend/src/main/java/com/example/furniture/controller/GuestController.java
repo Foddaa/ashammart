@@ -4,6 +4,7 @@ import com.example.furniture.inputDTO.ConfirmOrderRequest;
 import com.example.furniture.service.ClientService;
 import com.example.furniture.service.OrderService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,9 +21,16 @@ public class GuestController {
         this.clientService = clientService;
     }
     @PostMapping("/confirmOrder")
-    public ResponseEntity<?> confirmOrder(@RequestBody ConfirmOrderRequest request) {
+    public ResponseEntity<?> confirmOrder(@RequestBody ConfirmOrderRequest request, Authentication authentication) {
         try {
-            return orderService.confirmOrder(request);
+            // /api/guest/** is public, but if the customer is signed in the JWT filter
+            // still authenticates the request; link the order to their account in that case.
+            String clientEmail = null;
+            if (authentication != null && authentication.isAuthenticated()
+                    && authentication.getAuthorities().stream().anyMatch(a -> "ROLE_USER".equals(a.getAuthority()))) {
+                clientEmail = authentication.getName();
+            }
+            return orderService.confirmOrder(request, clientEmail);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

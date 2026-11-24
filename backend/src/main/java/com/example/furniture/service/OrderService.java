@@ -5,6 +5,7 @@ import com.example.furniture.inputDTO.*;
 import com.example.furniture.inputDTO.response.OrderDetailsDTO;
 import com.example.furniture.inputDTO.response.OrderItemDTO;
 import com.example.furniture.model.*;
+import com.example.furniture.repository.AddressRepository;
 import com.example.furniture.repository.CartItemRepository;
 import com.example.furniture.repository.OrderRepository;
 import com.example.furniture.repository.ProductRepository;
@@ -39,6 +40,8 @@ public class OrderService {
     ProductRepository productRepository;
     @Autowired
     ProductVariantRepository productVariantRepository;
+    @Autowired
+    AddressRepository addressRepository;
 
     @Transactional
     public OrderPreviewDTO placeOrder(String email) {
@@ -86,11 +89,12 @@ public class OrderService {
     }
 
     @Transactional
-    public ResponseEntity<?> confirmOrder(ConfirmOrderRequest request) {
-        log.info("confirmOrder: start phone={}, email={}, itemsCount={}",
+    public ResponseEntity<?> confirmOrder(ConfirmOrderRequest request, String clientEmail) {
+        log.info("confirmOrder: start phone={}, email={}, itemsCount={}, signedIn={}",
                 request.getPhone(),
                 request.getEmail(),
-                request.getItems() != null ? request.getItems().size() : 0);
+                request.getItems() != null ? request.getItems().size() : 0,
+                clientEmail != null);
 
         try {
             PaymentMethod payment;
@@ -152,9 +156,34 @@ public class OrderService {
             Map<Long, ProductVariant> variantById = variants.stream()
                     .collect(Collectors.toMap(ProductVariant::getId, v -> v));
 
+            // Signed-in customer: the order belongs to their account, not to whoever owns the phone number
+            Client signedInClient = clientEmail != null ? clientService.getClient(clientEmail) : null;
+
+            Address orderAddress = request.getAddress();
+            if (request.getAddressId() != null) {
+                if (signedInClient == null) {
+                    return ResponseEntity.badRequest().body("You must be signed in to use a saved address");
+                }
+                Address saved = addressRepository.findByIdAndClient(request.getAddressId(), signedInClient)
+                        .orElse(null);
+                if (saved == null) {
+                    log.warn("confirmOrder: address id={} not found for client id={}",
+                            request.getAddressId(), signedInClient.getId());
+                    return ResponseEntity.badRequest().body("Selected address was not found");
+                }
+                // Snapshot the saved address so later edits/deletes in the profile don't affect this order
+                orderAddress = new Address();
+                orderAddress.setCity(saved.getCity());
+                orderAddress.setDescription(saved.getDescription());
+            }
+            if (orderAddress == null || orderAddress.getCity() == null || orderAddress.getCity().isBlank()
+                    || orderAddress.getDescription() == null || orderAddress.getDescription().isBlank()) {
+                return ResponseEntity.badRequest().body("Delivery address is required");
+            }
+
             Order order = new Order();
             order.setStatus("Pending");
-            order.setAddress(request.getAddress());
+            order.setAddress(orderAddress);
             order.setOrderDate(LocalDateTime.now().toLocalDate());
             order.setEstimatedDeliveryDate(LocalDate.now().plusDays(10));
             order.setPaymentMethod(payment);
@@ -218,8 +247,13 @@ public class OrderService {
             order.setTotalCost(subtotal + order.getDeliveryCost());
 
             Client client;
-            Optional<Client> existingClient = clientService.getClientByPhone(request.getPhone());
-            if (existingClient.isPresent()) {
+            Optional<Client> existingClient = signedInClient != null
+                    ? Optional.empty()
+                    : clientService.getClientByPhone(request.getPhone());
+            if (signedInClient != null) {
+                client = signedInClient;
+                log.debug("confirmOrder: using signed-in client id={}", client.getId());
+            } else if (existingClient.isPresent()) {
                 client = existingClient.get();
                 log.debug("confirmOrder: reusing existing client id={}", client.getId());
             } else {

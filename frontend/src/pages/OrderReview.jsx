@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "@/api/axiosInstance"; // ✅ centralized API client
+import { UserContext } from "@/context/AuthContext";
 import PaymentMethod from "./PaymentMethod";
 import { clearCart } from "@/components/shared/cartService";
 import FilterDropdown from "@/components/shared/FilterDropdown";
@@ -61,11 +62,86 @@ export default function OrderReview() {
   
   const navigate = useNavigate();
 
+  // --- Signed-in customer: profile autofill + saved addresses ---
+  const { Token, role } = useContext(UserContext);
+  const isClient = !!Token && role === "USER";
+  const [addresses, setAddresses] = useState([]);
+  // id of the chosen saved address, or "new" to type a new one
+  const [selectedAddressId, setSelectedAddressId] = useState("new");
+  const [savingAddress, setSavingAddress] = useState(false);
+
   useEffect(() => {
     if (buyNow && comment) {
       setDescription(comment);
     }
   }, [buyNow, comment]);
+
+  useEffect(() => {
+    if (!isClient) {
+      setAddresses([]);
+      setSelectedAddressId("new");
+      return;
+    }
+    let cancelled = false;
+
+    api.get("/api/client/getProfile")
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        const [first = "", ...rest] = (data.name || "").trim().split(/\s+/);
+        // Only fill empty fields so we never overwrite what the customer already typed
+        setFirstName((prev) => prev || first);
+        setLastName((prev) => prev || rest.join(" "));
+        setEmail((prev) => prev || data.email || "");
+        setPhone((prev) => prev || data.phone || "");
+      })
+      .catch((err) => console.error("Failed to load profile:", err));
+
+    api.get("/api/client/getAddresses")
+      .then(({ data }) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : [];
+        setAddresses(list);
+        if (list.length > 0) selectAddress(list[0]);
+      })
+      .catch((err) => console.error("Failed to load addresses:", err));
+
+    return () => { cancelled = true; };
+  }, [isClient]);
+
+  const selectAddress = (address) => {
+    setSelectedAddressId(address.id);
+    if (address.city) setCity(address.city);
+    setDescription(address.description || "");
+  };
+
+  const selectNewAddress = () => {
+    setSelectedAddressId("new");
+    setDescription(buyNow && comment ? comment : "");
+  };
+
+  const handleSaveAddress = async () => {
+    if (!city || !description.trim()) {
+      toast.error("Please pick a city and enter the detailed address");
+      return;
+    }
+    setSavingAddress(true);
+    try {
+      const { data } = await api.post("/api/client/addAddress", {
+        city,
+        description: description.trim(),
+      });
+      setAddresses((prev) => [...prev, data]);
+      selectAddress(data);
+      toast.success("Address saved");
+    } catch (err) {
+      console.error("Failed to save address:", err);
+      toast.error("Failed to save address");
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  const usingSavedAddress = isClient && selectedAddressId !== "new";
 
   // Fetch delivery prices
   useEffect(() => {
@@ -107,7 +183,7 @@ export default function OrderReview() {
   }, [city, deliveryPrices, allFreeDelivery]);
 
   const handleConfirmOrder = async () => {
-    if (!firstName.trim() || !lastName.trim() || !phone.trim() || !paymentMethod || !city || !description.trim()) {
+    if (!firstName.trim() || !phone.trim() || !paymentMethod || !city || !description.trim()) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -122,6 +198,7 @@ export default function OrderReview() {
           phone: phone || null,
           paymentMethod,
           address: { city, description },
+          addressId: usingSavedAddress ? selectedAddressId : null,
           deliveryCost,
           items: items.map((item) => ({
             variantId: item.variantId, // Included for fallback
@@ -378,20 +455,78 @@ export default function OrderReview() {
         <div className="bg-white border border-neutral-200 p-4 sm:p-6 mb-6">
           <h3 className="text-sm font-medium tracking-wide text-neutral-800 border-b border-neutral-200 pb-3 mb-3">Delivery Information</h3>
           <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">City *</label>
-                <FilterDropdown value={city} onChange={setCity} options={CITY_OPTIONS} />
+            {/* Saved addresses (signed-in customers only) */}
+            {isClient && addresses.length > 0 && (
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Saved Addresses</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {addresses.map((a) => {
+                    const selected = selectedAddressId === a.id;
+                    return (
+                      <button
+                        type="button"
+                        key={a.id}
+                        onClick={() => selectAddress(a)}
+                        className={`text-left p-3 border transition-colors ${
+                          selected ? "border-neutral-900 bg-neutral-50" : "border-neutral-200 hover:border-neutral-400"
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className={`mt-1 w-3 h-3 shrink-0 rounded-full border ${
+                            selected ? "border-neutral-900 bg-neutral-900" : "border-neutral-300"
+                          }`} />
+                          <div className="min-w-0">
+                            <p className="text-[10px] uppercase tracking-widest text-neutral-400">{a.city || "—"}</p>
+                            <p className="text-sm text-neutral-800 break-words">{a.description || "—"}</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={selectNewAddress}
+                    className={`text-left p-3 border border-dashed transition-colors text-sm ${
+                      selectedAddressId === "new"
+                        ? "border-neutral-900 bg-neutral-50 text-neutral-900"
+                        : "border-neutral-300 text-neutral-500 hover:border-neutral-500"
+                    }`}
+                  >
+                    + New address
+                  </button>
+                </div>
               </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Detailed Address *</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black bg-transparent text-sm w-full resize-y"
-                rows="3"
-                placeholder="e.g., Tahrir Street, next to the metro station..."
-              />
-            </div>
+            )}
+
+            {/* Manual address entry: guests, or signed-in customers adding a new address */}
+            {!usingSavedAddress && (
+              <>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">City *</label>
+                  <FilterDropdown value={city} onChange={setCity} options={CITY_OPTIONS} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">Detailed Address *</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="border border-neutral-200 px-3 py-2 focus:outline-none focus:border-black bg-transparent text-sm w-full resize-y"
+                    rows="3"
+                    placeholder="e.g., Tahrir Street, next to the metro station..."
+                  />
+                </div>
+                {isClient && (
+                  <button
+                    type="button"
+                    onClick={handleSaveAddress}
+                    disabled={savingAddress}
+                    className="self-start border border-neutral-300 px-4 py-2 text-[10px] uppercase tracking-wider text-neutral-600 hover:border-black hover:text-black transition-colors disabled:opacity-50"
+                  >
+                    {savingAddress ? "Saving…" : "Save to my addresses"}
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
 
